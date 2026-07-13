@@ -119,6 +119,30 @@ body:not(.edit-mode) .header-btns{display:none}
 .sec-body .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer}
 .sec-body .spoiler.open{background:#ececec;color:var(--text)}
 .sec-body .note{color:var(--red)}
+/* アコーディオン */
+.sec-body .acc{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  margin:8px 0;box-shadow:0 1px 3px rgba(0,0,0,.05);
+  transition:box-shadow .18s,border-color .18s;
+}
+.sec-body .acc:hover{border-color:#bdbdbd}
+.sec-body .acc.open{box-shadow:0 4px 14px rgba(0,0,0,.08);border-color:#bdbdbd}
+.sec-body .acc-head{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 14px;cursor:pointer;user-select:none;
+  font-weight:700;font-size:14px;color:var(--text);
+}
+.sec-body .acc-head .chev{
+  color:var(--red);font-size:11px;line-height:1;flex-shrink:0;
+  transition:transform .18s ease;
+}
+.sec-body .acc.open .acc-head .chev{transform:rotate(90deg)}
+.sec-body .acc-body{
+  display:none;padding:10px 14px 13px;border-top:1px solid var(--line);
+  font-size:13px;
+}
+.sec-body .acc.open .acc-body{display:block}
+.sec-body .acc-body p:first-child{margin-top:0}
 .empty{color:var(--text-muted);font-size:13px;text-align:center;padding:30px 0}
 
 /* ---------- 編集エリア ---------- */
@@ -240,7 +264,8 @@ body:not(.edit-mode) .header-btns{display:none}
       <div class="editor-hint">
         <strong>Discord記法：</strong>
         **太字** / *斜体* / __下線__ / ~~取り消し線~~ / `コード` / ```コードブロック``` / &gt; 引用 / ||スポイラー|| / # 見出し / ## 中見出し / - リスト<br>
-        行頭の <strong>※</strong> は赤字になります。
+        行頭の <strong>※</strong> は赤字になります。<br>
+        <strong>アコーディオン：</strong> <code>:::見出し</code> … <code>:::</code> で囲むと開閉カードになります（中でも記法が使えます）。
       </div>
       <div id="secEdit"></div>
       <button class="ed-add" onclick="addSection()">＋ セクションを追加</button>
@@ -326,12 +351,33 @@ function inline(s){
   t = t.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
   return t;
 }
+function toggleAcc(el){ el.parentNode.classList.toggle('open'); }
+
 function renderMarkdown(src){
   const lines = String(src == null ? '' : src).split('\n');
   let html = '', inList = false, inCode = false, code = '';
   function closeList(){ if(inList){ html += '</ul>'; inList = false; } }
   for(let i=0;i<lines.length;i++){
     const raw = lines[i], line = raw.trim();
+    /* ::: 見出し … ::: → アコーディオン */
+    if(!inCode && /^:::\s*\S/.test(line)){
+      closeList();
+      const title = line.replace(/^:::\s*/, '');
+      const inner = [];
+      let j = i + 1, closed = false;
+      for(; j < lines.length; j++){
+        if(lines[j].trim() === ':::'){ closed = true; break; }
+        inner.push(lines[j]);
+      }
+      html += '<div class="acc">' +
+                '<div class="acc-head" onclick="toggleAcc(this)">' +
+                  '<span class="chev">▶</span><span>' + inline(title) + '</span>' +
+                '</div>' +
+                '<div class="acc-body">' + renderMarkdown(inner.join('\n')) + '</div>' +
+              '</div>';
+      i = closed ? j : lines.length;
+      continue;
+    }
     if(line.startsWith('```')){
       if(inCode){ html += '<pre><code>' + esc(code) + '</code></pre>'; code=''; inCode=false; }
       else { closeList(); inCode = true; }
