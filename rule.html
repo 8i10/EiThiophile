@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⛩ 卓のルール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f5f5;--surface:#ffffff;--surface2:#eeeeee;
+    --border:#d4d4d4;--accent:#333333;--accent2:#666666;
+    --text:#1a1a1a;--text-muted:#888888;--r18:#c04040;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Zen Kaku Gothic New",sans-serif;min-height:100vh;}
+
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 24px 14px;position:static;}
+  .header-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .header-title{font-family:"Noto Serif JP",serif;font-size:20px;letter-spacing:.05em;color:var(--accent);}
+  .header-sub{font-size:11px;color:var(--text-muted);margin-top:2px;letter-spacing:.08em;}
+  .header-btns{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+  .btn{background:rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.4);color:var(--accent);padding:5px 12px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;}
+  .btn:hover{background:rgba(0,0,0,.22);}
+
+  .main{padding:20px 24px 60px;max-width:1400px;margin:0 auto;}
+
+  /* 閲覧表示 */
+  .rule-view{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;line-height:1;font-size:11px;font-family:"Zen Kaku Gothic New",sans-serif;}
+
+  .rule-sec{margin-bottom:22px;}
+  .rule-sec-head{font-size:16px;font-weight:700;color:#000000;margin-bottom:8px;line-height:2.0;}
+  .rule-sec-head::before{content:"🔶 ";}
+  .rule-sec-body{font-size:11px;line-height:1.15;}
+  .rule-view h1{font-size:20px;font-weight:700;color:#000000;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);line-height:2.0;}
+  .rule-view h1:first-child{margin-top:0;}
+  .rule-view h2{font-size:16px;font-weight:700;color:#000000;margin:18px 0 8px;line-height:2.0;}
+  .rule-view h2::before{content:"🔶 ";}
+  .rule-view h3{font-size:12px;font-weight:700;margin:14px 0 6px;padding-left:8px;border-left:2px solid var(--text-muted);color:#000000;line-height:2.0;}
+  .rule-view p{margin:8px 0;}
+  .rule-view ul{margin:8px 0 8px 24px;}
+  .rule-view li{margin:3px 0;line-height:1.6;}
+  .rule-view strong{font-weight:700;}
+  .rule-view em{font-style:italic;}
+  .rule-view u{text-decoration:underline;}
+  .rule-view s{text-decoration:line-through;}
+  .rule-view code{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:"Zen Kaku Gothic New",sans-serif;font-size:9px;}
+  .rule-view pre{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0;}
+  .rule-view pre code{background:none;border:none;padding:0;}
+  .rule-view blockquote{border-left:3px solid var(--accent);padding:4px 14px;margin:10px 0;color:var(--text-muted);background:rgba(0,0,0,.06);border-radius:0 6px 6px 0;}
+  .rule-view .spoiler{background:var(--text);color:var(--text);border-radius:4px;padding:0 4px;cursor:pointer;transition:color .15s;}
+  .rule-view .spoiler.revealed{color:var(--surface);}
+  .rule-view a{color:var(--accent2);text-decoration:underline;}
+
+  /* 編集エリア */
+  .editor-wrap{display:none;}
+  .editor-wrap.active{display:block;}
+  .editor-textarea{width:100%;min-height:400px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;font-family:"Zen Kaku Gothic New",sans-serif;font-size:13px;line-height:1.6;color:var(--text);outline:none;resize:vertical;}
+  .editor-textarea:focus{border-color:var(--accent);}
+
+  .sec-edit{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .sec-edit-head{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+  .sec-edit-head .form-input{flex:1;font-weight:700;}
+  .sec-del{background:rgba(200,126,126,.1);border:1px solid rgba(200,126,126,.4);color:var(--r18);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+  .sec-body{width:100%;min-height:80px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:"Zen Kaku Gothic New",sans-serif;font-size:12px;line-height:1.6;color:var(--text);outline:none;resize:none;overflow:hidden;box-sizing:border-box;}
+  .sec-body:focus{border-color:var(--accent);}
+  .sec-move{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+  .sec-move button{background:var(--surface);border:1px solid var(--border);color:var(--text-muted);border-radius:4px;width:24px;height:18px;font-size:10px;cursor:pointer;line-height:1;padding:0;}
+  .editor-hint{font-size:11px;color:var(--text-muted);margin:8px 0;line-height:1.8;}
+  .editor-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end;}
+  .btn-save{background:rgba(0,0,0,.15);border:1px solid var(--accent);color:var(--accent);padding:8px 20px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-save:hover{background:rgba(0,0,0,.28);}
+  .btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:8px 16px;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;}
+
+  #loadingBanner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.15);backdrop-filter:blur(4px);padding:8px;justify-content:center;align-items:center;gap:8px;font-size:13px;color:var(--accent);border-bottom:1px solid var(--border);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spin{animation:spin 1s linear infinite;display:inline-block;}
+
+  /* トークンモーダル */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .modal-overlay.open{opacity:1;pointer-events:auto;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:90%;max-width:400px;}
+  .modal-head{padding:18px 20px 0;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:700;}
+  .modal-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;}
+  .modal-body{padding:14px 20px 20px;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13px;outline:none;}
+  .form-label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;}
+
+  @media(max-width:640px){
+    header{padding:12px;}
+    .header-title{font-size:16px;}
+    .header-sub{display:none;}
+    .main{padding:10px 10px 60px;}
+    .rule-view{padding:16px 18px;}
+  }
+</style>
+
+<style>
+/* ===== 共通ヘッダー（EITHIOPHILE） ===== */
+.eth-fix{position:sticky;top:0;z-index:1200}
+header.eth{background:#8b0000}
+.eth-inner{max-width:860px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eth-title{font-size:17px;font-weight:800;color:#ffffff;letter-spacing:.30em;font-family:Arial,Helvetica,sans-serif}
+.eth-navwrap{position:relative}
+.eth-navbtn{background:transparent;border:1px solid rgba(255,255,255,.6);border-radius:6px;padding:4px 11px;font-size:16px;line-height:1.2;cursor:pointer;color:#fff;font-family:inherit}
+.eth-navbtn:hover{background:rgba(255,255,255,.15)}
+.eth-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1300;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
+.eth-menu.open{display:block}
+.eth-mtab{display:block;width:100%;text-align:left;background:transparent;border:none;color:#222;padding:9px 12px;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit;border-radius:6px}
+.eth-mtab:hover{background:#ececec}
+.eth-mtab.active{background:#8b0000;color:#fff;font-weight:700}
+.eth-tabbar{background:#ffffff;border-bottom:1px solid #d4d4d4;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.eth-tabbar-inner{max-width:860px;margin:0 auto;display:flex}
+.eth-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#777;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.eth-tab:hover{color:#222}
+.eth-tab.active{color:#222;font-weight:700;border-bottom-color:#8b0000}
+</style>
+</head>
+<body>
+
+<div class="eth-fix">
+  <header class="eth">
+    <div class="eth-inner">
+      <div class="eth-title">EITHIOPHILE</div>
+      <div class="eth-navwrap">
+        <button class="eth-navbtn" id="ethNavBtn" aria-label="メニュー">≡</button>
+        <div class="eth-menu" id="ethNavMenu"></div>
+      </div>
+    </div>
+  </header>
+  <nav class="eth-tabbar" id="ethTabbar" style="display:none"><div class="eth-tabbar-inner" id="ethTabbarInner"></div></nav>
+</div>
+
+
+<div id="loadingBanner"><span class="spin">⏳</span> 同期中…</div>
+
+<div class="modal-overlay" id="tokenOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">GitHub Token設定</div><button class="modal-close" onclick="document.getElementById('tokenOverlay').classList.remove('open')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Personal Access Token（repo権限）を入力してください。</p>
+      <div style="margin-bottom:12px"><label class="form-label">GitHub Token</label><input class="form-input" id="tokenInput" type="password" placeholder="ghp_xxxxxxxxxxxx"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn-cancel" onclick="document.getElementById('tokenOverlay').classList.remove('open')">キャンセル</button><button class="btn-save" onclick="saveToken()">保存</button></div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-title"></div>
+      <div class="header-sub">TRPG / Table Rules</div>
+    </div>
+    <div class="header-btns" id="editBtns" style="display:none">
+      <button class="btn" onclick="copyViewUrl()">🔗 閲覧用URL</button>
+      <button class="btn" id="editToggle" onclick="toggleEdit()">✏️ 編集</button>
+      <button class="btn" onclick="openTokenModal()">🔑 トークン</button>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="rule-view" id="ruleView"></div>
+  <div class="editor-wrap" id="editorWrap">
+    <div class="editor-hint">
+      <strong>Discord記法（内容欄）：</strong>
+      **太字** / *斜体* / __下線__ / ~~取り消し線~~ / `コード` / ||スポイラー|| / - リスト
+    </div>
+    <div id="sectionList"></div>
+    <button class="btn" style="margin-top:10px" onclick="addSection()">＋ 見出しを追加</button>
+    <div class="editor-actions">
+      <button class="btn-cancel" onclick="cancelEdit()">キャンセル</button>
+      <button class="btn-save" onclick="saveRules()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const IS_EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
+const GH_REPO='8i10/kp-scenario', GH_BRANCH='main', GH_FILE='rules.json';
+const GH_API='https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_FILE;
+const GH_TOKEN_KEY='gh_token_v1';
+let sections=[]; // [{heading, body}]
+let editing=false;
+
+function getGHToken(){return localStorage.getItem(GH_TOKEN_KEY)||'';}
+function saveGHToken(t){localStorage.setItem(GH_TOKEN_KEY,t);}
+function ghHeaders(t){return {'Authorization':'token '+t,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};}
+function showLoading(o){document.getElementById('loadingBanner').style.display=o?'flex':'none';}
+
+async function getFileSha(t){const r=await fetch(GH_API+'?t='+Date.now(),{headers:ghHeaders(t)});if(r.status===404)return null;return (await r.json()).sha||null;}
+async function apiGet(){const t=getGHToken();const h=t?ghHeaders(t):{'Accept':'application/vnd.github.v3+json'};const r=await fetch(GH_API+'?t='+Date.now(),{headers:h});if(!r.ok)return null;const j=await r.json();return JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));}
+async function apiSave(data){const t=getGHToken();if(!t)throw new Error('トークン未設定');const sha=await getFileSha(t);const body={message:'Update rules.json',content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),branch:GH_BRANCH};if(sha)body.sha=sha;const r=await fetch(GH_API,{method:'PUT',headers:ghHeaders(t),body:JSON.stringify(body)});if(!r.ok){const e=await r.json();throw new Error(e.message||'API error');}return await r.json();}
+
+async function loadRules(){
+  showLoading(true);
+  try{
+    const d=await apiGet();
+    if(d&&Array.isArray(d.sections))sections=d.sections;
+    else if(d&&typeof d.text==='string'){
+      // 旧形式（単一テキスト）を1セクションに変換
+      sections=d.text.trim()?[{heading:'',body:d.text}]:[];
+    }
+  }catch(e){console.warn(e);}
+  showLoading(false);
+  renderRules();
+}
+
+// Discord記法 → HTML
+function renderMarkdown(src){
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines=src.split('\n');
+  let html='',inCode=false,codeBuf=[],inList=false;
+  const flushList=()=>{if(inList){html+='</ul>';inList=false;}};
+  for(let i=0;i<lines.length;i++){
+    let line=lines[i];
+    if(line.trim().startsWith('```')){
+      if(!inCode){inCode=true;codeBuf=[];}
+      else{inCode=false;html+='<pre><code>'+esc(codeBuf.join('\n'))+'</code></pre>';}
+      continue;
+    }
+    if(inCode){codeBuf.push(line);continue;}
+    if(/^# (.*)/.test(line)){flushList();html+='<h1>'+inline(esc(line.replace(/^# /,'')))+'</h1>';continue;}
+    if(/^## (.*)/.test(line)){flushList();html+='<h2>'+inline(esc(line.replace(/^## /,'')))+'</h2>';continue;}
+    if(/^### (.*)/.test(line)){flushList();html+='<h3>'+inline(esc(line.replace(/^### /,'')))+'</h3>';continue;}
+    if(/^> (.*)/.test(line)){flushList();html+='<blockquote>'+inline(esc(line.replace(/^> /,'')))+'</blockquote>';continue;}
+    if(/^[-*] (.*)/.test(line)){if(!inList){html+='<ul>';inList=true;}html+='<li>'+inline(esc(line.replace(/^[-*] /,'')))+'</li>';continue;}
+    flushList();
+    if(line.trim()==='')html+='<br>';
+    else{
+      const m=line.match(/^([ \u3000]+)/);
+      let escaped=esc(line);
+      if(m){
+        const indent=m[1].replace(/ /g,'&nbsp;');
+        escaped=indent+esc(line.slice(m[1].length));
+      }
+      html+='<p>'+inline(escaped)+'</p>';
+    }
+  }
+  flushList();
+  if(inCode)html+='<pre><code>'+esc(codeBuf.join('\n'))+'</code></pre>';
+  return html;
+}
+function inline(s){
+  s=s.replace(/\|\|(.+?)\|\|/g,'<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+  s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/__(.+?)__/g,'<u>$1</u>');
+  s=s.replace(/~~(.+?)~~/g,'<s>$1</s>');
+  s=s.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  s=s.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/(※[^<]*)/g,'<span style="color:var(--r18)">$1</span>');
+  return s;
+}
+
+function renderRules(){
+  const v=document.getElementById('ruleView');
+  if(!sections.length){v.innerHTML='<p style="color:var(--text-muted)">まだルールが記入されていません。</p>';return;}
+  v.innerHTML=sections.map(s=>{
+    const head=s.heading?'<div class="rule-sec-head">'+s.heading.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':'';
+    const body=s.body?'<div class="rule-sec-body">'+renderMarkdown(s.body)+'</div>':'';
+    return '<div class="rule-sec">'+head+body+'</div>';
+  }).join('');
+}
+
+function toggleEdit(){
+  editing=!editing;
+  document.getElementById('editorWrap').classList.toggle('active',editing);
+  document.getElementById('ruleView').style.display=editing?'none':'block';
+  document.getElementById('editToggle').textContent=editing?'👁 プレビュー':'✏️ 編集';
+  if(editing)renderSectionEditor();
+}
+
+function renderSectionEditor(){
+  const box=document.getElementById('sectionList');
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  box.innerHTML=sections.map((s,i)=>`
+    <div class="sec-edit">
+      <div class="sec-edit-head">
+        <div class="sec-move">
+          <button onclick="moveSection(${i},-1)" ${i===0?'disabled':''}>▲</button>
+          <button onclick="moveSection(${i},1)" ${i===sections.length-1?'disabled':''}>▼</button>
+        </div>
+        <input class="form-input" placeholder="見出し（🔶が自動で付きます）" value="${esc(s.heading)}" oninput="sections[${i}].heading=this.value">
+        <button class="sec-del" onclick="delSection(${i})">削除</button>
+      </div>
+      <textarea class="sec-body" placeholder="内容（Discord記法対応）" oninput="sections[${i}].body=this.value;autoGrow(this)" onkeydown="handleTab(event,${i})">${esc(s.body)}</textarea>
+    </div>
+  `).join('');
+  document.querySelectorAll('.sec-body').forEach(autoGrow);
+}
+function autoGrow(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
+function handleTab(e,i){
+  if(e.key!=='Tab')return;
+  e.preventDefault();
+  const ta=e.target;
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const indent='\u3000'; // 全角スペース1つ
+  ta.value=ta.value.slice(0,start)+indent+ta.value.slice(end);
+  ta.selectionStart=ta.selectionEnd=start+indent.length;
+  sections[i].body=ta.value;
+  autoGrow(ta);
+}
+function addSection(){sections.push({heading:'',body:''});renderSectionEditor();}
+function delSection(i){if(!confirm('この見出しを削除しますか？'))return;sections.splice(i,1);renderSectionEditor();}
+function moveSection(i,dir){const j=i+dir;if(j<0||j>=sections.length)return;[sections[i],sections[j]]=[sections[j],sections[i]];renderSectionEditor();}
+function cancelEdit(){editing=true;toggleEdit();}
+
+async function saveRules(){
+  const t=getGHToken();
+  if(!t){alert('🔑 トークンを設定してください');return;}
+  showLoading(true);
+  try{await apiSave({sections});await loadRules();editing=true;toggleEdit();}
+  catch(e){alert('保存失敗: '+e.message);}
+  showLoading(false);
+}
+
+function openTokenModal(){document.getElementById('tokenInput').value=getGHToken();document.getElementById('tokenOverlay').classList.add('open');}
+function saveToken(){const t=document.getElementById('tokenInput').value.trim();if(!t){alert('トークンを入力してください');return;}saveGHToken(t);document.getElementById('tokenOverlay').classList.remove('open');loadRules();}
+
+function copyViewUrl(){
+  const url=location.origin+location.pathname;
+  navigator.clipboard.writeText(url).then(()=>alert('閲覧用URLをコピーしました:\n'+url)).catch(()=>prompt('閲覧用URL',url));
+}
+if(IS_EDIT_MODE)document.getElementById('editBtns').style.display='flex';
+loadRules();
+</script>
+
+<script>
+/* ===== 共通ヘッダー（大ページ ≡メニュー / 小ページタブ） ===== */
+(function(){
+  var REPO   = "8i10/kp-scenario";
+  var BRANCH = "main";
+  var JSON_URL = "https://raw.githubusercontent.com/"+REPO+"/"+BRANCH+"/profile.json";
+  var HOME = "index.html";
+  var EDIT = new URLSearchParams(location.search).get("edit") === "1";
+  var SELF = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  function withEdit(u){
+    if(!EDIT) return u;
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "edit=1";
+  }
+  function fileOf(u){ return String(u||"").split("?")[0].split("/").pop().toLowerCase(); }
+  function isSelf(u){ return !!u && fileOf(u) === SELF; }
+
+  var menu = document.getElementById("ethNavMenu");
+  var btn  = document.getElementById("ethNavBtn");
+  function closeMenu(){ menu.classList.remove("open"); }
+  btn.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
+  document.addEventListener("click", function(e){
+    var w = document.querySelector(".eth-navwrap");
+    if(w && !w.contains(e.target)) closeMenu();
+  });
+
+  function majorHref(m){
+    if(m.url) return withEdit(m.url);
+    var ps = m.pages || [];
+    if(ps.length && ps.every(function(p){ return !!p.url; })) return withEdit(ps[0].url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || ""));
+  }
+  function pageHref(m, p){
+    if(p.url) return withEdit(p.url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || "") + "&page=" + encodeURIComponent(p.id || ""));
+  }
+
+  fetch(JSON_URL + "?t=" + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
+      var cur = null;
+      majors.forEach(function(m){
+        if(isSelf(m.url)) cur = m;
+        (m.pages || []).forEach(function(p){ if(isSelf(p.url)) cur = m; });
+      });
+
+      menu.innerHTML = "";
+      majors.forEach(function(m){
+        var b = document.createElement("button");
+        var here = (cur && m.id === cur.id);
+        b.className = "eth-mtab" + (here ? " active" : "");
+        b.textContent = (m.name || "(無題)") + (here ? "" : " ↗");
+        b.addEventListener("click", function(){ closeMenu(); location.href = majorHref(m); });
+        menu.appendChild(b);
+      });
+
+      var bar = document.getElementById("ethTabbar");
+      var inner = document.getElementById("ethTabbarInner");
+      inner.innerHTML = "";
+      if(cur && (cur.pages || []).length > 1){
+        bar.style.display = "";
+        cur.pages.forEach(function(p){
+          var b = document.createElement("button");
+          b.className = "eth-tab" + (isSelf(p.url) ? " active" : "");
+          b.textContent = p.name || "(無題)";
+          b.addEventListener("click", function(){ location.href = pageHref(cur, p); });
+          inner.appendChild(b);
+        });
+      }
+    })
+    .catch(function(){ /* 取得失敗時はメニュー空 */ });
+})();
+</script>
+
+</body>
+</html>

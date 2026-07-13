@@ -1,0 +1,893 @@
+[
+  {
+    "id": "1",
+    "ninzu": "タイマン",
+    "name": "そういえば昨日世界が終わりましたね",
+    "url": "https://3up.booth.pm/items/4882962",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "2",
+    "ninzu": "1PL",
+    "name": "紅燈の鬼",
+    "url": "https://booth.pm/ja/items/4841458",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "3",
+    "ninzu": "1PL",
+    "name": "刃牢の鬼嫁",
+    "url": "https://booth.pm/ja/items/5925981",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "4",
+    "ninzu": "タイマン",
+    "name": "躾けてごらんよご主人様",
+    "url": "https://booth.pm/ja/items/8182714",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "5",
+    "ninzu": "タイマン",
+    "name": "ミッドナイト・オーナレス・ハウンズ",
+    "url": "https://booth.pm/ja/items/8071231",
+    "ho": "",
+    "memo": "トワイライト・ハウンズ・オーダレスも",
+    "hot": true
+  },
+  {
+    "id": "6",
+    "ninzu": "タイマン",
+    "name": "孕わば骨まで",
+    "url": "https://hamo.booth.pm/items/3320002",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "7",
+    "ninzu": "タイマン",
+    "name": "揃いの屑",
+    "url": "https://raveparty.booth.pm/items/5058061",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "10",
+    "ninzu": "タイマン",
+    "name": "契り千切られ桜下に穢れ",
+    "url": "https://booth.pm/ja/items/8298124",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "11",
+    "ninzu": "1PL",
+    "name": "その容貌に果てを見る",
+    "url": "https://booth.pm/ja/items/5896850",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "12",
+    "ninzu": "1PL",
+    "name": "現の盃",
+    "url": "https://booth.pm/ja/items/3804534",
+    "ho": "",
+    "memo": "6版改変可なら",
+    "hot": false
+  },
+  {
+    "id": "13",
+    "ninzu": "1PL",
+    "name": "Psychothéke",
+    "url": "https://booth.pm/ja/items/6946053",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "14",
+    "ninzu": "1PL",
+    "name": "砂城の王",
+    "url": "https://booth.pm/ja/items/6265573",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "15",
+    "ninzu": "1PL",
+    "name": "戯曲 オムファロス",
+    "url": "https://booth.pm/ja/items/6932691",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "16",
+    "ninzu": "1PL",
+    "name": "メサイア",
+    "url": "https://theater-anemone.booth.pm/items/5343238",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "17",
+    "ninzu": "1PL",
+    "name": "紫煙の毒を喫する",
+    "url": "https://booth.pm/ja/items/7461576",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "18",
+    "ninzu": "タイマン",
+    "name": "たとえ終わりに仇となろうと",
+    "url": "https://booth.pm/ja/items/7206465",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "19",
+    "ninzu": "2PL",
+    "name": "百花魁星",
+    "url": "https://kanihaoisii.booth.pm/items/6502328",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "20",
+    "ninzu": "2PL",
+    "name": "怪祓─カイブツ─",
+    "url": "https://booth.pm/ja/items/7536096",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "21",
+    "ninzu": "2PL",
+    "name": "By Blood, By Blade",
+    "url": "https://booth.pm/ja/items/7526798",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "22",
+    "ninzu": "2PL",
+    "name": "Give・Myth・Chimaera",
+    "url": "https://booth.pm/ja/items/5488987",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "23",
+    "ninzu": "2PL",
+    "name": "嵐で一杯",
+    "url": "",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "24",
+    "ninzu": "2PL",
+    "name": "契れぬ鴆",
+    "url": "https://booth.pm/ja/items/4946057",
+    "ho": "HO2",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "25",
+    "ninzu": "2PL",
+    "name": "リコレクションレコード",
+    "url": "https://booth.pm/ja/items/3991364",
+    "ho": "HO2",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "27",
+    "ninzu": "2PL",
+    "name": "蒼天と狐火",
+    "url": "https://booth.pm/ja/items/8233735",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "28",
+    "ninzu": "2PL",
+    "name": "S∀NITY CR∀CK DOWN",
+    "url": "https://sansasaaaan.booth.pm/items/8416442",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "29",
+    "ninzu": "2PL",
+    "name": "𝟱𝗬𝗡𝗗𝗜𝗖",
+    "url": "https://norinorijoutokai.booth.pm/items/8297502",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "30",
+    "ninzu": "2PL",
+    "name": "アベリアの町",
+    "url": "https://booth.pm/ja/items/3061548",
+    "ho": "HO本の虫",
+    "memo": "※2周目 相方募集",
+    "hot": false
+  },
+  {
+    "id": "31",
+    "ninzu": "2PL",
+    "name": "CARPE DIEM AMICA MEA",
+    "url": "https://booth.pm/ja/items/6783927",
+    "ho": "HO古物商",
+    "memo": "相方募集",
+    "hot": false
+  },
+  {
+    "id": "32",
+    "ninzu": "2PL",
+    "name": "晦むムーンレイル",
+    "url": "https://booth.pm/ja/items/3421148",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "33",
+    "ninzu": "2PL",
+    "name": "ラプラスの黙示録",
+    "url": "https://booth.pm/ja/items/6207638",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "34",
+    "ninzu": "2PL",
+    "name": "オルタナティヴダブル",
+    "url": "https://booth.pm/ja/items/3277629",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "35",
+    "ninzu": "2PL",
+    "name": "愛哀鬼帰",
+    "url": "",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "36",
+    "ninzu": "2PL",
+    "name": "喪服と花束",
+    "url": "https://booth.pm/ja/items/7182529",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "37",
+    "ninzu": "2PL",
+    "name": "トウキョウカイブツ奇譚",
+    "url": "",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "38",
+    "ninzu": "2PL",
+    "name": "絵花屋の二匹",
+    "url": "https://booth.pm/ja/items/6026147",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "39",
+    "ninzu": "2PL",
+    "name": "祓人-ハライビト",
+    "url": "https://booth.pm/ja/items/4367655",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "40",
+    "ninzu": "2PL",
+    "name": "アルカイリス",
+    "url": "https://booth.pm/ja/items/5863128",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "41",
+    "ninzu": "2PL",
+    "name": "ファウストとショコラ",
+    "url": "https://booth.pm/ja/items/3679584",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "42",
+    "ninzu": "2PL",
+    "name": "キルユー！ラブユー！",
+    "url": "",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "43",
+    "ninzu": "タイマンor2PL",
+    "name": "DERIVED",
+    "url": "https://bisyokutei.booth.pm/items/4291191",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "44",
+    "ninzu": "2PL",
+    "name": "悪鬼羅刹と夜を駆けて",
+    "url": "https://booth.pm/ja/items/4533972",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "45",
+    "ninzu": "タイマンor2PL",
+    "name": "祓八卦屋怪異録",
+    "url": "https://booth.pm/ja/items/5426888",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "46",
+    "ninzu": "2PL",
+    "name": "マッチングアプリで出会った相手が殺人鬼だったんだけど(以下略)",
+    "url": "https://booth.pm/ja/items/5897616",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "47",
+    "ninzu": "2PL",
+    "name": "ひぐらし怪異探偵社",
+    "url": "https://booth.pm/ja/items/5370600",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "48",
+    "ninzu": "2PL",
+    "name": "刀狂双乱",
+    "url": "https://booth.pm/ja/items/4353272",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "49",
+    "ninzu": "2PL",
+    "name": "妖魔見廻警備隊",
+    "url": "https://booth.pm/ja/items/5441210",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "50",
+    "ninzu": "2PL",
+    "name": "告/解",
+    "url": "https://booth.pm/ja/items/6083571",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "51",
+    "ninzu": "2PL",
+    "name": "無敵の瞳",
+    "url": "https://booth.pm/ja/items/3910047",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "52",
+    "ninzu": "3PL",
+    "name": "怪士係",
+    "url": "https://booth.pm/ja/items/4913866",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "53",
+    "ninzu": "3PL",
+    "name": "1945 -RAGNAROC-",
+    "url": "",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "54",
+    "ninzu": "3PL",
+    "name": "春追いし、花たちは。",
+    "url": "https://booth.pm/ja/items/5248880",
+    "ho": "HO椿",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "55",
+    "ninzu": "3PL",
+    "name": "思想犯",
+    "url": "https://booth.pm/ja/items/3421358",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "56",
+    "ninzu": "3PL",
+    "name": "虚ろ誕りのデストラクション",
+    "url": "https://booth.pm/ja/items/6719006",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "57",
+    "ninzu": "3PL",
+    "name": "最大幸福のパラドックス",
+    "url": "https://booth.pm/ja/items/7408996",
+    "ho": "HO1or3",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "58",
+    "ninzu": "4PL",
+    "name": "ハッピーエンド・ヒウマノイズ",
+    "url": "https://booth.pm/ja/items/5222327",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "59",
+    "ninzu": "4PL",
+    "name": "MAM-ＦＢＩ神話分析対策課-",
+    "url": "https://booth.pm/ja/items/3212660",
+    "ho": "",
+    "memo": "※全編回していただける方",
+    "hot": true
+  },
+  {
+    "id": "60",
+    "ninzu": "4PL",
+    "name": "神話奇譚",
+    "url": "https://booth.pm/ja/items/7208766",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "61",
+    "ninzu": "4PL",
+    "name": "祓い屋ミスマル",
+    "url": "https://booth.pm/ja/items/6627061",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "62",
+    "ninzu": "4PL",
+    "name": "渡る世間は殺人鬼ばかり",
+    "url": "https://booth.pm/ja/items/3255053",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "63",
+    "ninzu": "4PL",
+    "name": "サタデーナイトスクワッド",
+    "url": "https://booth.pm/ja/items/6728197",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "64",
+    "ninzu": "4PL",
+    "name": "赫焔",
+    "url": "https://kimagurejidaraku.booth.pm/items/7560115",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "65",
+    "ninzu": "4PL",
+    "name": "警視庁刑事部 犯罪捜査第参〇壱課",
+    "url": "https://booth.pm/ja/items/4833096",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "66",
+    "ninzu": "4PL",
+    "name": "死季の亡霊達",
+    "url": "https://booth.pm/ja/items/6805820",
+    "ho": "HO3",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "67",
+    "ninzu": "4PL",
+    "name": "神話性レゾンデートル",
+    "url": "https://booth.pm/ja/items/4475805",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "68",
+    "ninzu": "4PL",
+    "name": "起承転結",
+    "url": "https://tmtmpmpm.booth.pm/items/6421856",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "69",
+    "ninzu": "4PL",
+    "name": "東京ゴーストマティカ",
+    "url": "https://booth.pm/ja/items/4264686",
+    "ho": "HO1or3",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "70",
+    "ninzu": "4PL",
+    "name": "愛々累々",
+    "url": "https://booth.pm/ja/items/5990633",
+    "ho": "HO1",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "71",
+    "ninzu": "4PL",
+    "name": "蠱毒独歩",
+    "url": "https://booth.pm/ja/items/5218106",
+    "ho": "HO1or4",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "72",
+    "ninzu": "4PL",
+    "name": "災匣シリーズ",
+    "url": "https://booth.pm/ja/items/4920449",
+    "ho": "",
+    "memo": "フィクサーと災演｜醒誕/災誕｜幽世常世の満天下｜イカロスの忠堰",
+    "hot": true
+  },
+  {
+    "id": "73",
+    "ninzu": "4PL",
+    "name": "魔が時に鵺の鳴く",
+    "url": "https://booth.pm/ja/items/3471875",
+    "ho": "HO2",
+    "memo": "続編出たら続編と一緒に行きたい",
+    "hot": false
+  },
+  {
+    "id": "74",
+    "ninzu": "4PL",
+    "name": "アポカリプスの天秤",
+    "url": "https://booth.pm/ja/items/3422503",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "75",
+    "ninzu": "4PL",
+    "name": "BLIND/JUSTICE",
+    "url": "https://booth.pm/ja/items/4300763",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "76",
+    "ninzu": "4PL",
+    "name": "地獄門討伐対策機関-GGSA-",
+    "url": "https://booth.pm/ja/items/3984718",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "77",
+    "ninzu": "4PL",
+    "name": "鬼芒",
+    "url": "https://booth.pm/ja/items/6615038",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "78",
+    "ninzu": "4PL",
+    "name": "伍戒",
+    "url": "https://booth.pm/ja/items/4186041",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "79",
+    "ninzu": "4PL",
+    "name": "悪華の観戦",
+    "url": "https://booth.pm/ja/items/3421423",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "80",
+    "ninzu": "4PL",
+    "name": "cRocK",
+    "url": "https://booth.pm/ja/items/6259364",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "81",
+    "ninzu": "4PL",
+    "name": "百奇夜仰",
+    "url": "https://booth.pm/ja/items/5248150",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "82",
+    "ninzu": "4PL",
+    "name": "偶像は四季に祈る",
+    "url": "https://booth.pm/ja/items/3679555",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "83",
+    "ninzu": "4PL",
+    "name": "變貌",
+    "url": "https://booth.pm/ja/items/8124616",
+    "ho": "HO2",
+    "memo": "地雷と相談",
+    "hot": false
+  },
+  {
+    "id": "84",
+    "ninzu": "4PL",
+    "name": "魎 もののけ",
+    "url": "https://booth.pm/ja/items/7336413",
+    "ho": "",
+    "memo": "6版で行けるなら",
+    "hot": false
+  },
+  {
+    "id": "85",
+    "ninzu": "4PL",
+    "name": "異端蛇説",
+    "url": "",
+    "ho": "",
+    "memo": "出たら",
+    "hot": false
+  },
+  {
+    "id": "86",
+    "ninzu": "4PL",
+    "name": "葬鯨",
+    "url": "https://x.com/Now_loading_TM/status/1977674673434341733",
+    "ho": "",
+    "memo": "出たら",
+    "hot": false
+  },
+  {
+    "id": "87",
+    "ninzu": "5PL以上",
+    "name": "ラプラスの探求者達",
+    "url": "https://booth.pm/ja/items/5337593",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "88",
+    "ninzu": "5PL以上",
+    "name": "神と悪魔のおまじない",
+    "url": "https://booth.pm/ja/items/5761709",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "89",
+    "ninzu": "5PL以上",
+    "name": "Ⅶ・peccata",
+    "url": "https://booth.pm/ja/items/4470662",
+    "ho": "HO憤怒or強欲",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "90",
+    "ninzu": "5PL以上",
+    "name": "KUZERO-クゼロ",
+    "url": "",
+    "ho": "",
+    "memo": "出たら",
+    "hot": false
+  },
+  {
+    "id": "91",
+    "ninzu": "複数人",
+    "name": "九頭龍の断頭台",
+    "url": "https://booth.pm/ja/items/7483277",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1782566666313",
+    "ninzu": "タイマン",
+    "name": "ゴカン談",
+    "url": "https://booth.pm/ja/items/7806189",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1782575828932",
+    "ninzu": "2PL",
+    "name": "APØSTLE",
+    "url": "https://booth.pm/ja/items/4531724",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1782695068578",
+    "ninzu": "タイマン",
+    "name": "怪物お兄ちゃん",
+    "url": "",
+    "ho": "",
+    "memo": "加筆前を読んだけど殆ど忘れた",
+    "hot": false
+  },
+  {
+    "id": "1782995475181",
+    "ninzu": "1PL",
+    "name": "蝕事",
+    "url": "https://shinyojurin7.booth.pm/items/6987738",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "1783005036772",
+    "ninzu": "タイマン",
+    "name": "肺になるのを待っている",
+    "url": "https://booth.pm/ja/items/7198470",
+    "ho": "",
+    "memo": "似合いそうなうちよそで行きたい",
+    "hot": true
+  },
+  {
+    "id": "1783178144267",
+    "ninzu": "タイマン",
+    "name": "たとえ拭えぬ血潮でも",
+    "url": "https://booth.pm/ja/items/7848673",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1783203969846",
+    "ninzu": "タイマンor2PL",
+    "name": "地獄の沙汰も餌次第",
+    "url": "https://booth.pm/ja/items/7130786",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1783253494154",
+    "ninzu": "タイマンor2PL",
+    "name": "死神と墓守",
+    "url": "https://yume-maboroshi.booth.pm/items/6343335",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1783294506187",
+    "ninzu": "タイマン",
+    "name": "シナプスの奴隷",
+    "url": "https://3116honpo.booth.pm/items/8443132",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "1783301486876",
+    "ninzu": "1PL",
+    "name": "その容貌に果てを見る",
+    "url": "https://hebinouenotori.booth.pm/items/5896850",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1783886728561",
+    "ninzu": "タイマン",
+    "name": "驅堕す",
+    "url": "https://minminseminar.booth.pm/items/4907098",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  }
+]
