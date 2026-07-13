@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRPGプレイスタイルチェックシート</title>
+<style>
+  :root{
+    --accent:#8b0000;
+    --accent-dark:#6b0000;
+    --ink:#222222;
+    --line:#333333;
+    --line-soft:#d4d4d4;
+    --n1:#f3d9d9;
+    --n2:#e2acac;
+    --n3:#cc6b6b;
+    --n4:#a82626;
+    --n5:#8b0000;
+    --seg-empty:#ececec;
+    --muted:#777777;
+    --bg:#f5f5f5;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;padding:0 0 64px;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+    line-height:1.6;-webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 14px 0;}
+  h1.page-title{font-size:21px;font-weight:700;text-align:center;margin:0 0 16px;letter-spacing:.04em;}
+
+  /* ---- panel ---- */
+  .panel{
+    background:var(--card);border:1px solid var(--line-soft);border-radius:8px;
+    padding:8px 10px;margin:0 0 18px;
+  }
+  .panel-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .field{flex:1 1 200px;min-width:150px;}
+  .field input{
+    width:100%;border:1px solid var(--line-soft);border-radius:5px;padding:5px 8px;
+    font:inherit;font-size:12px;background:#fff;color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  button.act{
+    border:1px solid var(--accent-dark);background:var(--accent);color:#fff;font:inherit;
+    font-weight:700;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;
+  }
+  button.act.ghost{background:#fff;color:var(--accent-dark);}
+  button.act:hover{filter:brightness(1.06);}
+  .status{font-size:12px;color:var(--accent-dark);}
+  .status:empty{display:none;}
+  .status.err{color:#a13232;}
+  .viewurl{font-size:11px;word-break:break-all;}
+  .viewurl:empty{display:none;}
+  .viewurl a{color:var(--accent-dark);}
+  .hint{font-size:10px;color:#999;}
+  .panel-meta{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+
+  .view-banner{
+    background:#fff4d6;border:1px solid #e3c766;color:#6b520f;border-radius:8px;
+    padding:10px 14px;margin:0 0 18px;font-size:13px;text-align:center;
+  }
+
+  /* ---- section ---- */
+  .sec{
+    background:var(--card);border:1px solid var(--line-soft);border-radius:10px;
+    margin-bottom:16px;overflow:hidden;
+  }
+  .sec-head{
+    background:var(--accent);color:#fff;font-weight:700;font-size:15px;
+    padding:9px 14px;display:flex;align-items:center;gap:8px;
+  }
+  .sec-head .sec-title{flex:1;}
+  .sec-head input.sec-title-input{
+    flex:1;font:inherit;font-size:15px;font-weight:700;color:#fff;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.5);
+    border-radius:5px;padding:3px 8px;
+  }
+  .sec-head input.sec-title-input::placeholder{color:rgba(255,255,255,.7);}
+  .sec-body{padding:6px 14px 12px;}
+
+  /* ---- item ---- */
+  .item{padding:10px 0;border-bottom:1px dashed var(--line-soft);}
+  .item:last-child{border-bottom:none;}
+  .item-name{
+    font-weight:700;font-size:13px;margin-bottom:6px;
+    padding-left:10px;border-left:3px solid var(--accent);
+  }
+  .item-val{padding-left:13px;}
+  .item-val textarea{
+    width:100%;min-height:58px;border:1px solid var(--line-soft);border-radius:6px;
+    padding:6px 9px;font:inherit;font-size:13px;color:var(--ink);background:#fff;resize:vertical;
+  }
+  .item-val textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  /* ---- meter ---- */
+  .meter-row{display:flex;align-items:center;gap:10px;}
+  .meter-label{
+    font-size:12px;color:var(--muted);flex:0 0 26%;word-break:break-word;line-height:1.4;
+  }
+  .meter-label.right{text-align:right;}
+  .meter{display:flex;gap:3px;flex:1;height:22px;}
+  .meter .seg{
+    flex:1 1 0;border:1px solid #c6c6c6;background:var(--seg-empty);cursor:pointer;
+    padding:0;border-radius:2px;transition:background .08s;
+  }
+  .meter .seg:first-child{border-top-left-radius:6px;border-bottom-left-radius:6px;}
+  .meter .seg:last-child{border-top-right-radius:6px;border-bottom-right-radius:6px;}
+  .meter .seg:hover{background:#dcdcdc;}
+  .meter .seg.on{background:var(--n5);border-color:var(--accent-dark);}
+  body.readonly .meter .seg{cursor:default;pointer-events:none;}
+
+  /* ---- editor controls ---- */
+  .edit-row{display:none;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+  body.editing .edit-row{display:flex;}
+  .edit-row input,.edit-row select{
+    border:1px solid var(--line-soft);border-radius:5px;padding:4px 7px;
+    font:inherit;font-size:12px;background:#fff;color:var(--ink);
+  }
+  .edit-row input.nm{flex:1 1 160px;min-width:120px;}
+  .edit-row input.lb{flex:1 1 110px;min-width:90px;}
+  .mv{
+    border:1px solid var(--line-soft);background:#fff;border-radius:5px;
+    width:26px;height:26px;font-size:11px;cursor:pointer;color:var(--ink);flex:0 0 auto;
+  }
+  .del{
+    border:1px solid var(--line-soft);background:#fff;border-radius:5px;
+    padding:3px 9px;font-size:11px;cursor:pointer;color:var(--accent);flex:0 0 auto;
+  }
+  .add-btn{
+    width:100%;background:#fff;border:1px dashed var(--line-soft);border-radius:8px;
+    padding:9px;font:inherit;font-size:12px;cursor:pointer;color:var(--muted);margin-top:8px;
+  }
+  .add-btn:hover{background:#ececec;color:var(--ink);}
+  .add-sec{margin-bottom:24px;}
+  body:not(.editing) .add-btn{display:none;}
+  body:not(.editing) .sec-head input.sec-title-input{display:none;}
+  body.editing .sec-head .sec-title{display:none;}
+  body:not(.editing) .item-name-view{display:block;}
+  body.editing .item-name-view{display:none;}
+  body.readonly .panel,body.readonly .add-btn,body.readonly .edit-row,
+  body.readonly #editBtn{display:none;}
+  body.readonly .item-val textarea{background:#fafafa;}
+
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 0;}
+  .source-note{text-align:right;font-size:12px;color:#666;margin-top:6px;}
+
+  @media (max-width:640px){
+    .meter-label{flex:0 0 22%;font-size:11px;}
+    .meter{height:20px;}
+  }
+</style>
+
+<style>
+/* ===== 共通ヘッダー（EITHIOPHILE） ===== */
+.eth-fix{position:sticky;top:0;z-index:1200}
+header.eth{background:#8b0000}
+.eth-inner{max-width:860px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eth-title{font-size:17px;font-weight:800;color:#ffffff;letter-spacing:.30em;font-family:Arial,Helvetica,sans-serif}
+.eth-navwrap{position:relative}
+.eth-navbtn{background:transparent;border:1px solid rgba(255,255,255,.6);border-radius:6px;padding:4px 11px;font-size:16px;line-height:1.2;cursor:pointer;color:#fff;font-family:inherit}
+.eth-navbtn:hover{background:rgba(255,255,255,.15)}
+.eth-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1300;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
+.eth-menu.open{display:block}
+.eth-mtab{display:block;width:100%;text-align:left;background:transparent;border:none;color:#222;padding:9px 12px;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit;border-radius:6px}
+.eth-mtab:hover{background:#ececec}
+.eth-mtab.active{background:#8b0000;color:#fff;font-weight:700}
+.eth-tabbar{background:#ffffff;border-bottom:1px solid #d4d4d4;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.eth-tabbar-inner{max-width:860px;margin:0 auto;display:flex}
+.eth-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#777;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.eth-tab:hover{color:#222}
+.eth-tab.active{color:#222;font-weight:700;border-bottom-color:#8b0000}
+</style>
+</head>
+<body>
+
+<div class="eth-fix">
+  <header class="eth">
+    <div class="eth-inner">
+      <div class="eth-title">EITHIOPHILE</div>
+      <div class="eth-navwrap">
+        <button class="eth-navbtn" id="ethNavBtn" aria-label="メニュー">≡</button>
+        <div class="eth-menu" id="ethNavMenu"></div>
+      </div>
+    </div>
+  </header>
+  <nav class="eth-tabbar" id="ethTabbar" style="display:none"><div class="eth-tabbar-inner" id="ethTabbarInner"></div></nav>
+</div>
+
+<div class="wrap">
+  <h1 class="page-title">TRPGプレイスタイルチェックシート</h1>
+
+  <div class="view-banner" id="viewBanner" style="display:none;">
+    閲覧モードで表示しています（編集はできません）。
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="panel-row">
+      <div class="field">
+        <input type="password" id="token" autocomplete="off" aria-label="GitHubトークン（gistスコープ）" placeholder="GitHubトークン（gistスコープ）">
+      </div>
+      <div class="field">
+        <input type="text" id="gistId" autocomplete="off" aria-label="Gist ID" placeholder="Gist ID">
+      </div>
+      <button class="act" id="editBtn">✏️ 編集</button>
+      <button class="act" id="saveBtn">保存</button>
+      <button class="act" id="syncBtn">同期</button>
+      <button class="act ghost" id="loadBtn">読込</button>
+      <button class="act ghost" id="copyUrlBtn">URLコピー</button>
+    </div>
+    <div class="panel-meta">
+      <div class="status" id="status"></div>
+      <div class="viewurl" id="viewUrl"></div>
+      <div class="hint">保存＝この端末（localStorage）／同期＝GitHub Gist。トークンはこのブラウザ内のみ。</div>
+    </div>
+  </div>
+
+  <div id="sections"></div>
+  <button class="add-btn add-sec" id="addSecBtn">＋ 見出しを追加</button>
+</div>
+
+<script>
+const LS_DATA  = "psc_data";
+const LS_TOKEN = "psc_token";
+const LS_GIST  = "psc_gist";
+const GIST_FILE = "playstyle_check.json";
+const LEVELS = 5;
+
+let DATA = { sections: [] };
+let EDITING = false;
+let READONLY = false;
+
+function uid(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
+function $(s){ return document.querySelector(s); }
+
+/* ---------- 描画 ---------- */
+function render(){
+  const wrap = document.getElementById("sections");
+  wrap.innerHTML = "";
+
+  if (!DATA.sections.length){
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = EDITING ? "「＋ 見出しを追加」から作成してください。" : "内容がありません。";
+    wrap.appendChild(e);
+    return;
+  }
+
+  DATA.sections.forEach(function(sec, si){
+    const box = document.createElement("section");
+    box.className = "sec";
+
+    /* 見出し */
+    const head = document.createElement("div");
+    head.className = "sec-head";
+    const up = mkBtn("mv", "▲", function(){ moveSec(si, -1); });
+    const dn = mkBtn("mv", "▼", function(){ moveSec(si, 1); });
+    up.style.display = dn.style.display = EDITING ? "" : "none";
+    const titleView = document.createElement("div");
+    titleView.className = "sec-title";
+    titleView.textContent = sec.title || "(無題)";
+    const titleInput = document.createElement("input");
+    titleInput.className = "sec-title-input";
+    titleInput.placeholder = "見出し";
+    titleInput.value = sec.title || "";
+    titleInput.addEventListener("input", function(){ sec.title = titleInput.value; });
+    const delSec = mkBtn("del", "削除", function(){
+      if (!confirm("この見出しを項目ごと削除しますか？")) return;
+      DATA.sections.splice(si, 1); render();
+    });
+    delSec.style.display = EDITING ? "" : "none";
+    head.appendChild(up); head.appendChild(dn);
+    head.appendChild(titleView); head.appendChild(titleInput);
+    head.appendChild(delSec);
+    box.appendChild(head);
+
+    /* 項目 */
+    const body = document.createElement("div");
+    body.className = "sec-body";
+    (sec.items || []).forEach(function(it, ii){
+      body.appendChild(buildItem(sec, it, si, ii));
+    });
+    const addItem = document.createElement("button");
+    addItem.className = "add-btn";
+    addItem.textContent = "＋ 項目を追加";
+    addItem.addEventListener("click", function(){
+      sec.items = sec.items || [];
+      sec.items.push({ id: uid(), name: "", type: "text", left: "", right: "", value: "", level: 0 });
+      render();
+    });
+    body.appendChild(addItem);
+    box.appendChild(body);
+
+    wrap.appendChild(box);
+  });
+}
+
+function mkBtn(cls, label, fn){
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = cls;
+  b.textContent = label;
+  b.addEventListener("click", fn);
+  return b;
+}
+
+function buildItem(sec, it, si, ii){
+  const row = document.createElement("div");
+  row.className = "item";
+
+  /* 編集行 */
+  const ed = document.createElement("div");
+  ed.className = "edit-row";
+  ed.appendChild(mkBtn("mv", "▲", function(){ moveItem(sec, ii, -1); }));
+  ed.appendChild(mkBtn("mv", "▼", function(){ moveItem(sec, ii, 1); }));
+
+  const nm = document.createElement("input");
+  nm.className = "nm";
+  nm.placeholder = "項目名";
+  nm.value = it.name || "";
+  nm.addEventListener("input", function(){
+    it.name = nm.value;
+    nameView.textContent = it.name || "(無題)";
+  });
+  ed.appendChild(nm);
+
+  const sel = document.createElement("select");
+  ["text", "meter"].forEach(function(t){
+    const o = document.createElement("option");
+    o.value = t;
+    o.textContent = (t === "text") ? "自由入力欄" : "メーター";
+    sel.appendChild(o);
+  });
+  sel.value = it.type || "text";
+  sel.addEventListener("change", function(){ it.type = sel.value; render(); });
+  ed.appendChild(sel);
+
+  if ((it.type || "text") === "meter"){
+    const lf = document.createElement("input");
+    lf.className = "lb";
+    lf.placeholder = "左のラベル";
+    lf.value = it.left || "";
+    lf.addEventListener("input", function(){ it.left = lf.value; lView.textContent = it.left; });
+    const rg = document.createElement("input");
+    rg.className = "lb";
+    rg.placeholder = "右のラベル";
+    rg.value = it.right || "";
+    rg.addEventListener("input", function(){ it.right = rg.value; rView.textContent = it.right; });
+    ed.appendChild(lf);
+    ed.appendChild(rg);
+  }
+
+  ed.appendChild(mkBtn("del", "削除", function(){
+    if (!confirm("この項目を削除しますか？")) return;
+    sec.items.splice(ii, 1); render();
+  }));
+  row.appendChild(ed);
+
+  /* 項目名（閲覧） */
+  const nameView = document.createElement("div");
+  nameView.className = "item-name item-name-view";
+  nameView.textContent = it.name || "(無題)";
+  row.appendChild(nameView);
+
+  /* 値 */
+  const val = document.createElement("div");
+  val.className = "item-val";
+  let lView, rView;
+
+  if ((it.type || "text") === "meter"){
+    const mr = document.createElement("div");
+    mr.className = "meter-row";
+    lView = document.createElement("div");
+    lView.className = "meter-label";
+    lView.textContent = it.left || "";
+    const meter = document.createElement("div");
+    meter.className = "meter";
+    for (let lv = 1; lv <= LEVELS; lv++){
+      const seg = document.createElement("button");
+      seg.type = "button";
+      seg.className = "seg" + (Number(it.level) === lv ? " on" : "");
+      seg.dataset.level = String(lv);
+      seg.setAttribute("aria-label", (it.name || "") + " " + lv);
+      seg.addEventListener("click", function(){
+        if (READONLY) return;
+        it.level = (Number(it.level) === lv) ? 0 : lv;
+        meter.querySelectorAll(".seg").forEach(function(s){
+          s.classList.toggle("on", Number(s.dataset.level) === Number(it.level));
+        });
+      });
+      meter.appendChild(seg);
+    }
+    rView = document.createElement("div");
+    rView.className = "meter-label right";
+    rView.textContent = it.right || "";
+    mr.appendChild(lView); mr.appendChild(meter); mr.appendChild(rView);
+    val.appendChild(mr);
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = it.value || "";
+    ta.placeholder = "自由入力";
+    ta.readOnly = READONLY;
+    ta.addEventListener("input", function(){ it.value = ta.value; });
+    val.appendChild(ta);
+  }
+  row.appendChild(val);
+  return row;
+}
+
+function moveSec(i, d){
+  const j = i + d;
+  if (j < 0 || j >= DATA.sections.length) return;
+  const t = DATA.sections[i]; DATA.sections[i] = DATA.sections[j]; DATA.sections[j] = t;
+  render();
+}
+function moveItem(sec, i, d){
+  const j = i + d;
+  if (j < 0 || j >= sec.items.length) return;
+  const t = sec.items[i]; sec.items[i] = sec.items[j]; sec.items[j] = t;
+  render();
+}
+
+/* ---------- 編集モード ---------- */
+function toggleEdit(){
+  EDITING = !EDITING;
+  document.body.classList.toggle("editing", EDITING);
+  document.getElementById("editBtn").textContent = EDITING ? "👁 プレビュー" : "✏️ 編集";
+  render();
+}
+
+/* ---------- 保存 ---------- */
+function buildPayload(){
+  return {
+    type: "playstyle_check_sheet",
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    sections: DATA.sections
+  };
+}
+function loadPayload(obj){
+  const secs = (obj && Array.isArray(obj.sections)) ? obj.sections : [];
+  DATA.sections = secs.map(function(s){
+    return {
+      id: s.id || uid(),
+      title: s.title || "",
+      items: (Array.isArray(s.items) ? s.items : []).map(function(i){
+        return {
+          id: i.id || uid(),
+          name: i.name || "",
+          type: (i.type === "meter") ? "meter" : "text",
+          left: i.left || "",
+          right: i.right || "",
+          value: i.value || "",
+          level: Number(i.level) || 0
+        };
+      })
+    };
+  });
+  render();
+}
+
+function setStatus(msg, isErr){
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "");
+}
+function saveLocalSilent(){
+  try{ localStorage.setItem(LS_DATA, JSON.stringify(buildPayload())); }catch(e){}
+}
+function saveLocal(){
+  try{
+    localStorage.setItem(LS_DATA, JSON.stringify(buildPayload()));
+    setStatus("この端末に保存しました。", false);
+  }catch(err){ setStatus("保存に失敗しました：" + err.message, true); }
+}
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(LS_DATA);
+    if (raw) loadPayload(JSON.parse(raw));
+  }catch(err){}
+}
+
+async function gistRequest(url, method, token, body){
+  const headers = { "Accept": "application/vnd.github+json" };
+  if (token) headers["Authorization"] = "token " + token;
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(url, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok){
+    let detail = res.status + " " + res.statusText;
+    try{ const j = await res.json(); if (j && j.message) detail = j.message; }catch(e){}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+async function syncGist(){
+  const token = document.getElementById("token").value.trim();
+  let gistId = document.getElementById("gistId").value.trim();
+  if (!token){ setStatus("同期にはGitHubトークン（gistスコープ）が必要です。", true); return; }
+  const files = {}; files[GIST_FILE] = { content: JSON.stringify(buildPayload(), null, 2) };
+  setStatus("同期中…", false);
+  try{
+    let result;
+    if (gistId){
+      result = await gistRequest("https://api.github.com/gists/" + gistId, "PATCH", token, { files: files });
+    }else{
+      result = await gistRequest("https://api.github.com/gists", "POST", token,
+        { description: "TRPGプレイスタイルチェックシート", public: false, files: files });
+      gistId = result.id;
+      document.getElementById("gistId").value = gistId;
+    }
+    localStorage.setItem(LS_TOKEN, token);
+    localStorage.setItem(LS_GIST, gistId);
+    saveLocalSilent();
+    showViewUrl(gistId);
+    setStatus("同期しました。", false);
+  }catch(err){ setStatus("同期に失敗しました：" + err.message, true); }
+}
+
+async function loadGist(){
+  const token = document.getElementById("token").value.trim();
+  const gistId = document.getElementById("gistId").value.trim();
+  if (!gistId){ setStatus("読み込むGist IDを入力してください。", true); return; }
+  setStatus("読込中…", false);
+  try{
+    const result = await gistRequest("https://api.github.com/gists/" + gistId, "GET", token || null, null);
+    const file = result.files && result.files[GIST_FILE];
+    if (!file){ setStatus("このGistに対象データが見つかりません。", true); return; }
+    loadPayload(JSON.parse(file.content));
+    localStorage.setItem(LS_GIST, gistId);
+    if (token) localStorage.setItem(LS_TOKEN, token);
+    saveLocalSilent();
+    showViewUrl(gistId);
+    setStatus("Gistから読み込みました。", false);
+  }catch(err){ setStatus("読込に失敗しました：" + err.message, true); }
+}
+
+function viewUrlFor(gistId){
+  return location.origin + location.pathname + "?view=" + encodeURIComponent(gistId);
+}
+function showViewUrl(gistId){
+  const el = document.getElementById("viewUrl");
+  const url = viewUrlFor(gistId);
+  el.innerHTML = "";
+  const label = document.createElement("span"); label.textContent = "閲覧用URL：";
+  const a = document.createElement("a"); a.href = url; a.textContent = url; a.target = "_blank"; a.rel = "noopener";
+  el.appendChild(label); el.appendChild(a);
+}
+async function copyViewUrl(){
+  const gistId = document.getElementById("gistId").value.trim() || localStorage.getItem(LS_GIST);
+  if (!gistId){ setStatus("先に同期して閲覧用URLを発行してください。", true); return; }
+  const url = viewUrlFor(gistId);
+  try{
+    await navigator.clipboard.writeText(url);
+    setStatus("閲覧用URLをコピーしました。", false);
+  }catch(err){
+    showViewUrl(gistId);
+    setStatus("コピーできませんでした。上のURLを手動でコピーしてください。", true);
+  }
+}
+
+async function enterViewMode(gistId){
+  READONLY = true;
+  document.body.classList.add("readonly");
+  document.getElementById("viewBanner").style.display = "block";
+  try{
+    const result = await gistRequest("https://api.github.com/gists/" + gistId, "GET", null, null);
+    const file = result.files && result.files[GIST_FILE];
+    if (!file){ document.getElementById("viewBanner").textContent = "閲覧用データが見つかりませんでした。"; return; }
+    loadPayload(JSON.parse(file.content));
+  }catch(err){
+    document.getElementById("viewBanner").textContent = "閲覧用データの取得に失敗しました：" + err.message;
+  }
+}
+
+/* ---------- init ---------- */
+function init(){
+  document.getElementById("addSecBtn").addEventListener("click", function(){
+    DATA.sections.push({ id: uid(), title: "", items: [] });
+    render();
+  });
+
+  const params = new URLSearchParams(location.search);
+  const view = params.get("view");
+  if (view){ render(); enterViewMode(view); return; }
+
+  const savedToken = localStorage.getItem(LS_TOKEN);
+  const savedGist = localStorage.getItem(LS_GIST);
+  if (savedToken) document.getElementById("token").value = savedToken;
+  if (savedGist){ document.getElementById("gistId").value = savedGist; showViewUrl(savedGist); }
+  loadLocal();
+  render();
+
+  document.getElementById("editBtn").addEventListener("click", toggleEdit);
+  document.getElementById("saveBtn").addEventListener("click", saveLocal);
+  document.getElementById("syncBtn").addEventListener("click", syncGist);
+  document.getElementById("loadBtn").addEventListener("click", loadGist);
+  document.getElementById("copyUrlBtn").addEventListener("click", copyViewUrl);
+}
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+}else{
+  init();
+}
+</script>
+
+<script>
+/* ===== 共通ヘッダー（大ページ ≡メニュー / 小ページタブ） ===== */
+(function(){
+  var REPO   = "8i10/kp-scenario";
+  var BRANCH = "main";
+  var JSON_URL = "https://raw.githubusercontent.com/"+REPO+"/"+BRANCH+"/profile.json";
+  var HOME = "index.html";
+  var EDIT = new URLSearchParams(location.search).get("edit") === "1";
+  var SELF = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  function withEdit(u){
+    if(!EDIT) return u;
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "edit=1";
+  }
+  function fileOf(u){ return String(u||"").split("?")[0].split("/").pop().toLowerCase(); }
+  function isSelf(u){ return !!u && fileOf(u) === SELF; }
+
+  var menu = document.getElementById("ethNavMenu");
+  var btn  = document.getElementById("ethNavBtn");
+  function closeMenu(){ menu.classList.remove("open"); }
+  btn.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
+  document.addEventListener("click", function(e){
+    var w = document.querySelector(".eth-navwrap");
+    if(w && !w.contains(e.target)) closeMenu();
+  });
+
+  function majorHref(m){
+    if(m.url) return withEdit(m.url);
+    var ps = m.pages || [];
+    if(ps.length && ps.every(function(p){ return !!p.url; })) return withEdit(ps[0].url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || ""));
+  }
+  function pageHref(m, p){
+    if(p.url) return withEdit(p.url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || "") + "&page=" + encodeURIComponent(p.id || ""));
+  }
+
+  fetch(JSON_URL + "?t=" + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
+      var cur = null;
+      majors.forEach(function(m){
+        if(isSelf(m.url)) cur = m;
+        (m.pages || []).forEach(function(p){ if(isSelf(p.url)) cur = m; });
+      });
+
+      menu.innerHTML = "";
+      majors.forEach(function(m){
+        var b = document.createElement("button");
+        var here = (cur && m.id === cur.id);
+        b.className = "eth-mtab" + (here ? " active" : "");
+        b.textContent = m.name || "(無題)";
+        b.addEventListener("click", function(){ closeMenu(); location.href = majorHref(m); });
+        menu.appendChild(b);
+      });
+
+      var bar = document.getElementById("ethTabbar");
+      var inner = document.getElementById("ethTabbarInner");
+      inner.innerHTML = "";
+      if(cur && (cur.pages || []).length > 1){
+        bar.style.display = "";
+        cur.pages.forEach(function(p){
+          var b = document.createElement("button");
+          b.className = "eth-tab" + (isSelf(p.url) ? " active" : "");
+          b.textContent = p.name || "(無題)";
+          b.addEventListener("click", function(){ location.href = pageHref(cur, p); });
+          inner.appendChild(b);
+        });
+      }
+    })
+    .catch(function(){ /* 取得失敗時はメニュー空 */ });
+})();
+</script>
+
+</body>
+</html>
