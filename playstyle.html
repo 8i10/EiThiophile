@@ -89,28 +89,72 @@
     padding-left:10px;border-left:3px solid var(--accent);
   }
   .item-val{padding-left:13px;}
+  /* 自由入力欄：枠線なし・自動伸縮 */
   .item-val textarea{
-    width:100%;min-height:58px;border:1px solid var(--line-soft);border-radius:6px;
-    padding:6px 9px;font:inherit;font-size:13px;color:var(--ink);background:#fff;resize:vertical;
+    width:100%;min-height:26px;border:none;background:transparent;border-radius:0;
+    padding:2px 0;font:inherit;font-size:13px;color:var(--ink);
+    resize:none;overflow:hidden;line-height:1.7;
   }
-  .item-val textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .item-val textarea:focus{outline:none;border:none;background:transparent;}
 
-  /* ---- meter ---- */
-  .meter-row{display:flex;align-items:center;gap:10px;}
-  .meter-label{
-    font-size:12px;color:var(--muted);flex:0 0 26%;word-break:break-word;line-height:1.4;
+  /* 自由入力欄（表示） */
+  .item-text{font-size:13px;word-break:break-word;}
+  .item-text p{margin:3px 0;}
+  .item-text ul{margin:3px 0 3px 20px;}
+  .item-text blockquote{border-left:3px solid var(--line-soft);padding-left:10px;color:var(--muted);margin:5px 0;}
+  .item-text code{background:#ececec;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;}
+  .item-text pre{background:#ececec;padding:9px;border-radius:6px;overflow-x:auto;margin:5px 0;}
+  .item-text pre code{background:none;padding:0;}
+  .item-text h1{font-size:17px;margin:8px 0 3px;}
+  .item-text h2{font-size:15px;margin:7px 0 3px;}
+  .item-text h3{font-size:14px;margin:7px 0 3px;}
+  .item-text .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer;}
+  .item-text .spoiler.open{background:#ececec;color:var(--ink);}
+  .item-text .note{color:var(--accent);}
+  .item-text .empty-val{color:#bbb;}
+
+  /* アコーディオン記法 */
+  .item-text .acc{
+    background:var(--card);border:1px solid var(--line-soft);border-radius:10px;
+    margin:7px 0;box-shadow:0 1px 3px rgba(0,0,0,.05);
+    transition:box-shadow .18s,border-color .18s;
   }
-  .meter-label.right{text-align:right;}
-  .meter{display:flex;gap:3px;flex:1;height:22px;}
+  .item-text .acc:hover{border-color:#bdbdbd;}
+  .item-text .acc.open{box-shadow:0 4px 14px rgba(0,0,0,.08);border-color:#bdbdbd;}
+  .item-text .acc-head{
+    display:flex;align-items:center;gap:8px;padding:10px 13px;cursor:pointer;user-select:none;
+    font-weight:700;font-size:13px;color:var(--ink);
+  }
+  .item-text .acc-head .chev{color:var(--accent);font-size:10px;line-height:1;flex-shrink:0;transition:transform .18s ease;}
+  .item-text .acc.open .acc-head .chev{transform:rotate(90deg);}
+  .item-text .acc-body{display:none;padding:9px 13px 12px;border-top:1px solid var(--line-soft);font-size:13px;}
+  .item-text .acc.open .acc-body{display:block;}
+  .item-text .acc-body p:first-child{margin-top:0;}
+
+  /* ---- meter（横幅いっぱい・細長い） ---- */
+  .meter-wrap{width:100%;}
+  .meter-labels{
+    display:flex;justify-content:space-between;gap:10px;
+    font-size:12px;color:var(--muted);margin-bottom:5px;line-height:1.4;
+  }
+  .meter-labels .right{text-align:right;}
+  .meter{display:flex;gap:2px;width:100%;height:14px;}
   .meter .seg{
     flex:1 1 0;border:1px solid #c6c6c6;background:var(--seg-empty);cursor:pointer;
     padding:0;border-radius:2px;transition:background .08s;
   }
-  .meter .seg:first-child{border-top-left-radius:6px;border-bottom-left-radius:6px;}
-  .meter .seg:last-child{border-top-right-radius:6px;border-bottom-right-radius:6px;}
+  .meter .seg:first-child{border-top-left-radius:7px;border-bottom-left-radius:7px;}
+  .meter .seg:last-child{border-top-right-radius:7px;border-bottom-right-radius:7px;}
   .meter .seg:hover{background:#dcdcdc;}
   .meter .seg.on{background:var(--n5);border-color:var(--accent-dark);}
   body.readonly .meter .seg{cursor:default;pointer-events:none;}
+
+  /* 記法ヒント */
+  .syntax-hint{
+    display:none;font-size:11px;color:var(--muted);background:#ececec;
+    border-radius:6px;padding:8px 10px;margin-bottom:14px;line-height:1.6;
+  }
+  body.editing .syntax-hint{display:block;}
 
   /* ---- editor controls ---- */
   .edit-row{display:none;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
@@ -218,6 +262,13 @@ header.eth{background:#8b0000}
     </div>
   </div>
 
+  <div class="syntax-hint">
+    <strong>Discord記法：</strong>
+    **太字** / *斜体* / __下線__ / ~~取り消し線~~ / `コード` / ```コードブロック``` / &gt; 引用 / ||スポイラー|| / # 見出し / ## 中見出し / - リスト<br>
+    行頭の <strong>※</strong> は赤字になります。<br>
+    <strong>アコーディオン：</strong> <code>:::見出し</code> … <code>:::</code> で囲むと開閉カードになります。
+  </div>
+
   <div id="sections"></div>
   <button class="add-btn add-sec" id="addSecBtn">＋ 見出しを追加</button>
 </div>
@@ -235,6 +286,78 @@ let READONLY = false;
 
 function uid(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
 function $(s){ return document.querySelector(s); }
+
+/* ---------- Discord記法レンダリング ---------- */
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function inline(s){
+  let t = esc(s);
+  t = t.replace(/```([\s\S]*?)```/g, function(m, c){ return "<pre><code>" + c.replace(/^\n/, "") + "</code></pre>"; });
+  t = t.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  t = t.replace(/\|\|([\s\S]+?)\|\|/g, '<span class="spoiler" onclick="this.classList.toggle(\'open\')">$1</span>');
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, "<strong><em>$1</em></strong>");
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  t = t.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+  t = t.replace(/__([^_\n]+)__/g, "<u>$1</u>");
+  t = t.replace(/~~([^~\n]+)~~/g, "<s>$1</s>");
+  t = t.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return t;
+}
+function toggleAcc(el){ el.parentNode.classList.toggle("open"); }
+
+function renderMarkdown(src){
+  const lines = String(src == null ? "" : src).split("\n");
+  let html = "", inList = false, inCode = false, code = "";
+  function closeList(){ if (inList){ html += "</ul>"; inList = false; } }
+  for (let i = 0; i < lines.length; i++){
+    const raw = lines[i], line = raw.trim();
+    if (!inCode && /^:::\s*\S/.test(line)){
+      closeList();
+      const title = line.replace(/^:::\s*/, "");
+      const inner = [];
+      let j = i + 1, closed = false;
+      for (; j < lines.length; j++){
+        if (lines[j].trim() === ":::"){ closed = true; break; }
+        inner.push(lines[j]);
+      }
+      html += '<div class="acc">' +
+                '<div class="acc-head" onclick="toggleAcc(this)">' +
+                  '<span class="chev">▶</span><span>' + inline(title) + "</span>" +
+                "</div>" +
+                '<div class="acc-body">' + renderMarkdown(inner.join("\n")) + "</div>" +
+              "</div>";
+      i = closed ? j : lines.length;
+      continue;
+    }
+    if (line.startsWith("```")){
+      if (inCode){ html += "<pre><code>" + esc(code) + "</code></pre>"; code = ""; inCode = false; }
+      else { closeList(); inCode = true; }
+      continue;
+    }
+    if (inCode){ code += raw + "\n"; continue; }
+    if (line === ""){ closeList(); continue; }
+    if (/^###\s+/.test(line)){ closeList(); html += "<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"; continue; }
+    if (/^##\s+/.test(line)){ closeList(); html += "<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"; continue; }
+    if (/^#\s+/.test(line)){ closeList(); html += "<h1>" + inline(line.replace(/^#\s+/, "")) + "</h1>"; continue; }
+    if (/^>\s?/.test(line)){ closeList(); html += "<blockquote>" + inline(line.replace(/^>\s?/, "")) + "</blockquote>"; continue; }
+    if (/^[-*]\s+/.test(line)){
+      if (!inList){ html += "<ul>"; inList = true; }
+      html += "<li>" + inline(line.replace(/^[-*]\s+/, "")) + "</li>";
+      continue;
+    }
+    closeList();
+    if (line.startsWith("※")) html += '<p class="note">' + inline(line) + "</p>";
+    else html += "<p>" + inline(line) + "</p>";
+  }
+  closeList();
+  if (inCode) html += "<pre><code>" + esc(code) + "</code></pre>";
+  return html;
+}
+
+function autoGrow(el){ el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
 
 /* ---------- 描画 ---------- */
 function render(){
@@ -371,11 +494,17 @@ function buildItem(sec, it, si, ii){
   let lView, rView;
 
   if ((it.type || "text") === "meter"){
-    const mr = document.createElement("div");
-    mr.className = "meter-row";
+    const mw = document.createElement("div");
+    mw.className = "meter-wrap";
+    const labels = document.createElement("div");
+    labels.className = "meter-labels";
     lView = document.createElement("div");
-    lView.className = "meter-label";
     lView.textContent = it.left || "";
+    rView = document.createElement("div");
+    rView.className = "right";
+    rView.textContent = it.right || "";
+    labels.appendChild(lView); labels.appendChild(rView);
+
     const meter = document.createElement("div");
     meter.className = "meter";
     for (let lv = 1; lv <= LEVELS; lv++){
@@ -393,18 +522,22 @@ function buildItem(sec, it, si, ii){
       });
       meter.appendChild(seg);
     }
-    rView = document.createElement("div");
-    rView.className = "meter-label right";
-    rView.textContent = it.right || "";
-    mr.appendChild(lView); mr.appendChild(meter); mr.appendChild(rView);
-    val.appendChild(mr);
-  } else {
+    mw.appendChild(labels); mw.appendChild(meter);
+    val.appendChild(mw);
+  } else if (EDITING){
     const ta = document.createElement("textarea");
     ta.value = it.value || "";
     ta.placeholder = "自由入力";
-    ta.readOnly = READONLY;
-    ta.addEventListener("input", function(){ it.value = ta.value; });
+    ta.addEventListener("input", function(){ it.value = ta.value; autoGrow(ta); });
     val.appendChild(ta);
+    setTimeout(function(){ autoGrow(ta); }, 0);
+  } else {
+    const box = document.createElement("div");
+    box.className = "item-text";
+    box.innerHTML = (it.value && it.value.trim())
+      ? renderMarkdown(it.value)
+      : '<p class="empty-val">（未入力）</p>';
+    val.appendChild(box);
   }
   row.appendChild(val);
   return row;
