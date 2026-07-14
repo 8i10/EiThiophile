@@ -114,6 +114,7 @@
   .item-text .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer;}
   .item-text .spoiler.open{background:#ececec;color:var(--ink);}
   .item-text .note{color:var(--accent);}
+  .item-text .blank{height:1em;margin:0;}
   .item-text .empty-val{color:#bbb;}
 
   /* アコーディオン記法 */
@@ -279,7 +280,7 @@ const LS_DATA  = "psc_data";
 const LS_TOKEN = "psc_token";
 const LS_GIST  = "psc_gist";
 const GIST_FILE = "playstyle_check.json";
-const LEVELS = 5;
+const LEVELS = 7;
 
 let DATA = { sections: [] };
 let EDITING = false;
@@ -357,7 +358,7 @@ function renderMarkdown(src){
       continue;
     }
     if (inCode){ code += raw + "\n"; continue; }
-    if (line === ""){ closeList(); continue; }
+    if (line === ""){ closeList(); html += '<p class="blank"></p>'; continue; }
     if (/^###\s+/.test(line)){ closeList(); html += "<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"; continue; }
     if (/^##\s+/.test(line)){ closeList(); html += "<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"; continue; }
     if (/^#\s+/.test(line)){ closeList(); html += "<h1>" + inline(line.replace(/^#\s+/, "")) + "</h1>"; continue; }
@@ -420,6 +421,7 @@ function render(){
     /* 見出し */
     const head = document.createElement("div");
     head.className = "sec-head";
+    if (!EDITING && !(sec.title || "").trim()) head.style.display = "none";
     const up = mkBtn("mv", "▲", function(){ moveSec(si, -1); });
     const dn = mkBtn("mv", "▼", function(){ moveSec(si, 1); });
     up.style.display = dn.style.display = EDITING ? "" : "none";
@@ -487,7 +489,7 @@ function buildItem(sec, it, si, ii){
   nm.value = it.name || "";
   nm.addEventListener("input", function(){
     it.name = nm.value;
-    nameView.textContent = it.name || "(無題)";
+    nameView.textContent = it.name || "";
   });
   ed.appendChild(nm);
 
@@ -523,10 +525,11 @@ function buildItem(sec, it, si, ii){
   }));
   row.appendChild(ed);
 
-  /* 項目名（閲覧） */
+  /* 項目名（閲覧）：未入力なら非表示 */
   const nameView = document.createElement("div");
   nameView.className = "item-name item-name-view";
-  nameView.textContent = it.name || "(無題)";
+  nameView.textContent = it.name || "";
+  if (!EDITING && !(it.name || "").trim()) nameView.style.display = "none";
   row.appendChild(nameView);
 
   /* 値 */

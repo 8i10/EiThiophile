@@ -123,6 +123,7 @@ body:not(.edit-mode) .header-btns{display:none}
 .sec-body .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer}
 .sec-body .spoiler.open{background:#ececec;color:var(--text)}
 .sec-body .note{color:var(--red)}
+.sec-body .blank{height:1em;margin:0}
 /* アコーディオン */
 .sec-body .acc{
   background:var(--card);border:1px solid var(--line);border-radius:10px;
@@ -409,7 +410,7 @@ function renderMarkdown(src){
       continue;
     }
     if(inCode){ code += raw + '\n'; continue; }
-    if(line === ''){ closeList(); continue; }
+    if(line === ''){ closeList(); html += '<p class="blank"></p>'; continue; }
     if(/^###\s+/.test(line)){ closeList(); html += '<h3>' + inline(line.replace(/^###\s+/,'')) + '</h3>'; continue; }
     if(/^##\s+/.test(line)){ closeList(); html += '<h2>' + inline(line.replace(/^##\s+/,'')) + '</h2>'; continue; }
     if(/^#\s+/.test(line)){ closeList(); html += '<h1>' + inline(line.replace(/^#\s+/,'')) + '</h1>'; continue; }
@@ -554,8 +555,10 @@ function renderView(){
   if(pg){
     (pg.sections || []).forEach(function(s){
       if(!s.heading && !s.body) return;
-      sec += '<div class="sec">' +
-               '<div class="sec-head"><img class="hd-ico" src="' + HD_ICON + '" alt="">' + esc(s.heading || '') + '</div>' +
+      const head = s.heading
+        ? '<div class="sec-head"><img class="hd-ico" src="' + HD_ICON + '" alt="">' + esc(s.heading) + '</div>'
+        : '';
+      sec += '<div class="sec">' + head +
                '<div class="sec-body">' + renderMarkdown(s.body || '') + '</div>' +
              '</div>';
     });
