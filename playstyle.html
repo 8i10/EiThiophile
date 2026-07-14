@@ -142,6 +142,7 @@
   body.editing .item-name-view{display:none;}
   body.readonly .panel,body.readonly .add-btn,body.readonly .edit-row,
   body.readonly #editBtn{display:none;}
+  body:not(.editmode) .panel{display:none;}
   body.readonly .item-val textarea{background:#fafafa;}
 
   .empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 0;}
@@ -576,7 +577,10 @@ async function enterViewMode(gistId){
 }
 
 /* ---------- init ---------- */
+const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
+
 function init(){
+  if (IS_EDIT_MODE) document.body.classList.add("editmode");
   document.getElementById("addSecBtn").addEventListener("click", function(){
     DATA.sections.push({ id: uid(), title: "", items: [] });
     render();
