@@ -152,7 +152,8 @@
   }
   body.readonly .panel{display:none;}
   body:not(.editmode) .panel{display:none;}
-  body.readonly .meter .seg{cursor:default;pointer-events:none;}
+  body.readonly .meter .seg,
+  body:not(.editmode) .meter .seg{cursor:default;pointer-events:none;}
 
   @media (max-width:640px){
     .th-guide{font-size:11px;}
@@ -300,7 +301,9 @@ function autoGrow(el){
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
+const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
 let READONLY = false;
+function canEdit(){ return !READONLY && IS_EDIT_MODE; }
 
 function keyOf(prefix, ci, ii){ return prefix + "c" + ci + "i" + ii; }
 
@@ -383,7 +386,7 @@ function buildSheet(cat, ci, opt){
     input.setAttribute("aria-label", name + " 備考");
     input.addEventListener("input", function(){
       autoGrow(input);
-      if (READONLY) return;
+      if (!canEdit()) return;
       STATE.notes[key] = input.value;
     });
     note.appendChild(input);
@@ -419,7 +422,7 @@ function applyState(){
 
 /* ---------- interaction ---------- */
 function onSegClick(e){
-  if (READONLY) return;
+  if (!canEdit()) return;
   const seg = e.target.closest(".seg");
   if (!seg) return;
   const meter = seg.closest(".meter");
@@ -647,8 +650,6 @@ async function enterViewMode(gistId){
 }
 
 /* ---------- init ---------- */
-const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
-
 function init(){
   if (IS_EDIT_MODE) document.body.classList.add("editmode");
   const container = document.getElementById("sheets");

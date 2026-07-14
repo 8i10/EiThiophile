@@ -151,7 +151,8 @@
   .meter .seg:last-child{border-top-right-radius:7px;border-bottom-right-radius:7px;}
   .meter .seg:hover{background:#dcdcdc;}
   .meter .seg.on{background:var(--n5);border-color:var(--accent-dark);}
-  body.readonly .meter .seg{cursor:default;pointer-events:none;}
+  body.readonly .meter .seg,
+  body:not(.editmode) .meter .seg{cursor:default;pointer-events:none;}
 
   /* 記法ヒント */
   .syntax-hint{
@@ -288,10 +289,12 @@ const GH_FILE   = "playstyle_check.json";
 const GH_API    = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_FILE;
 const GH_TOKEN_KEY = "gh_token_v1";
 const LEVELS = 7;
+const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
 
 let DATA = { sections: [] };
 let EDITING = false;
 let READONLY = false;
+function canEdit(){ return !READONLY && IS_EDIT_MODE; }
 
 function uid(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
 function $(s){ return document.querySelector(s); }
@@ -565,7 +568,7 @@ function buildItem(sec, it, si, ii){
       seg.dataset.level = String(lv);
       seg.setAttribute("aria-label", (it.name || "") + " " + lv);
       seg.addEventListener("click", function(){
-        if (READONLY) return;
+        if (!canEdit()) return;
         it.level = (Number(it.level) === lv) ? 0 : lv;
         meter.querySelectorAll(".seg").forEach(function(s){
           s.classList.toggle("on", Number(s.dataset.level) === Number(it.level));
@@ -834,8 +837,6 @@ async function enterViewMode(gistId){
 }
 
 /* ---------- init ---------- */
-const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
-
 function init(){
   if (IS_EDIT_MODE) document.body.classList.add("editmode");
   document.getElementById("addSecBtn").addEventListener("click", function(){
