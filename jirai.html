@@ -22,14 +22,6 @@
   --mono:"JetBrains Mono",monospace;
   color-scheme:light;
 }
-[data-theme="dark"]{
-  --bg:#1a1a1a; --bg2:#242424; --bg3:#2e2e2e; --panel:#242424;
-  --line:#3a3a3a; --line2:#4a4a4a;
-  --ink:#eaeaea; --muted:#9a9a9a; --faint:#767676;
-  --accent:#a31414; --accent-h:#c22323;
-  --shadow:0 8px 30px rgba(0,0,0,.45);
-  color-scheme:dark;
-}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;min-height:100%}
 html{background:var(--bg)}
@@ -400,12 +392,12 @@ const GH_TOKEN_KEY = "gh_token_v1";
 const LS_DATA = "jirai_data_v1";
 const LS_PAT  = "jirai_pat";
 const LS_GIST = "jirai_gist_id";
-const LS_THEME= "jirai_theme";
 const PALETTE = ["#8b0000","#666666","#333333","#a31414","#999999","#c25e8a"];
 
 let state = null;      // {title,intro,updated,tabs:[{id,name,color,entries:[{id,title,body}]}]}
 let active = 0;        // active tab index
-let readOnly = false;  // ?view= mode
+const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
+let readOnly = false;  // ?view= / 非編集モード
 let editing = false;
 let gistId = null;
 let editingEntry = null; // entry id currently in form (or "__new__")
@@ -817,15 +809,9 @@ function buildToolbar(){
     tb.appendChild(editBtn);
     if(editing){
       tb.appendChild(mk("☁ GitHubへ保存","", ()=>publishRepo().catch(e=>toast(e.message))));
-      tb.appendChild(mk("🔗 URL","ghost", ()=>{ if(gistId) showUrl(); else toast("先に「公開・更新」してください"); }));
       tb.appendChild(mk("⚙ 同期設定","ghost", openTokenModal));
     }
-  }else{
-    const badge=document.createElement("span");
-    badge.className="btn ghost"; badge.style.pointerEvents="none"; badge.textContent="👁 閲覧専用";
-    tb.appendChild(badge);
   }
-  tb.appendChild(mk(theme()==="light"?"🌙 ダーク":"☀ ライト","ghost", toggleTheme));
 }
 function toggleEdit(){
   if(readOnly) return;
@@ -839,9 +825,6 @@ function toggleEdit(){
 }
 
 /* ---------- theme ---------- */
-function theme(){ return document.documentElement.getAttribute("data-theme")||"light"; }
-function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); }
-function toggleTheme(){ const t=theme()==="light"?"dark":"light"; applyTheme(t); localStorage.setItem(LS_THEME,t); buildToolbar(); }
 
 /* ---------- modals ---------- */
 function openTokenModal(){ $("#tokenInput").value=localStorage.getItem(LS_PAT)||""; $("#tokenMask").classList.add("on"); }
@@ -860,7 +843,6 @@ function wireEditable(){
 
 /* ---------- init ---------- */
 async function init(){
-  applyTheme(localStorage.getItem(LS_THEME)||"light");
 
   // modal close handlers
   document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{ $("#tokenMask").classList.remove("on"); $("#urlMask").classList.remove("on"); });
@@ -880,6 +862,7 @@ async function init(){
     try{ state=await fetchGist(view); }
     catch(e){ $("#introEl").textContent=e.message; state=defaultState(); }
   }else{
+    if(!IS_EDIT_MODE) readOnly=true;
     gistId=localStorage.getItem(LS_GIST)||null;
     buildToolbar();
     /* まずGitHubリポジトリから読み込み（全端末共通）。失敗時はこの端末の保存分 */
