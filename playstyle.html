@@ -246,21 +246,21 @@ header.eth{background:#8b0000}
   <div class="panel" id="panel">
     <div class="panel-row">
       <div class="field">
-        <input type="password" id="token" autocomplete="off" aria-label="GitHubトークン（gistスコープ）" placeholder="GitHubトークン（gistスコープ）">
+        <input type="password" id="token" autocomplete="off" aria-label="GitHubトークン（repo権限）" placeholder="GitHubトークン（repo権限）">
       </div>
       <div class="field">
-        <input type="text" id="gistId" autocomplete="off" aria-label="Gist ID" placeholder="Gist ID">
+        <input type="text" id="gistId" autocomplete="off" aria-label="Gist ID（共有用・任意）" placeholder="Gist ID（共有用・任意）">
       </div>
       <button class="act" id="editBtn">✏️ 編集</button>
       <button class="act" id="saveBtn">保存</button>
-      <button class="act" id="syncBtn">同期</button>
-      <button class="act ghost" id="loadBtn">読込</button>
+      <button class="act" id="syncBtn">GitHubへ保存</button>
+      <button class="act ghost" id="loadBtn">再読込</button>
       <button class="act ghost" id="copyUrlBtn">URLコピー</button>
     </div>
     <div class="panel-meta">
       <div class="status" id="status"></div>
       <div class="viewurl" id="viewUrl"></div>
-      <div class="hint">保存＝この端末（localStorage）／同期＝GitHub Gist。トークンはこのブラウザ内のみ。</div>
+      <div class="hint">保存＝この端末（localStorage）／GitHubへ保存＝リポジトリの JSON を更新（別端末でも自動で反映）。トークンはこのブラウザ内のみ。</div>
     </div>
   </div>
 
@@ -280,6 +280,13 @@ const LS_DATA  = "psc_data";
 const LS_TOKEN = "psc_token";
 const LS_GIST  = "psc_gist";
 const GIST_FILE = "playstyle_check.json";
+
+/* ---- GitHubリポジトリ保存（全端末で共有） ---- */
+const GH_REPO   = "8i10/kp-scenario";
+const GH_BRANCH = "main";
+const GH_FILE   = "playstyle_check.json";
+const GH_API    = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_FILE;
+const GH_TOKEN_KEY = "gh_token_v1";
 const LEVELS = 7;
 
 let DATA = { sections: [] };
@@ -661,6 +668,78 @@ function loadLocal(){
   }catch(err){}
 }
 
+function ghHeaders(token){
+  const hd = { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" };
+  if (token) hd["Authorization"] = "token " + token;
+  return hd;
+}
+function ghToken(){
+  const v = document.getElementById("token");
+  return (v && v.value.trim()) || localStorage.getItem(GH_TOKEN_KEY) || "";
+}
+function decodeB64(b64){
+  const bin = atob(String(b64).replace(/\n/g, ""));
+  return decodeURIComponent(Array.prototype.map.call(bin, function(c){
+    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
+}
+function encodeB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* リポジトリから読み込む（未ログインでも可） */
+async function loadFromRepo(){
+  const token = ghToken();
+  const res = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+    { headers: ghHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const j = await res.json();
+  if (!j || !j.content) throw new Error("no content");
+  return JSON.parse(decodeB64(j.content));
+}
+
+/* リポジトリへ保存 */
+async function saveToRepo(){
+  const token = ghToken();
+  if (!token){
+    setStatus("GitHubトークン（repo権限）を入力してください。", true);
+    return;
+  }
+  setStatus("GitHubへ保存中…", false);
+  try{
+    let sha = null;
+    try{
+      const cur = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+        { headers: ghHeaders(token), cache: "no-store" });
+      if (cur.ok){ const cj = await cur.json(); sha = cj.sha || null; }
+    }catch(e){}
+
+    const text = JSON.stringify(buildPayload(), null, 2);
+    const body = { message: "update " + GH_FILE, content: encodeB64(text), branch: GH_BRANCH };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(GH_API, { method: "PUT", headers: ghHeaders(token), body: JSON.stringify(body) });
+    const rj = await res.json().catch(function(){ return {}; });
+    if (!res.ok) throw new Error("HTTP " + res.status + " " + (rj.message || ""));
+
+    localStorage.setItem(GH_TOKEN_KEY, token);
+    saveLocalSilent();
+    setStatus("GitHubへ保存しました（全端末で反映されます）。", false);
+  }catch(err){
+    setStatus("GitHubへの保存に失敗しました：" + err.message, true);
+  }
+}
+
+/* リポジトリから再読込 */
+async function reloadFromRepo(){
+  setStatus("読込中…", false);
+  try{
+    loadPayload(await loadFromRepo());
+    saveLocalSilent();
+    setStatus("GitHubから読み込みました。", false);
+  }catch(err){
+    setStatus("読込に失敗しました：" + err.message, true);
+  }
+}
+
 async function gistRequest(url, method, token, body){
   const headers = { "Accept": "application/vnd.github+json" };
   if (token) headers["Authorization"] = "token " + token;
@@ -768,17 +847,29 @@ function init(){
   const view = params.get("view");
   if (view){ render(); enterViewMode(view); return; }
 
-  const savedToken = localStorage.getItem(LS_TOKEN);
+  const savedToken = localStorage.getItem(GH_TOKEN_KEY) || localStorage.getItem(LS_TOKEN);
   const savedGist = localStorage.getItem(LS_GIST);
   if (savedToken) document.getElementById("token").value = savedToken;
-  if (savedGist){ document.getElementById("gistId").value = savedGist; showViewUrl(savedGist); }
-  loadLocal();
-  render();
+  if (savedGist) document.getElementById("gistId").value = savedGist;
+
+  /* まずGitHubリポジトリから読み込み（全端末共通）。失敗時はこの端末の保存分 */
+  loadFromRepo()
+    .then(function(obj){ loadPayload(obj); saveLocalSilent(); })
+    .catch(function(err){
+      loadLocal();
+      render();
+      if (!DATA.sections.length){
+        const b = document.getElementById("viewBanner");
+        b.style.display = "block";
+        b.textContent = "GitHub上のデータを読み込めませんでした（" + err.message +
+          "）。編集端末で ?edit=1 を開き「GitHubへ保存」を実行してください。";
+      }
+    });
 
   document.getElementById("editBtn").addEventListener("click", toggleEdit);
   document.getElementById("saveBtn").addEventListener("click", saveLocal);
-  document.getElementById("syncBtn").addEventListener("click", syncGist);
-  document.getElementById("loadBtn").addEventListener("click", loadGist);
+  document.getElementById("syncBtn").addEventListener("click", saveToRepo);
+  document.getElementById("loadBtn").addEventListener("click", reloadFromRepo);
   document.getElementById("copyUrlBtn").addEventListener("click", copyViewUrl);
 }
 
