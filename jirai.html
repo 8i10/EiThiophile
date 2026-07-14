@@ -390,6 +390,13 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 "use strict";
 
 const GIST_FILE = "jirai.json";
+
+/* ---- GitHubリポジトリ保存（全端末で共有） ---- */
+const GH_REPO   = "8i10/kp-scenario";
+const GH_BRANCH = "main";
+const GH_FILE   = "jirai.json";
+const GH_API    = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_FILE;
+const GH_TOKEN_KEY = "gh_token_v1";
 const LS_DATA = "jirai_data_v1";
 const LS_PAT  = "jirai_pat";
 const LS_GIST = "jirai_gist_id";
@@ -518,7 +525,61 @@ function saveLocal(){
   try{ localStorage.setItem(LS_DATA, JSON.stringify(state)); }catch(e){}
 }
 
-/* ---------- gist ---------- */
+/* ---------- GitHubリポジトリ ---------- */
+function ghToken(){
+  return localStorage.getItem(LS_PAT) || localStorage.getItem(GH_TOKEN_KEY) || "";
+}
+function ghHeaders(token){
+  const hd = { Accept:"application/vnd.github+json", "Content-Type":"application/json" };
+  if(token) hd.Authorization = "token " + token;
+  return hd;
+}
+function decodeB64(b64){
+  const bin = atob(String(b64).replace(/\n/g,""));
+  return decodeURIComponent(Array.prototype.map.call(bin,function(c){
+    return "%" + ("00"+c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
+}
+function encodeB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+async function fetchRepo(){
+  const r = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+    { headers: ghHeaders(ghToken()), cache:"no-store" });
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  if(!j || !j.content) throw new Error("no content");
+  return JSON.parse(decodeB64(j.content));
+}
+
+async function publishRepo(){
+  const token = ghToken();
+  if(!token){ openTokenModal(); return; }
+  state.updated = today();
+  toast("保存中…");
+
+  let sha = null;
+  try{
+    const cur = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+      { headers: ghHeaders(token), cache:"no-store" });
+    if(cur.ok){ const cj = await cur.json(); sha = cj.sha || null; }
+  }catch(e){}
+
+  const body = { message:"update " + GH_FILE, content: encodeB64(JSON.stringify(state,null,2)), branch: GH_BRANCH };
+  if(sha) body.sha = sha;
+
+  const r = await fetch(GH_API, { method:"PUT", headers: ghHeaders(token), body: JSON.stringify(body) });
+  if(r.status===401 || r.status===403){ toast("トークンが無効です（repo権限が必要）"); openTokenModal(); return; }
+  if(!r.ok){
+    const j = await r.json().catch(()=>({}));
+    toast("保存に失敗しました (" + r.status + " " + (j.message||"") + ")");
+    return;
+  }
+  localStorage.setItem(GH_TOKEN_KEY, token);
+  saveLocal(); render();
+  toast("GitHubへ保存しました（全端末で反映されます）");
+}
+
+/* ---------- gist（?view= の読み取り専用URL用・従来互換） ---------- */
 async function fetchGist(id){
   const r = await fetch("https://api.github.com/gists/"+id,{headers:{Accept:"application/vnd.github+json"}});
   if(!r.ok) throw new Error("読み込みに失敗しました ("+r.status+")");
@@ -755,7 +816,7 @@ function buildToolbar(){
     const editBtn=mk(editing?"完了":"✏️ 編集", editing?"primary":"", toggleEdit);
     tb.appendChild(editBtn);
     if(editing){
-      tb.appendChild(mk("☁ 公開・更新","", ()=>publish().catch(e=>toast(e.message))));
+      tb.appendChild(mk("☁ GitHubへ保存","", ()=>publishRepo().catch(e=>toast(e.message))));
       tb.appendChild(mk("🔗 URL","ghost", ()=>{ if(gistId) showUrl(); else toast("先に「公開・更新」してください"); }));
       tb.appendChild(mk("⚙ 同期設定","ghost", openTokenModal));
     }
@@ -820,9 +881,14 @@ async function init(){
     catch(e){ $("#introEl").textContent=e.message; state=defaultState(); }
   }else{
     gistId=localStorage.getItem(LS_GIST)||null;
-    const saved=localStorage.getItem(LS_DATA);
-    state = saved ? JSON.parse(saved) : defaultState();
     buildToolbar();
+    /* まずGitHubリポジトリから読み込み（全端末共通）。失敗時はこの端末の保存分 */
+    try{
+      state = await fetchRepo();
+    }catch(e){
+      const saved=localStorage.getItem(LS_DATA);
+      state = saved ? JSON.parse(saved) : defaultState();
+    }
   }
   // migration safety
   state.tabs = (state.tabs||[]).map(t=>({id:t.id||uid(),name:t.name||"タブ",color:t.color||PALETTE[0],entries:(t.entries||[]).map(e=>({id:e.id||uid(),title:e.title||"",body:e.body||""}))}));

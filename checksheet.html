@@ -99,9 +99,13 @@
   td.item{text-align:left;}
   td.meter-cell{padding:6px 8px;}
   td.note{padding:2px 4px;}
-  td.note input{width:100%;border:none;background:transparent;font:inherit;padding:6px 4px;color:var(--ink);outline:none;}
-  td.note input:focus{background:#fbf2f2;}
-  td.note input:disabled{color:var(--ink);opacity:1;}
+  td.note textarea{
+    width:100%;border:none;background:transparent;font:inherit;font-size:13px;
+    padding:6px 4px;color:var(--ink);outline:none;
+    resize:none;overflow:hidden;line-height:1.5;min-height:30px;display:block;
+  }
+  td.note textarea:focus{background:#fbf2f2;}
+  td.note textarea:disabled{color:var(--ink);opacity:1;}
   tbody tr:nth-child(even){background:#fafafa;}
   tbody tr:hover{background:#fbf2f2;}
 
@@ -137,7 +141,8 @@
   .memo-box label{display:block;font-weight:700;font-size:14px;margin-bottom:8px;}
   .memo-box textarea{
     width:100%;min-height:120px;border:1px solid var(--line-soft);border-radius:5px;
-    padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);background:#fff;resize:vertical;
+    padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);background:#fff;
+    resize:none;overflow:hidden;
   }
   .memo-box textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
   body.readonly .memo-box textarea{background:#fafafa;}
@@ -289,6 +294,12 @@ const GH_API    = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_
 const GH_TOKEN_KEY = "gh_token_v1";
 
 const STATE = { values: {}, notes: {}, memo: "" };
+
+function autoGrow(el){
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
 let READONLY = false;
 
 function keyOf(prefix, ci, ii){ return prefix + "c" + ci + "i" + ii; }
@@ -366,15 +377,17 @@ function buildSheet(cat, ci, opt){
 
     const note = document.createElement("td");
     note.className = "note";
-    const input = document.createElement("input");
-    input.type = "text";
+    const input = document.createElement("textarea");
+    input.rows = 1;
     input.dataset.key = key;
     input.setAttribute("aria-label", name + " 備考");
     input.addEventListener("input", function(){
+      autoGrow(input);
       if (READONLY) return;
       STATE.notes[key] = input.value;
     });
     note.appendChild(input);
+    setTimeout(function(){ autoGrow(input); }, 0);
     tr.appendChild(note);
 
     tbody.appendChild(tr);
@@ -396,11 +409,12 @@ function renderMeter(meterEl){
 
 function applyState(){
   document.querySelectorAll(".meter").forEach(renderMeter);
-  document.querySelectorAll("td.note input").forEach(function(input){
+  document.querySelectorAll("td.note textarea").forEach(function(input){
     input.value = STATE.notes[input.dataset.key] || "";
+    autoGrow(input);
   });
   const memo = document.getElementById("memo2");
-  if (memo) memo.value = STATE.memo || "";
+  if (memo){ memo.value = STATE.memo || ""; autoGrow(memo); }
 }
 
 /* ---------- interaction ---------- */
@@ -619,7 +633,7 @@ async function enterViewMode(gistId){
   READONLY = true;
   document.body.classList.add("readonly");
   document.getElementById("viewBanner").style.display = "block";
-  document.querySelectorAll("td.note input").forEach(function(i){ i.disabled = true; });
+  document.querySelectorAll("td.note textarea").forEach(function(i){ i.disabled = true; });
   const m2 = document.getElementById("memo2"); if (m2) m2.readOnly = true;
   document.querySelectorAll(".meter .seg").forEach(function(s){ s.tabIndex = -1; });
   try{
