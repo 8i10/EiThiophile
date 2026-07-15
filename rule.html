@@ -30,14 +30,14 @@
   .rule-view{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;line-height:1;font-size:11px;font-family:"Zen Kaku Gothic New",sans-serif;}
 
   .rule-sec{margin-bottom:22px;}
-  .rule-sec-head{font-size:16px;font-weight:700;color:#000000;margin-bottom:8px;line-height:2.0;}
+  .rule-sec-head{font-size:16px;font-weight:700;color:#000000;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);line-height:1.6;}
   .rule-sec-head::before{content:"🔶 ";}
   .rule-sec-body{font-size:11px;line-height:1.15;}
   .rule-view h1{font-size:20px;font-weight:700;color:#000000;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);line-height:2.0;}
   .rule-view h1:first-child{margin-top:0;}
-  .rule-view h2{font-size:16px;font-weight:700;color:#000000;margin:18px 0 8px;line-height:2.0;}
+  .rule-view h2{font-size:16px;font-weight:700;color:#000000;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);line-height:1.6;}
   .rule-view h2::before{content:"🔶 ";}
-  .rule-view h3{font-size:12px;font-weight:700;margin:14px 0 6px;padding-left:8px;border-left:2px solid var(--text-muted);color:#000000;line-height:2.0;}
+  .rule-view h3{font-size:12px;font-weight:700;margin:14px 0 6px;padding-left:8px;border-left:2px solid #ff0000;color:#000000;line-height:2.0;}
   .rule-view p{margin:8px 0;}
   .rule-view ul{margin:8px 0 8px 24px;}
   .rule-view li{margin:3px 0;line-height:1.6;}
@@ -237,7 +237,12 @@ function renderMarkdown(src){
         const indent=m[1].replace(/ /g,'&nbsp;');
         escaped=indent+esc(line.slice(m[1].length));
       }
-      html+='<p>'+inline(escaped)+'</p>';
+      if(/^[\s\u3000*_~\uFF0A\uFF3F\uFF5E\u3001\u30FB]*※/.test(line)){
+        var inner=inline(escaped).replace(/<(strong|em|u|s)>/g,'<$1 style="color:#ff0000">');
+        html+='<p class="note" style="color:#ff0000">'+inner+'</p>';
+      }else{
+        html+='<p>'+inline(escaped)+'</p>';
+      }
     }
   }
   flushList();
@@ -251,8 +256,8 @@ function inline(s){
   s=s.replace(/__(.+?)__/g,'<u>$1</u>');
   s=s.replace(/~~(.+?)~~/g,'<s>$1</s>');
   s=s.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  s=s.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
-  s=s.replace(/(※[^<]*)/g,'<span style="color:var(--r18)">$1</span>');
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
   return s;
 }
 
