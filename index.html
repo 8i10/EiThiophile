@@ -182,6 +182,33 @@ body:not(.edit-mode) .header-btns{display:none}
 .form-input:focus{outline:none;border-color:var(--accent)}
 .pf-note-input{font-size:11px;line-height:1.6;resize:none;overflow:hidden;min-height:64px}
 .form-textarea:focus{outline:none;border:none;background:transparent}
+
+/* ---- 項目・メーター ---- */
+.item{padding:8px 0}
+.item-name{font-weight:700;font-size:13px;margin-bottom:6px;padding-left:10px;border-left:3px solid #ff0000}
+.item-val{padding-left:13px}
+.item-text{font-size:11px;line-height:1.15;word-break:break-word}
+.meter-wrap{width:100%}
+.meter-labels{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--text-muted);margin-bottom:5px;line-height:1.4}
+.meter-labels .right{text-align:right}
+.meter{display:flex;gap:2px;width:100%;height:14px}
+.meter .seg{flex:1 1 0;border:1px solid #c6c6c6;background:#ececec;cursor:pointer;padding:0;border-radius:2px;transition:background .08s}
+.meter .seg:first-child{border-top-left-radius:7px;border-bottom-left-radius:7px}
+.meter .seg:last-child{border-top-right-radius:7px;border-bottom-right-radius:7px}
+.meter .seg:hover{background:#dcdcdc}
+.meter .seg.on{background:#8b0000;border-color:#6b0000}
+.sec-view-meter .seg{cursor:default;pointer-events:none}
+/* 編集: 項目 */
+.ed-item{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
+.ed-item-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.ed-item-top select,.ed-item-top input{border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:12px;font-family:inherit;background:#fff;color:var(--text)}
+.ed-item-top input.it-name{flex:1 1 140px;min-width:100px}
+.ed-item-top input.it-lb{flex:1 1 90px;min-width:70px}
+.ed-item-mini{background:var(--card);border:1px solid var(--line);border-radius:5px;width:26px;height:26px;font-size:11px;cursor:pointer;color:var(--text);flex-shrink:0}
+.ed-item-del{background:#fff;border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;color:var(--red);flex-shrink:0}
+.add-item-btn{width:100%;background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;color:var(--text-muted);margin-top:4px}
+.add-item-btn:hover{background:#ececec;color:var(--text)}
+
 .ed-sec{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px}
 .ed-sec-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .ed-sec-top .form-input{flex:1}
@@ -317,7 +344,9 @@ const IS_EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
 const FIELD_IDS = ['icon','name','catch','x','note'];
 const FIELD_LABELS = { x:'X（Twitter）' };
 
-/* DATA = { profile:{}, majors:[ {id,name,pages:[{id,name,type:'profile'|'free',sections:[]}]} ] } */
+/* DATA = { profile:{}, majors:[ {id,name,pages:[{id,name,type,sections:[{heading,items:[{id,name,type,value,left,right,level}]}]}]} ] } */
+const LEVELS = 7;
+function itemUid(){ return 'it' + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
 let DATA = { profile:{}, majors:[] };
 let curMajor = 0, curPage = 0;
 let editing = false;
@@ -585,12 +614,37 @@ function renderView(){
   let sec = '';
   if(pg){
     (pg.sections || []).forEach(function(s){
-      if(!s.heading && !s.body) return;
+      const items = s.items || [];
+      const hasContent = s.heading || items.some(function(it){
+        return (it.name && it.name.trim()) || (it.type==='meter') || (it.value && it.value.trim());
+      });
+      if(!hasContent) return;
       const head = s.heading
         ? '<div class="sec-head"><img class="hd-ico" src="' + HD_ICON + '" alt="">' + esc(s.heading) + '</div>'
         : '';
+      let body = '';
+      items.forEach(function(it){
+        const isMeter = it.type === 'meter';
+        if(!isMeter && !(it.value && it.value.trim()) && !(it.name && it.name.trim())) return;
+        const nm = (it.name && it.name.trim())
+          ? '<div class="item-name">' + esc(it.name) + '</div>' : '';
+        let val;
+        if(isMeter){
+          let segs = '';
+          for(let lv=1; lv<=LEVELS; lv++){
+            segs += '<button type="button" class="seg' + (Number(it.level)===lv?' on':'') + '"></button>';
+          }
+          val = '<div class="meter-wrap sec-view-meter">' +
+                  '<div class="meter-labels"><div>' + esc(it.left||'') + '</div><div class="right">' + esc(it.right||'') + '</div></div>' +
+                  '<div class="meter">' + segs + '</div>' +
+                '</div>';
+        } else {
+          val = '<div class="item-text">' + renderMarkdown(it.value || '') + '</div>';
+        }
+        body += '<div class="item">' + nm + '<div class="item-val">' + val + '</div></div>';
+      });
       sec += '<div class="sec">' + head +
-               '<div class="sec-body">' + renderMarkdown(s.body || '') + '</div>' +
+               '<div class="sec-body">' + body + '</div>' +
              '</div>';
     });
   }
@@ -622,24 +676,106 @@ function renderEdit(){
 function buildSecRow(s, i){
   const div = document.createElement('div');
   div.className = 'ed-sec';
-  div.innerHTML =
-    '<div class="ed-sec-top">' +
-      '<button class="ed-move" title="上へ">▲</button>' +
-      '<button class="ed-move" title="下へ">▼</button>' +
-      '<input class="form-input sec-h" placeholder="見出し" value="' + esc(s.heading || '') + '">' +
-      '<button class="btn-del" title="削除">削除</button>' +
-    '</div>' +
-    '<textarea class="form-textarea sec-b" placeholder="内容を入力…"></textarea>';
-  const ta = div.querySelector('.sec-b');
-  ta.value = s.body || '';
-  ta.addEventListener('input', function(){ autoGrow(ta); });
-  ta.addEventListener('keydown', handleTab);
-  const btns = div.querySelectorAll('.ed-move');
-  btns[0].addEventListener('click', function(){ moveSection(i, -1); });
-  btns[1].addEventListener('click', function(){ moveSection(i, 1); });
-  div.querySelector('.btn-del').addEventListener('click', function(){ delSection(i); });
-  setTimeout(function(){ autoGrow(ta); }, 0);
+  const top = document.createElement('div');
+  top.className = 'ed-sec-top';
+  top.innerHTML =
+    '<button class="ed-move" title="上へ">▲</button>' +
+    '<button class="ed-move" title="下へ">▼</button>' +
+    '<input class="form-input sec-h" placeholder="見出し">' +
+    '<button class="btn-del" title="削除">削除</button>';
+  top.querySelector('.sec-h').value = s.heading || '';
+  const mv = top.querySelectorAll('.ed-move');
+  mv[0].addEventListener('click', function(){ moveSection(i, -1); });
+  mv[1].addEventListener('click', function(){ moveSection(i, 1); });
+  top.querySelector('.btn-del').addEventListener('click', function(){ delSection(i); });
+  div.appendChild(top);
+
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'ed-items';
+  (s.items || []).forEach(function(it, j){ itemsWrap.appendChild(buildItemRow(i, s, it, j)); });
+  div.appendChild(itemsWrap);
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-item-btn';
+  addBtn.textContent = '＋ 項目を追加';
+  addBtn.addEventListener('click', function(){
+    collectEdit();
+    const sec = getPage().sections[i];
+    sec.items = sec.items || [];
+    sec.items.push({ id:itemUid(), name:'', type:'text', value:'', left:'', right:'', level:0 });
+    renderEdit();
+  });
+  div.appendChild(addBtn);
   return div;
+}
+
+function buildItemRow(si, s, it, j){
+  const box = document.createElement('div');
+  box.className = 'ed-item';
+  box.dataset.itemId = it.id || (it.id = itemUid());
+
+  const top = document.createElement('div');
+  top.className = 'ed-item-top';
+  const up = document.createElement('button'); up.className='ed-item-mini'; up.textContent='▲';
+  const dn = document.createElement('button'); dn.className='ed-item-mini'; dn.textContent='▼';
+  up.addEventListener('click', function(){ moveItem(si, j, -1); });
+  dn.addEventListener('click', function(){ moveItem(si, j, 1); });
+  const nm = document.createElement('input'); nm.className='it-name'; nm.placeholder='項目名'; nm.value=it.name||'';
+  const sel = document.createElement('select');
+  [['text','自由入力欄'],['meter','メーター']].forEach(function(o){
+    const op=document.createElement('option'); op.value=o[0]; op.textContent=o[1]; sel.appendChild(op);
+  });
+  sel.value = it.type||'text';
+  sel.addEventListener('change', function(){ collectEdit(); getPage().sections[si].items[j].type = sel.value; renderEdit(); });
+  const del = document.createElement('button'); del.className='ed-item-del'; del.textContent='削除';
+  del.addEventListener('click', function(){
+    if(!confirm('この項目を削除しますか？')) return;
+    collectEdit(); getPage().sections[si].items.splice(j,1); renderEdit();
+  });
+  top.appendChild(up); top.appendChild(dn); top.appendChild(nm); top.appendChild(sel);
+
+  let lf, rg;
+  if((it.type||'text')==='meter'){
+    lf=document.createElement('input'); lf.className='it-lb'; lf.placeholder='左のラベル'; lf.value=it.left||'';
+    rg=document.createElement('input'); rg.className='it-lb'; rg.placeholder='右のラベル'; rg.value=it.right||'';
+    top.appendChild(lf); top.appendChild(rg);
+  }
+  top.appendChild(del);
+  box.appendChild(top);
+
+  const val = document.createElement('div'); val.className='item-val';
+  if((it.type||'text')==='meter'){
+    const mw=document.createElement('div'); mw.className='meter-wrap'; mw.dataset.level=String(Number(it.level)||0);
+    const labels=document.createElement('div'); labels.className='meter-labels';
+    const lv=document.createElement('div'); lv.textContent=it.left||''; if(lf) lf.addEventListener('input', function(){ lv.textContent=lf.value; });
+    const rv=document.createElement('div'); rv.className='right'; rv.textContent=it.right||''; if(rg) rg.addEventListener('input', function(){ rv.textContent=rg.value; });
+    labels.appendChild(lv); labels.appendChild(rv);
+    const meter=document.createElement('div'); meter.className='meter';
+    for(let k=1;k<=LEVELS;k++){
+      const seg=document.createElement('button'); seg.type='button'; seg.className='seg'+(Number(it.level)===k?' on':''); seg.dataset.level=String(k);
+      seg.addEventListener('click', function(){
+        const cur=Number(mw.dataset.level); const nv=(cur===k)?0:k; mw.dataset.level=String(nv);
+        meter.querySelectorAll('.seg').forEach(function(sg){ sg.classList.toggle('on', Number(sg.dataset.level)===nv); });
+      });
+      meter.appendChild(seg);
+    }
+    mw.appendChild(labels); mw.appendChild(meter); val.appendChild(mw);
+  } else {
+    const ta=document.createElement('textarea'); ta.className='form-textarea it-body'; ta.placeholder='自由入力'; ta.value=it.value||'';
+    ta.addEventListener('input', function(){ autoGrow(ta); });
+    ta.addEventListener('keydown', handleTab);
+    val.appendChild(ta);
+    setTimeout(function(){ autoGrow(ta); }, 0);
+  }
+  box.appendChild(val);
+  return box;
+}
+
+function moveItem(si, j, d){
+  collectEdit();
+  const arr = getPage().sections[si].items, k = j + d;
+  if(k<0 || k>=arr.length) return;
+  const t=arr[j]; arr[j]=arr[k]; arr[k]=t; renderEdit();
 }
 
 function handleTab(e){
@@ -661,12 +797,30 @@ function collectEdit(){
   }
   const secs = [];
   document.querySelectorAll('#secEdit .ed-sec').forEach(function(d){
-    secs.push({ heading: d.querySelector('.sec-h').value.trim(), body: d.querySelector('.sec-b').value });
+    const heading = d.querySelector('.sec-h').value.trim();
+    const items = [];
+    d.querySelectorAll('.ed-item').forEach(function(ib){
+      const type = ib.querySelector('select').value;
+      const name = ib.querySelector('.it-name').value.trim();
+      const lbs = ib.querySelectorAll('.it-lb');
+      const mw = ib.querySelector('.meter-wrap');
+      const ta = ib.querySelector('.it-body');
+      items.push({
+        id: ib.dataset.itemId || undefined,
+        name: name,
+        type: type,
+        value: ta ? ta.value : '',
+        left: lbs[0] ? lbs[0].value.trim() : '',
+        right: lbs[1] ? lbs[1].value.trim() : '',
+        level: mw ? (Number(mw.dataset.level)||0) : 0
+      });
+    });
+    secs.push({ heading: heading, items: items });
   });
   pg.sections = secs;
 }
 
-function addSection(){ collectEdit(); getPage().sections.push({ heading:'', body:'' }); renderEdit(); }
+function addSection(){ collectEdit(); getPage().sections.push({ heading:'', items:[] }); renderEdit(); }
 function delSection(i){
   if(!confirm('このセクションを削除しますか？')) return;
   collectEdit(); getPage().sections.splice(i, 1); renderEdit();
@@ -874,6 +1028,30 @@ function copyViewUrl(){
 }
 
 /* ========== GitHub ========== */
+function normSection(s){
+  s = s || {};
+  let items;
+  if(Array.isArray(s.items)){
+    items = s.items.map(function(it){
+      it = it || {};
+      return {
+        id: it.id || itemUid(),
+        name: it.name || '',
+        type: it.type === 'meter' ? 'meter' : 'text',
+        value: it.value || '',
+        left: it.left || '',
+        right: it.right || '',
+        level: Number(it.level) || 0
+      };
+    });
+  } else {
+    /* 旧形式（body）→ テキスト項目1つに移行 */
+    items = (s.body && String(s.body).trim())
+      ? [{ id:itemUid(), name:'', type:'text', value:s.body, left:'', right:'', level:0 }]
+      : [];
+  }
+  return { heading: s.heading || '', items: items };
+}
 function normPage(p){
   const url = (p.url || '').trim();
   return {
@@ -881,7 +1059,7 @@ function normPage(p){
     name: p.name || '(無題)',
     url: url,
     type: (!url && p.type === 'profile') ? 'profile' : 'free',
-    sections: Array.isArray(p.sections) ? p.sections : []
+    sections: (Array.isArray(p.sections) ? p.sections : []).map(normSection)
   };
 }
 function normalize(j){
