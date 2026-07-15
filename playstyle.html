@@ -347,15 +347,21 @@ function renderMarkdown(src){
   function closeList(){ if (inList){ html += "</ul>"; inList = false; } }
   for (let i = 0; i < lines.length; i++){
     const raw = lines[i], line = raw.trim();
-    if (!inCode && /^:::\s*\S/.test(line)){
+    if (!inCode && /^:::\s*\S/.test(line) && !/:::\s*$/.test(line)){
       closeList();
       const title = line.replace(/^:::\s*/, "");
       const inner = [];
       let j = i + 1, closed = false, depth = 1;
       for (; j < lines.length; j++){
-        const lt = lines[j].trim();
-        if (lt === ":::"){ depth--; if (depth === 0){ closed = true; break; } inner.push(lines[j]); continue; }
-        if (/^:::\s*\S/.test(lt)){ depth++; inner.push(lines[j]); continue; }
+        let lt = lines[j].trim();
+        if (/^:::\s*\S/.test(lt) && !/:::\s*$/.test(lt)){ depth++; inner.push(lines[j]); continue; }
+        if (/:::\s*$/.test(lt)){
+          const before = lines[j].replace(/:::\s*$/, "");
+          if (before.trim() !== "") inner.push(before);
+          depth--;
+          if (depth === 0){ closed = true; break; }
+          continue;
+        }
         inner.push(lines[j]);
       }
       html += '<div class="acc">' +
