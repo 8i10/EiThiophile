@@ -101,6 +101,9 @@ body:not(.edit-mode) .header-btns{display:none}
 .pf-fields dd a{color:var(--accent2)}
 .pf-note{margin-top:12px;font-size:11px;line-height:1.6;color:var(--text);word-break:break-word}
 .pf-note p{margin:3px 0}.pf-note .note{color:var(--red)}
+.pf-note .note *{color:inherit}
+.pf-note .note .spoiler{color:#333}
+.pf-note .note .spoiler.open{color:var(--text)}
 .pf-note ul{margin:3px 0 3px 20px}
 @media(max-width:640px){
   .main{padding:10px 10px 60px}
@@ -129,6 +132,9 @@ body:not(.edit-mode) .header-btns{display:none}
 .sec-body .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer}
 .sec-body .spoiler.open{background:#ececec;color:var(--text)}
 .sec-body .note{color:var(--red)}
+.sec-body .note *{color:inherit}
+.sec-body .note .spoiler{color:#333}
+.sec-body .note .spoiler.open{color:var(--text)}
 .sec-body .blank{height:1em;margin:0}
 /* アコーディオン */
 .sec-body .acc{
@@ -394,9 +400,11 @@ function renderMarkdown(src){
       closeList();
       const title = line.replace(/^:::\s*/, '');
       const inner = [];
-      let j = i + 1, closed = false;
+      let j = i + 1, closed = false, depth = 1;
       for(; j < lines.length; j++){
-        if(lines[j].trim() === ':::'){ closed = true; break; }
+        const lt = lines[j].trim();
+        if(lt === ':::'){ depth--; if(depth === 0){ closed = true; break; } inner.push(lines[j]); continue; }
+        if(/^:::\s*\S/.test(lt)){ depth++; inner.push(lines[j]); continue; }
         inner.push(lines[j]);
       }
       html += '<div class="acc">' +

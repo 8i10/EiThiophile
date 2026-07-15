@@ -114,6 +114,9 @@
   .item-text .spoiler{background:#333;color:#333;border-radius:3px;padding:0 3px;cursor:pointer;}
   .item-text .spoiler.open{background:#ececec;color:var(--ink);}
   .item-text .note{color:var(--accent);}
+  .item-text .note *{color:inherit;}
+  .item-text .note .spoiler{color:#333;}
+  .item-text .note .spoiler.open{color:var(--ink);}
   .item-text .blank{height:1em;margin:0;}
   .item-text .empty-val{color:#bbb;}
 
@@ -348,9 +351,11 @@ function renderMarkdown(src){
       closeList();
       const title = line.replace(/^:::\s*/, "");
       const inner = [];
-      let j = i + 1, closed = false;
+      let j = i + 1, closed = false, depth = 1;
       for (; j < lines.length; j++){
-        if (lines[j].trim() === ":::"){ closed = true; break; }
+        const lt = lines[j].trim();
+        if (lt === ":::"){ depth--; if (depth === 0){ closed = true; break; } inner.push(lines[j]); continue; }
+        if (/^:::\s*\S/.test(lt)){ depth++; inner.push(lines[j]); continue; }
         inner.push(lines[j]);
       }
       html += '<div class="acc">' +
