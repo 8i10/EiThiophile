@@ -342,6 +342,12 @@ function indentStyle(raw){
 }
 
 
+function noteInline(s){
+  var html = inline(s);
+  html = html.replace(/<(strong|em|u|s)>/g, '<$1 style="color:#ff0000">');
+  return html;
+}
+
 function renderMarkdown(src){
   const lines = String(src == null ? "" : src).split("\n");
   let html = "", inList = false, inCode = false, code = "";
@@ -392,7 +398,7 @@ function renderMarkdown(src){
     }
     closeList();
     const ind = indentStyle(raw);
-    if (/^[\s*_~]*※/.test(line)) html += '<p class="note"' + ind + ">" + inline(line) + "</p>";
+    if (/^[\s*_~]*※/.test(line)){ const nst = ind ? ind.replace('style="', 'style="color:#ff0000;') : ' style="color:#ff0000"'; html += '<p class="note"' + nst + '>' + noteInline(line) + "</p>"; }
     else html += "<p" + ind + ">" + inline(line) + "</p>";
   }
   closeList();
