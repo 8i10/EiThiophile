@@ -99,6 +99,9 @@ body:not(.edit-mode) .header-btns{display:none}
 .pf-fields dt{color:var(--text-muted);font-size:12px;white-space:nowrap;padding-top:2px}
 .pf-fields dd{word-break:break-word}
 .pf-fields dd a{color:var(--accent2)}
+.pf-note{margin-top:12px;font-size:11px;line-height:1.6;color:var(--text);word-break:break-word}
+.pf-note p{margin:3px 0}.pf-note .note{color:var(--red)}
+.pf-note ul{margin:3px 0 3px 20px}
 @media(max-width:640px){
   .main{padding:10px 10px 60px}
 }
@@ -166,6 +169,7 @@ body:not(.edit-mode) .header-btns{display:none}
   border:none;background:transparent;padding:4px 0;font-size:11px;
 }
 .form-input:focus{outline:none;border-color:var(--accent)}
+.pf-note-input{font-size:11px;line-height:1.6;resize:none;overflow:hidden;min-height:64px}
 .form-textarea:focus{outline:none;border:none;background:transparent}
 .ed-sec{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px}
 .ed-sec-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
@@ -265,10 +269,7 @@ body:not(.edit-mode) .header-btns{display:none}
       <div class="form-row"><label class="form-label">名前 / ハンドルネーム</label><input class="form-input" id="f_name" placeholder="えいと"></div>
       <div class="form-row"><label class="form-label">一言</label><input class="form-input" id="f_catch" placeholder="よろしくお願いします"></div>
       <div class="form-row"><label class="form-label">X（Twitter）</label><input class="form-input" id="f_x" placeholder="@xxxxx または URL"></div>
-      <div class="form-row"><label class="form-label">Discord</label><input class="form-input" id="f_discord" placeholder="username"></div>
-      <div class="form-row"><label class="form-label">TRPG歴</label><input class="form-input" id="f_career" placeholder="20xx年〜"></div>
-      <div class="form-row"><label class="form-label">対応システム</label><input class="form-input" id="f_system" placeholder="CoC6版 / CoC7版 …"></div>
-      <div class="form-row"><label class="form-label">活動時間帯</label><input class="form-input" id="f_time" placeholder="平日夜 / 土日終日 …"></div>
+      <div class="form-row"><label class="form-label">備考</label><textarea class="form-input pf-note-input" id="f_note" placeholder="自由記入"></textarea></div>
     </div>
 
     <div class="ed-block">
@@ -302,8 +303,8 @@ const HD_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4
 
 const IS_EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
 
-const FIELD_IDS = ['icon','name','catch','x','discord','career','system','time'];
-const FIELD_LABELS = { x:'X（Twitter）', discord:'Discord', career:'TRPG歴', system:'対応システム', time:'活動時間帯' };
+const FIELD_IDS = ['icon','name','catch','x','note'];
+const FIELD_LABELS = { x:'X（Twitter）' };
 
 /* DATA = { profile:{}, majors:[ {id,name,pages:[{id,name,type:'profile'|'free',sections:[]}]} ] } */
 let DATA = { profile:{}, majors:[] };
@@ -489,25 +490,24 @@ function renderMenus(){
   });
 }
 
-function leaveEditIfNeeded(){
-  if(editing && !confirm('編集中の内容は破棄されます。ページを切り替えますか？')) return false;
-  if(editing){
-    editing = false;
-    document.getElementById('editorWrap').classList.remove('open');
-    document.getElementById('viewWrap').style.display = '';
-    document.getElementById('editToggle').textContent = '✏️ 編集';
-  }
+/* 編集中は入力内容を退避（破棄しない）。編集モードは維持する */
+function stashEdit(){
+  if(editing) collectEdit();
   return true;
 }
 function switchMajor(i){
-  if(!leaveEditIfNeeded()) return;
+  stashEdit();
   curMajor = i; curPage = firstNormalPage(DATA.majors[i]);
-  renderMenus(); renderView(); syncUrl();
+  renderMenus();
+  if(editing) renderEdit(); else renderView();
+  syncUrl();
 }
 function switchPage(i){
-  if(!leaveEditIfNeeded()) return;
+  stashEdit();
   curPage = i;
-  renderMenus(); renderView(); syncUrl();
+  renderMenus();
+  if(editing) renderEdit(); else renderView();
+  syncUrl();
 }
 
 /* ========== 閲覧描画 ========== */
@@ -533,20 +533,19 @@ function renderProfileCard(){
   const src = toDirectImageUrl(p.icon);
   const icon = src ? '<img class="pf-icon" src="' + esc(src) + '" alt="">' : '<div class="pf-icon"></div>';
   let rows = '';
-  ['x','discord','career','system','time'].forEach(function(k){
-    if(!p[k]) return;
-    let v = esc(p[k]);
-    if(k === 'x'){
-      const h = /^https?:\/\//.test(p[k]) ? p[k] : 'https://x.com/' + String(p[k]).replace(/^@/,'');
-      v = '<a href="' + esc(h) + '" target="_blank" rel="noopener">' + esc(p[k]) + '</a>';
-    }
-    rows += '<dt>' + esc(FIELD_LABELS[k]) + '</dt><dd>' + v + '</dd>';
-  });
+  if(p.x){
+    const h = /^https?:\/\//.test(p.x) ? p.x : 'https://x.com/' + String(p.x).replace(/^@/,'');
+    rows += '<dt>' + esc(FIELD_LABELS.x) + '</dt><dd><a href="' + esc(h) + '" target="_blank" rel="noopener">' + esc(p.x) + '</a></dd>';
+  }
+  const note = (p.note && p.note.trim())
+    ? '<div class="pf-note">' + renderMarkdown(p.note) + '</div>'
+    : '';
   return '<div class="pf-card">' + icon +
     '<div class="pf-body">' +
       '<div class="pf-name">' + esc(p.name || '') + '</div>' +
       '<div class="pf-catch">' + esc(p['catch'] || '') + '</div>' +
       (rows ? '<dl class="pf-fields">' + rows + '</dl>' : '') +
+      note +
     '</div></div>';
 }
 
@@ -583,6 +582,8 @@ function renderEdit(){
 
   const p = DATA.profile || {};
   FIELD_IDS.forEach(function(k){ document.getElementById('f_' + k).value = p[k] || ''; });
+  const noteEl = document.getElementById('f_note');
+  if(noteEl){ if(!noteEl._grow){ noteEl.addEventListener('input', function(){ autoGrow(noteEl); }); noteEl._grow = true; } setTimeout(function(){ autoGrow(noteEl); }, 0); }
 
   const wrap = document.getElementById('secEdit');
   wrap.innerHTML = '';
