@@ -311,6 +311,7 @@ function esc(s){
 }
 function inline(s){
   let t = esc(s);
+  t = t.replace(/\uFF0A/g, "*").replace(/\uFF3F/g, "_").replace(/\uFF5E/g, "~");
   t = t.replace(/```([\s\S]*?)```/g, function(m, c){ return "<pre><code>" + c.replace(/^\n/, "") + "</code></pre>"; });
   t = t.replace(/`([^`\n]+)`/g, "<code>$1</code>");
   t = t.replace(/\|\|([\s\S]+?)\|\|/g, '<span class="spoiler" onclick="this.classList.toggle(\'open\')">$1</span>');
@@ -398,7 +399,7 @@ function renderMarkdown(src){
     }
     closeList();
     const ind = indentStyle(raw);
-    if (/^[\s*_~]*※/.test(line)){ const nst = ind ? ind.replace('style="', 'style="color:#ff0000;') : ' style="color:#ff0000"'; html += '<p class="note"' + nst + '>' + noteInline(line) + "</p>"; }
+    if (/^[\s\u3000*_~\uFF0A\uFF3F\uFF5E\u3001\u30FB]*※/.test(line)){ const nst = ind ? ind.replace('style="', 'style="color:#ff0000;') : ' style="color:#ff0000"'; html += '<p class="note"' + nst + '>' + noteInline(line) + "</p>"; }
     else html += "<p" + ind + ">" + inline(line) + "</p>";
   }
   closeList();
