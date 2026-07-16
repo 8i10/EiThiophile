@@ -883,6 +883,7 @@ function renderPgList(){
       '<button class="ed-move" title="下へ">▼</button>' +
       '<input class="form-input" value="' + esc(m.name || '') + '" placeholder="大ページ名">' +
       (hasProfile(m) ? '<span class="pg-lock">基本情報</span>' : '<button class="btn-del">削除</button>');
+    mrow.querySelector('.form-input').addEventListener('input', function(){ pgTmp[mi].name = this.value; });
     const mmv = mrow.querySelectorAll('.ed-move');
     mmv[0].addEventListener('click', function(){ moveMajor(mi, -1); });
     mmv[1].addEventListener('click', function(){ moveMajor(mi, 1); });
@@ -914,6 +915,8 @@ function renderPgList(){
         '<input class="form-input pg-name" value="' + esc(p.name || '') + '" placeholder="小ページ名">' +
         '<input class="form-input pg-url" value="' + esc(p.url || '') + '" placeholder="外部URL（任意）">' +
         (p.type === 'profile' ? '<span class="pg-lock">基本情報</span>' : '<button class="btn-del">削除</button>');
+      row.querySelector('.pg-name').addEventListener('input', function(){ pgTmp[mi].pages[pi].name = this.value; });
+      row.querySelector('.pg-url').addEventListener('input', function(){ pgTmp[mi].pages[pi].url = this.value; });
       const mv = row.querySelectorAll('.ed-move');
       mv[0].addEventListener('click', function(){ movePage(mi, pi, -1); });
       mv[1].addEventListener('click', function(){ movePage(mi, pi, 1); });
