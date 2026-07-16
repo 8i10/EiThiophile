@@ -412,7 +412,7 @@ function renderMarkdown(src){
   return html;
 }
 
-function autoGrow(el){ el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+function autoGrow(el){ const sy = window.pageYOffset || document.documentElement.scrollTop; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; window.scrollTo(0, sy); }
 
 /* Tab / Shift+Tab でインデント */
 function handleTab(e){

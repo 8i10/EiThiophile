@@ -653,7 +653,7 @@ function renderView(){
 }
 
 /* ========== 編集描画 ========== */
-function autoGrow(el){ el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+function autoGrow(el){ const sy = window.pageYOffset || document.documentElement.scrollTop; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; window.scrollTo(0, sy); }
 
 function renderEdit(){
   const pg = getPage() || { type:'free', sections:[] };
