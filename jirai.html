@@ -154,7 +154,7 @@ header.site .updated{
 .entry.open{box-shadow:0 4px 14px rgba(0,0,0,.08);border-color:var(--line2)}
 .entry h3{
   font-family:var(--mincho); font-weight:600;
-  font-size:13px; letter-spacing:.03em; margin:0;
+  font-size:12px; letter-spacing:.03em; margin:0;
   padding:2px 40px 2px 22px; position:relative; line-height:1.5;
   cursor:pointer; user-select:none;
 }
@@ -231,7 +231,7 @@ header.site .updated{
   padding:9px 11px; font-size:14px; width:100%; resize:vertical;
 }
 .eform input{font-family:var(--mincho);font-size:16px;font-weight:600}
-.eform textarea{min-height:96px;line-height:1.7}
+.eform textarea{min-height:96px;line-height:1.7;resize:none;overflow:hidden}
 .eform .row{display:flex;gap:8px;justify-content:flex-end}
 .hint{font-size:11px;color:var(--faint)}
 
@@ -770,6 +770,9 @@ function entryForm(e,idx){
     '</div>';
   const et=box.querySelector(".et"), eb=box.querySelector(".eb");
   et.value=e.title||""; eb.value=e.body||"";
+  const grow=()=>{ const sy=window.pageYOffset||document.documentElement.scrollTop; eb.style.height="auto"; eb.style.height=eb.scrollHeight+"px"; window.scrollTo(0,sy); };
+  eb.addEventListener("input", grow);
+  setTimeout(grow, 0);
   box.querySelector(".ok").onclick=()=>{
     e.title=et.value.trim(); e.body=eb.value;
     if(e.__new){ delete e.__new; }
