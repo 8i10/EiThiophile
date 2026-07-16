@@ -1106,6 +1106,7 @@ function normalize(j){
 }
 
 /* Contents API から取得（CDNキャッシュを受けない）。失敗時は raw にフォールバック */
+let _latestSha = null;
 function fetchViaApi(){
   const token = getGHToken();
   const headers = { 'Accept':'application/vnd.github.v3+json', 'Cache-Control':'no-cache' };
@@ -1114,6 +1115,7 @@ function fetchViaApi(){
     .then(function(r){ if(!r.ok) throw new Error('api ' + r.status); return r.json(); })
     .then(function(j){
       if(!j || !j.content) throw new Error('no content');
+      _latestSha = j.sha || null;
       const bin = atob(String(j.content).replace(/\n/g, ''));
       const json = decodeURIComponent(Array.prototype.map.call(bin, function(c){
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -1136,9 +1138,9 @@ function loadData(){
     .then(function(){ showLoading(false); });
 }
 function getFileSha(token){
-  return fetch(GH_API + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers: ghHeaders(token) })
+  return fetch(GH_API + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers: ghHeaders(token), cache:'no-store' })
     .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(j){ return j ? j.sha : null; })
+    .then(function(j){ _latestSha = j ? (j.sha || null) : _latestSha; return j ? j.sha : null; })
     .catch(function(){ return null; });
 }
 function b64encode(str){
@@ -1156,18 +1158,31 @@ function persist(){
   const text = JSON.stringify(DATA, null, 2);
   showLoading(true);
 
-  return getFileSha(token).then(function(sha){
+  function putOnce(sha){
     const body = { message:'update profile.json', content:b64encode(text), branch:GH_BRANCH };
     if(sha) body.sha = sha;
-    return fetch(GH_API, { method:'PUT', headers:ghHeaders(token), body:JSON.stringify(body) })
+    return fetch(GH_API, { method:'PUT', headers:ghHeaders(token), body:JSON.stringify(body), cache:'no-store' })
       .then(function(r){
-        return r.json().catch(function(){ return {}; }).then(function(j){
-          if(!r.ok){
-            throw new Error('HTTP ' + r.status + ' ' + ((j && j.message) ? j.message : ''));
-          }
-          return j;
-        });
+        return r.json().catch(function(){ return {}; }).then(function(j){ return { status:r.status, ok:r.ok, j:j }; });
       });
+  }
+
+  /* キャッシュ済みshaがあればまず使い、無ければ取得。衝突(409/422)なら最新shaで1回リトライ */
+  const first = (_latestSha ? Promise.resolve(_latestSha) : getFileSha(token));
+  return first.then(function(sha){
+    return putOnce(sha).then(function(res){
+      if(res.ok){ _latestSha = (res.j && res.j.content && res.j.content.sha) || null; return res.j; }
+      if(res.status === 409 || res.status === 422){
+        /* sha衝突 → サーバーから最新shaを取り直して再PUT */
+        return getFileSha(token).then(function(fresh){
+          return putOnce(fresh).then(function(res2){
+            if(res2.ok){ _latestSha = (res2.j && res2.j.content && res2.j.content.sha) || null; return res2.j; }
+            throw new Error('HTTP ' + res2.status + ' ' + ((res2.j && res2.j.message) ? res2.j.message : ''));
+          });
+        });
+      }
+      throw new Error('HTTP ' + res.status + ' ' + ((res.j && res.j.message) ? res.j.message : ''));
+    });
   }).then(function(){
     /* 書き込み直後にサーバーから読み直して一致を確認 */
     return fetchViaApi().then(function(server){
