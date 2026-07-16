@@ -656,6 +656,7 @@ function renderView(){
 function autoGrow(el){ const sy = window.pageYOffset || document.documentElement.scrollTop; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; window.scrollTo(0, sy); }
 
 function renderEdit(){
+  const _sy = window.pageYOffset || document.documentElement.scrollTop;
   const pg = getPage() || { type:'free', sections:[] };
   const isProf = pg.type === 'profile';
   document.getElementById('baseBlock').style.display = isProf ? '' : 'none';
@@ -671,6 +672,8 @@ function renderEdit(){
   const wrap = document.getElementById('secEdit');
   wrap.innerHTML = '';
   (pg.sections || []).forEach(function(s, i){ wrap.appendChild(buildSecRow(s, i)); });
+  window.scrollTo(0, _sy);
+  requestAnimationFrame(function(){ window.scrollTo(0, _sy); });
 }
 
 function buildSecRow(s, i){

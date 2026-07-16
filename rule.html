@@ -338,10 +338,13 @@ function toggleEdit(){
 }
 
 function renderSectionEditor(){
+  const _sy=window.pageYOffset||document.documentElement.scrollTop;
   const box=document.getElementById('sectionList');
   box.innerHTML='';
   sections.forEach((s,i)=>box.appendChild(buildSecEdit(s,i)));
   document.querySelectorAll('#sectionList textarea').forEach(autoGrow);
+  window.scrollTo(0,_sy);
+  requestAnimationFrame(function(){window.scrollTo(0,_sy);});
 }
 function buildSecEdit(s,i){
   const wrap=document.createElement('div'); wrap.className='sec-edit';
@@ -417,7 +420,7 @@ function buildItemEdit(s,it,si,j){
   box.appendChild(val);
   return box;
 }
-function autoGrow(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
+function autoGrow(ta){const sy=window.pageYOffset||document.documentElement.scrollTop;ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';window.scrollTo(0,sy);}
 function handleTab(e,i){
   if(e.key!=='Tab')return;
   e.preventDefault();

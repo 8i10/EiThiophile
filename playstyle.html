@@ -437,6 +437,7 @@ function handleTab(e){
 
 /* ---------- 描画 ---------- */
 function render(){
+  const _sy = window.pageYOffset || document.documentElement.scrollTop;
   const wrap = document.getElementById("sections");
   wrap.innerHTML = "";
 
@@ -496,6 +497,8 @@ function render(){
 
     wrap.appendChild(box);
   });
+  window.scrollTo(0, _sy);
+  requestAnimationFrame(function(){ window.scrollTo(0, _sy); });
 }
 
 function mkBtn(cls, label, fn){
