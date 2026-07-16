@@ -497,8 +497,11 @@ function render(){
 
     wrap.appendChild(box);
   });
+  /* 入力欄の高さを先に確定させてからスクロール位置を戻す */
+  wrap.querySelectorAll("textarea").forEach(function(t){ t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; });
   window.scrollTo(0, _sy);
   requestAnimationFrame(function(){ window.scrollTo(0, _sy); });
+  setTimeout(function(){ window.scrollTo(0, _sy); }, 0);
 }
 
 function mkBtn(cls, label, fn){

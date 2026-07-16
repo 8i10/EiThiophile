@@ -342,9 +342,10 @@ function renderSectionEditor(){
   const box=document.getElementById('sectionList');
   box.innerHTML='';
   sections.forEach((s,i)=>box.appendChild(buildSecEdit(s,i)));
-  document.querySelectorAll('#sectionList textarea').forEach(autoGrow);
+  document.querySelectorAll('#sectionList textarea').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});
   window.scrollTo(0,_sy);
   requestAnimationFrame(function(){window.scrollTo(0,_sy);});
+  setTimeout(function(){window.scrollTo(0,_sy);},0);
 }
 function buildSecEdit(s,i){
   const wrap=document.createElement('div'); wrap.className='sec-edit';
