@@ -98,14 +98,20 @@ header.site .updated{
   font-size:11px; font-weight:700; letter-spacing:.08em;
   color:var(--tabc,var(--accent)); margin-bottom:8px;
 }
-.hist-item{padding:6px 0 6px 13px;position:relative;border-bottom:1px dashed var(--line)}
+.hist-item{padding:6px 0;border-bottom:1px dashed var(--line)}
 .hist-item:last-child{border-bottom:none}
-.hist-item::before{
-  content:""; position:absolute; left:0; top:12px;
-  width:5px; height:5px; border-radius:50%; background:var(--tabc,var(--accent));
+.hist-head{display:flex;align-items:center;gap:7px}
+.hist-item.acc .hist-head{cursor:pointer}
+.hist-chev{color:var(--accent);font-size:.7em;line-height:1;flex:0 0 auto;transition:transform .18s ease}
+.hist-item.open .hist-chev{transform:rotate(90deg)}
+.hist-dot{width:5px;height:5px;border-radius:50%;background:var(--tabc,var(--accent));flex:0 0 auto;margin:0 1px}
+.hist-title{font-family:var(--mincho);font-weight:600;font-size:12.5px;color:var(--ink);line-height:1.5;flex:1;min-width:0}
+.hist-tab{
+  font-size:10px;font-weight:700;color:#fff;background:var(--tc,var(--accent));
+  border-radius:999px;padding:2px 8px;flex:0 0 auto;letter-spacing:.02em;
 }
-.hist-title{font-family:var(--mincho);font-weight:600;font-size:13.5px;color:var(--ink);line-height:1.55}
-.hist-body{font-size:12px;color:var(--muted);margin-top:2px;white-space:pre-wrap;word-break:break-word}
+.hist-body{font-size:11px;color:var(--muted);margin:4px 0 2px 12px;white-space:pre-wrap;word-break:break-word;display:none}
+.hist-item.open .hist-body{display:block}
 
 /* tabs */
 .tabs{
@@ -701,23 +707,32 @@ function renderTabAdmin(){
 function renderHistory(){
   const el=$("#historyEl");
   el.style.removeProperty("--tabc");
-  // newest = most recently added = end of each list -> reverse for newest-first
-  const src=["TRPG-地雷","TRPG-苦手"].map(nm=>{
-    const tab=state.tabs.find(t=>t.name===nm);
-    return tab ? tab.entries.slice().reverse() : [];
+  // 全タブのエントリを集約（seqで挿入順を保持し、addedAt→seqの順で新しい順に）
+  let seq=0; const all=[];
+  state.tabs.forEach(function(t){
+    (t.entries||[]).forEach(function(e){
+      if(e.__new) return;
+      all.push({ e:e, tabName:t.name, tabColor:t.color, seq:seq++, addedAt:Number(e.addedAt)||0 });
+    });
   });
-  const items=[];
-  for(let i=0; items.length<3 && (i<src[0].length || i<src[1].length); i++){
-    if(src[0][i] && items.length<3) items.push(src[0][i]);
-    if(src[1][i] && items.length<3) items.push(src[1][i]);
-  }
+  all.sort(function(a,b){ return (b.addedAt-a.addedAt) || (b.seq-a.seq); });
+  const items=all.slice(0,3);
   if(!items.length){ el.style.display="none"; el.innerHTML=""; return; }
   el.style.display="";
   el.innerHTML='<div class="hist-label">追加履歴</div>'+
-    items.map(e=>'<div class="hist-item">'+
-      '<div class="hist-title">'+escapeHtml(e.title||"（無題）")+'</div>'+
-      (e.body? '<div class="hist-body">'+fmt(e.body)+'</div>':'')+
-    '</div>').join("");
+    items.map(function(it){
+      const e=it.e;
+      const badge='<span class="hist-tab" style="--tc:'+(it.tabColor||'var(--accent)')+'">'+escapeHtml(it.tabName||'')+'</span>';
+      const hasBody=!!(e.body && e.body.trim());
+      return '<div class="hist-item'+(hasBody?' acc':'')+'">'+
+        '<div class="hist-head" onclick="'+(hasBody?'this.parentNode.classList.toggle(\'open\')':'')+'">'+
+          (hasBody?'<span class="hist-chev">▶</span>':'<span class="hist-dot"></span>')+
+          '<span class="hist-title">'+escapeHtml(e.title||"（無題）")+'</span>'+
+          badge+
+        '</div>'+
+        (hasBody? '<div class="hist-body">'+fmt(e.body)+'</div>':'')+
+      '</div>';
+    }).join("");
 }
 
 function renderEntries(){
@@ -775,6 +790,7 @@ function entryForm(e,idx){
   setTimeout(grow, 0);
   box.querySelector(".ok").onclick=()=>{
     e.title=et.value.trim(); e.body=eb.value;
+    if(!e.addedAt) e.addedAt=Date.now();
     if(e.__new){ delete e.__new; }
     editingEntry=null; saveLocal(); render();
   };
@@ -809,7 +825,7 @@ function addTab(){
   state.tabs.push(t); active=state.tabs.length-1; saveLocal(); render();
 }
 function addEntry(){
-  const e={id:uid(),title:"",body:"",__new:true};
+  const e={id:uid(),title:"",body:"",__new:true,addedAt:Date.now()};
   state.tabs[active].entries.push(e);
   editingEntry=e.id; render();
 }
@@ -889,7 +905,7 @@ async function init(){
     }
   }
   // migration safety
-  state.tabs = (state.tabs||[]).map(t=>({id:t.id||uid(),name:t.name||"タブ",color:t.color||PALETTE[0],entries:(t.entries||[]).map(e=>({id:e.id||uid(),title:e.title||"",body:e.body||""}))}));
+  state.tabs = (state.tabs||[]).map(t=>({id:t.id||uid(),name:t.name||"タブ",color:t.color||PALETTE[0],entries:(t.entries||[]).map(e=>({id:e.id||uid(),title:e.title||"",body:e.body||"",addedAt:Number(e.addedAt)||0}))}));
   if(!state.tabs.length) state=defaultState();
 
   render();
