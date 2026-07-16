@@ -201,6 +201,10 @@ header.site .updated{
 }
 .dc-spoiler:hover{background:var(--line2)}
 .dc-spoiler.on{background:var(--bg3);color:var(--ink);cursor:auto;user-select:auto}
+.dc-note{color:#ff0000}
+.dc-note *{color:inherit}
+.dc-note .dc-spoiler{color:transparent}
+.dc-note .dc-spoiler.on{color:var(--ink)}
 .body u,.intro u{text-decoration:underline}
 .body del,.intro del{opacity:.7}
 .entry.dragging{opacity:.4}
@@ -495,6 +499,13 @@ function fmt(raw){
     if(m=ln.match(/^\s*\d+\.\s+(.*)$/)){ flushPara(); if(!list||list.type!=="ol"){ flushList(); list={type:"ol",items:[]}; } list.items.push(m[1]); continue; }
     // unordered list  - / *
     if(m=ln.match(/^\s*[-*]\s+(.*)$/)){ flushPara(); if(!list||list.type!=="ul"){ flushList(); list={type:"ul",items:[]}; } list.items.push(m[1]); continue; }
+    // ※ 行（装飾記号が前にあってもOK）→ 赤文字
+    if(/^[\s\u3000*_~\uFF0A\uFF3F\uFF5E\u3001\u30FB]*\u203b/.test(ln)){
+      flush();
+      let inner = inlineMd(ln).replace(/<(strong|em|u|del)>/g,'<$1 style="color:#ff0000">');
+      out.push('<div class="dc-note" style="color:#ff0000">'+inner+'</div>');
+      continue;
+    }
     // blank line
     if(ln.trim()===""){ flush(); out.push('<div class="dc-gap"></div>'); continue; }
     // normal text line
