@@ -274,8 +274,18 @@ async function saveToRepo(){
   if(!t){setStatus("GitHubトークン（repo権限）を入力してください。",true);return;}
   setStatus("GitHubへ保存中…",false);
   try{
-    let sha=null;
-    try{const cur=await fetch(GH_API+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});if(cur.ok){const cj=await cur.json();sha=cj.sha||null;}}catch(e){}
+    let sha=null, remoteCount=null;
+    try{
+      const cur=await fetch(GH_API+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});
+      if(cur.ok){const cj=await cur.json();sha=cj.sha||null;
+        try{const ro=JSON.parse(decodeB64(cj.content));if(ro&&Array.isArray(ro.cards))remoteCount=ro.cards.length;}catch(e){}
+      }
+    }catch(e){}
+    // 誤上書き防止：サーバーの方がカードが多いのに、こちらが少ない場合は確認
+    if(remoteCount!=null && remoteCount > DATA.cards.length){
+      const ok=confirm("サーバー上には "+remoteCount+" 件ありますが、いま表示中の "+DATA.cards.length+" 件で上書きしようとしています。\n\n先にサーバーの最新を読み込むには「キャンセル」を押し、［再読込］してください。\n\nこのまま "+DATA.cards.length+" 件で上書きしますか？");
+      if(!ok){setStatus("保存を中止しました。［再読込］で最新を取得してください。",true);return;}
+    }
     const text=JSON.stringify(buildPayload(),null,2);
     const body={message:"update "+FILE,content:encodeB64(text),branch:BRANCH};
     if(sha)body.sha=sha;
@@ -288,7 +298,7 @@ async function saveToRepo(){
     const rj=await res.json().catch(function(){return {};});
     if(!res.ok) throw new Error("HTTP "+res.status+" "+(rj.message||""));
     localStorage.setItem(GH_TOKEN_KEY,t);
-    setStatus("GitHubへ保存しました（別端末でも反映されます）。",false);
+    setStatus("GitHubへ保存しました（"+DATA.cards.length+" 件）。",false);
   }catch(err){setStatus("保存に失敗しました："+err.message,true);}
 }
 
