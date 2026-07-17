@@ -45,6 +45,14 @@
   .chip{border:1px solid var(--line2);background:#fff;color:var(--muted);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit}
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent-dark);font-weight:700}
   .toolbar select{border:1px solid var(--line2);border-radius:6px;padding:5px 8px;font:inherit;font-size:12px;background:#fff;color:var(--ink)}
+  .statusacc{flex:1 1 100%;order:5}
+  .statusacc-head{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line2);border-radius:999px;padding:5px 14px;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}
+  .statusacc-head:hover{background:#f3f3f3;color:var(--ink)}
+  .statusacc-head .chev{font-size:.72em;transition:transform .18s ease}
+  .statusacc.open .statusacc-head .chev{transform:rotate(90deg)}
+  .statusacc-cur{color:var(--accent);font-weight:700}
+  .statusacc-body{display:none;flex-wrap:wrap;gap:4px;margin-top:8px;width:100%}
+  .statusacc.open .statusacc-body{display:flex}
   .toolbar .sp{flex:1}
   .count{font-size:12px;color:var(--muted)}
 
@@ -180,7 +188,10 @@ header.eth{background:#8b0000}
       <button class="chip" data-role="PL">PL</button>
       <button class="chip" data-role="KPレス">KPレス</button>
     </div>
-    <div class="grp" id="statusFilter"></div>
+    <div class="statusacc" id="statusAcc">
+      <button class="statusacc-head" id="statusAccHead"><span class="chev">▶</span>状態で絞り込み<span class="statusacc-cur" id="statusAccCur"></span></button>
+      <div class="statusacc-body" id="statusFilter"></div>
+    </div>
     <span class="sp"></span>
     <select id="sortSel">
       <option value="date-desc">日付が新しい順</option>
@@ -311,7 +322,7 @@ function allStatuses(){
 function isWarnStatus(s){return /死|敗|ロスト|再起不能|狂気|通過中|進行/.test(s);}
 
 function renderStatusFilter(){
-  const box=$("#statusFilter");box.innerHTML='<span class="count" style="margin-right:2px">状態</span>';
+  const box=$("#statusFilter");box.innerHTML="";
   const all=document.createElement("button");all.className="chip"+(fStatus===""?" on":"");all.textContent="すべて";
   all.addEventListener("click",function(){fStatus="";renderStatusFilter();renderGallery();});
   box.appendChild(all);
@@ -320,6 +331,8 @@ function renderStatusFilter(){
     b.addEventListener("click",function(){fStatus=s;renderStatusFilter();renderGallery();});
     box.appendChild(b);
   });
+  const cur=$("#statusAccCur");
+  if(cur) cur.textContent=fStatus?("："+fStatus):"";
 }
 
 /* ---- ギャラリー描画 ---- */
@@ -608,6 +621,8 @@ function init(){
     });
   });
   $("#sortSel").addEventListener("change",function(){sortMode=this.value;renderGallery();});
+  const sAccHead=$("#statusAccHead");
+  if(sAccHead) sAccHead.addEventListener("click",function(){$("#statusAcc").classList.toggle("open");});
   $("#saveBtn").addEventListener("click",saveToRepo);
   $("#reloadBtn").addEventListener("click",function(){
     setStatus("読込中…",false);
