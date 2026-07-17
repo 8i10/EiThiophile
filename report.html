@@ -64,6 +64,7 @@
   .badge.role-PL{background:#eef6ee;color:#3a7d3a;border:1px solid #d6ead6}
   .badge.role-KPレス{background:#f3edfb;color:#7a4fa8;border:1px solid #e2d4f2}
   .badge.role-other{background:#f0f0f0;color:#666;border:1px solid #ddd}
+  .tag.plain{background:none;border:none;padding:2px 2px;color:#555}
   .tag.ho{background:#eef2f7;color:#4a6484;border-color:#d8e1ec}
   .tag.cf{background:#fbf1f1;color:#8b0000;border:1px solid #f0dede;font-weight:700;letter-spacing:.02em}
   /* CFステッパー */
@@ -338,7 +339,7 @@ function hoTag(s){return '<span class="tag ho">'+esc(s)+'</span>';}
 function cfTag(cf){
   if(!cf)return "";
   if((Number(cf.c)||0)===0 && (Number(cf.f)||0)===0) return "";
-  return '<span class="tag">'+(Number(cf.c)||0)+"c"+(Number(cf.f)||0)+"f</span>";
+  return '<span class="tag plain">'+(Number(cf.c)||0)+"c"+(Number(cf.f)||0)+"f</span>";
 }
 function roleBadge(r){const cls=(r==="KP"||r==="PL"||r==="KPレス")?("role-"+r):"role-other";return '<span class="badge '+cls+'">'+esc(r||"")+'</span>';}
 
@@ -357,7 +358,7 @@ function renderGallery(){
     const img=toDirectImageUrl(c.image);
     const imgHtml=img?'<div class="card-img" style="background-image:url(\''+esc(img)+'\')"></div>'
                      :'<div class="card-img empty">No Image</div>';
-    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
     let editBtns="";
     if(IS_EDIT&&!READONLY){
       editBtns='<div class="card-edit-btns">'+
@@ -400,7 +401,7 @@ function refresh(){renderStatusFilter();renderGallery();}
 function openDetail(i){
   const c=DATA.cards[i];if(!c)return;
   const img=toDirectImageUrl(c.image);
-  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
   const box=$("#modalBox");
   box.innerHTML='<div class="modal-wrap">'+
     '<button class="modal-close" id="mClose">×</button>'+
