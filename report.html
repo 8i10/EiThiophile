@@ -565,7 +565,7 @@ function openEdit(i){
   // HO
   function refreshHo(){
     drawTags($("#ef_holist"),ho,function(idx){ho.splice(idx,1);refreshHo();});
-    fillSelect($("#ef_hosel"),hoOptions(),ho);
+    fillSelect($("#ef_hosel"),sortHo(hoOptions()),ho);
   }
   function addHo(v){v=(v||"").trim();if(!v||ho.indexOf(v)>=0)return;ho.push(v);refreshHo();}
   refreshHo();
