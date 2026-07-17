@@ -358,6 +358,16 @@ function sortedCards(){
   return arr;
 }
 function statusTag(s){return '<span class="tag status'+(isWarnStatus(s)?" warn":"")+'">'+esc(s)+'</span>';}
+function sortHo(arr){
+  arr=(arr||[]).slice();
+  const num=[], other=[];
+  arr.forEach(function(h){
+    const m=/^HO\s*(\d+)$/i.exec((h||"").trim());
+    if(m) num.push({h:h,n:Number(m[1])}); else other.push(h);
+  });
+  num.sort(function(a,b){return a.n-b.n;});
+  return num.map(function(x){return x.h;}).concat(other);
+}
 function hoTag(s){return '<span class="tag ho">'+esc(s)+'</span>';}
 function cfTag(cf){
   if(!cf)return "";
@@ -381,7 +391,7 @@ function renderGallery(){
     const img=toDirectImageUrl(c.image);
     const imgHtml=img?'<div class="card-img" style="background-image:url(\''+esc(img)+'\')"></div>'
                      :'<div class="card-img empty">No Image</div>';
-    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+sortHo(c.ho).map(hoTag).join("")+cfTag(c.cf);
     let editBtns="";
     if(IS_EDIT&&!READONLY){
       editBtns='<div class="card-edit-btns">'+
@@ -424,7 +434,7 @@ function refresh(){renderStatusFilter();renderGallery();}
 function openDetail(i){
   const c=DATA.cards[i];if(!c)return;
   const img=toDirectImageUrl(c.image);
-  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag plain">'+esc(c.ed)+'</span>':"")+sortHo(c.ho).map(hoTag).join("")+cfTag(c.cf);
   const box=$("#modalBox");
   box.innerHTML='<div class="modal-wrap">'+
     '<button class="modal-close" id="mClose">×</button>'+
