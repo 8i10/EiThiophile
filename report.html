@@ -189,8 +189,8 @@ header.eth{background:#8b0000}
   </div>
   <div class="count" id="countLabel" style="margin-bottom:10px"></div>
 
+  <button class="add-card-btn" id="addCardBtn" style="margin-top:0;margin-bottom:16px">＋ 卓を追加</button>
   <div class="gallery" id="gallery"></div>
-  <button class="add-card-btn" id="addCardBtn">＋ 卓を追加</button>
 </div>
 
 <div class="modal" id="modal"><div class="modal-box" id="modalBox"></div></div>
@@ -253,8 +253,8 @@ function normalize(o){
     const cf=(c.cf&&typeof c.cf==="object")?{c:Number(c.cf.c)||0,f:Number(c.cf.f)||0}:{c:0,f:0};
     return {id:c.id||uid(),title:c.title||"",image:c.image||"",role:c.role||"PL",
       date:c.date||"",statuses:Array.isArray(c.statuses)?c.statuses:(c.status?[c.status]:[]),
-      ho:Array.isArray(c.ho)?c.ho:[],cf:cf,
-      members:c.members||"",thoughts:c.thoughts||"",
+      ho:Array.isArray(c.ho)?c.ho:[],cf:cf,system:c.system||"",ed:c.ed||"",url:c.url||"",
+      thoughts:c.thoughts||"",
       addedAt:Number(c.addedAt)||0};
   });
 }
@@ -305,15 +305,24 @@ function renderStatusFilter(){
 }
 
 /* ---- ギャラリー描画 ---- */
+function dateKey(s){
+  s=String(s||"").trim();
+  if(!s) return 0;
+  let m=s.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);       // 2026年7月4日 / 2026-07-04
+  if(!m) m=s.match(/(\d{4})\D+(\d{1,2})/);                 // 2026年7月
+  if(!m) return 0;
+  const y=Number(m[1]), mo=Number(m[2]||1), da=Number(m[3]||1);
+  return y*10000 + mo*100 + da;
+}
 function sortedCards(){
   let arr=DATA.cards.slice();
   if(fRole) arr=arr.filter(function(c){return c.role===fRole;});
   if(fStatus) arr=arr.filter(function(c){return (c.statuses||[]).indexOf(fStatus)>=0;});
   arr.sort(function(a,b){
     if(sortMode==="title") return (a.title||"").localeCompare(b.title||"","ja");
-    const da=a.date||"", db=b.date||"";
-    if(sortMode==="date-asc") return da<db?-1:da>db?1:(a.addedAt-b.addedAt);
-    return da>db?-1:da<db?1:(b.addedAt-a.addedAt); // date-desc
+    const ka=dateKey(a.date), kb=dateKey(b.date);
+    if(sortMode==="date-asc") return (ka-kb) || (a.addedAt-b.addedAt);
+    return (kb-ka) || (b.addedAt-a.addedAt); // date-desc
   });
   return arr;
 }
@@ -322,8 +331,8 @@ function hoTag(s){return '<span class="tag ho">'+esc(s)+'</span>';}
 function cfTag(cf){
   if(!cf)return "";
   const parts=[];
-  if(cf.c>0)parts.push("◆C"+cf.c);
-  if(cf.f>0)parts.push("◆F"+cf.f);
+  if(cf.c>0)parts.push("C"+cf.c);
+  if(cf.f>0)parts.push("F"+cf.f);
   return parts.length?'<span class="tag cf">'+parts.join("　")+'</span>':"";
 }
 function roleBadge(r){const cls=(r==="KP"||r==="PL"||r==="KPレス")?("role-"+r):"role-other";return '<span class="badge '+cls+'">'+esc(r||"")+'</span>';}
@@ -343,7 +352,7 @@ function renderGallery(){
     const img=toDirectImageUrl(c.image);
     const imgHtml=img?'<div class="card-img" style="background-image:url(\''+esc(img)+'\')"></div>'
                      :'<div class="card-img empty">No Image</div>';
-    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
     let editBtns="";
     if(IS_EDIT&&!READONLY){
       editBtns='<div class="card-edit-btns">'+
@@ -386,7 +395,7 @@ function refresh(){renderStatusFilter();renderGallery();}
 function openDetail(i){
   const c=DATA.cards[i];if(!c)return;
   const img=toDirectImageUrl(c.image);
-  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
+  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ed?'<span class="tag">'+esc(c.ed)+'</span>':"")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
   const box=$("#modalBox");
   box.innerHTML='<div class="modal-wrap">'+
     '<button class="modal-close" id="mClose">×</button>'+
@@ -395,7 +404,9 @@ function openDetail(i){
       '<h3 class="modal-title">'+esc(c.title||"（無題）")+'</h3>'+
       '<div class="modal-meta">'+roleBadge(c.role)+(c.date?'<span class="card-date">'+esc(c.date)+'</span>':"")+'</div>'+
       (tags?'<div class="card-tags">'+tags+'</div>':"")+
-      (c.members&&c.members.trim()?'<div class="modal-sec"><h4>同卓PC</h4><div class="val">'+esc(c.members)+'</div></div>':"")+
+      (c.ed&&c.ed.trim()?'<div class="modal-sec"><h4>ED</h4><div class="val">'+esc(c.ed)+'</div></div>':"")+
+      (c.system&&c.system.trim()?'<div class="modal-sec"><h4>システム</h4><div class="val">'+esc(c.system)+'</div></div>':"")+
+      (c.url&&c.url.trim()?'<div class="modal-sec"><h4>シナリオURL</h4><div class="val"><a href="'+esc(c.url)+'" target="_blank" rel="noopener" style="color:#8b0000">'+esc(c.url)+'</a></div></div>':"")+
       (c.thoughts&&c.thoughts.trim()?'<div class="modal-sec"><h4>感想</h4><div class="val">'+esc(c.thoughts)+'</div></div>':"")+
     '</div>'+
   '</div>';
@@ -435,16 +446,20 @@ function openEdit(i){
           '<div class="tagpick"><select id="ef_hosel"></select><input id="ef_hoinput" placeholder="自由入力で追加"><button class="addbtn" id="ef_hoadd">追加</button></div>'+
         '</div>'+
       '</div>'+
-      '<div><label>ステータス</label>'+
+      '<div><label>ステータス（生還・両生還 等）</label>'+
         '<div class="taglist" id="ef_stlist"></div>'+
         '<div class="tagpick"><select id="ef_stsel"></select><input id="ef_stinput" placeholder="自由入力で追加"><button class="addbtn" id="ef_stadd">追加</button></div>'+
       '</div>'+
+      '<div class="two">'+
+        '<div><label>ED（エンド）</label><input id="ef_ed" placeholder="エンドA / END-B 等"></div>'+
+        '<div><label>システム</label><input id="ef_system" placeholder="CoC6th 等"></div>'+
+      '</div>'+
       '<div><label>CF</label><div class="cf-row">'+
-        '<div class="cf-item"><span class="lb">◆C</span><div class="stp"><button id="ef_cminus">−</button><span class="num" id="ef_cnum">0</span><button id="ef_cplus">＋</button></div></div>'+
-        '<div class="cf-item"><span class="lb">◆F</span><div class="stp"><button id="ef_fminus">−</button><span class="num" id="ef_fnum">0</span><button id="ef_fplus">＋</button></div></div>'+
+        '<div class="cf-item"><span class="lb">C</span><div class="stp"><button id="ef_cminus">−</button><span class="num" id="ef_cnum">0</span><button id="ef_cplus">＋</button></div></div>'+
+        '<div class="cf-item"><span class="lb">F</span><div class="stp"><button id="ef_fminus">−</button><span class="num" id="ef_fnum">0</span><button id="ef_fplus">＋</button></div></div>'+
       '</div></div>'+
+      '<div><label>シナリオURL（任意）</label><input id="ef_url" placeholder="https://…"></div>'+
       '<div><label>感想</label><textarea id="ef_thoughts"></textarea></div>'+
-      '<div><label>同卓PC</label><textarea id="ef_members"></textarea></div>'+
       '<div class="ef-foot"><button class="act ghost" id="ef_cancel">キャンセル</button><button class="act" id="ef_save">保存</button></div>'+
     '</div></div></div>';
 
@@ -452,7 +467,9 @@ function openEdit(i){
   $("#ef_image").value=c.image||"";
   $("#ef_role").value=(c.role==="KP"||c.role==="PL"||c.role==="KPレス")?c.role:"他";
   $("#ef_date").value=c.date||"";
-  $("#ef_members").value=c.members||"";
+  $("#ef_ed").value=c.ed||"";
+  $("#ef_system").value=c.system||"";
+  $("#ef_url").value=c.url||"";
   $("#ef_thoughts").value=c.thoughts||"";
 
   // 画像プレビュー
@@ -517,8 +534,8 @@ function openEdit(i){
   $("#ef_hoadd").addEventListener("click",function(){addHo($("#ef_hoinput").value);$("#ef_hoinput").value="";});
   $("#ef_hoinput").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addHo(this.value);this.value="";}});
 
-  // 感想（自動伸縮）・同卓PC
-  [$("#ef_thoughts"),$("#ef_members")].forEach(function(t){const g=function(){t.style.height="auto";t.style.height=t.scrollHeight+"px";};t.addEventListener("input",g);setTimeout(g,0);});
+  // 感想（自動伸縮）
+  [$("#ef_thoughts")].forEach(function(t){const g=function(){t.style.height="auto";t.style.height=t.scrollHeight+"px";};t.addEventListener("input",g);setTimeout(g,0);});
 
   $("#modal").classList.add("open");
   $("#mClose").addEventListener("click",closeModal);
@@ -531,7 +548,9 @@ function openEdit(i){
     c.statuses=statuses.slice();
     c.ho=ho.slice();
     c.cf={c:cf.c,f:cf.f};
-    c.members=$("#ef_members").value;
+    c.ed=$("#ef_ed").value.trim();
+    c.system=$("#ef_system").value.trim();
+    c.url=$("#ef_url").value.trim();
     c.thoughts=$("#ef_thoughts").value;
     if(!c.addedAt)c.addedAt=Date.now();
     closeModal();refresh();
@@ -553,7 +572,7 @@ function resizeDataUrl(dataUrl,maxW,cb){
 }
 
 function addCard(){
-  const c={id:uid(),title:"",image:"",role:"PL",date:"",statuses:[],ho:[],cf:{c:0,f:0},members:"",thoughts:"",addedAt:Date.now()};
+  const c={id:uid(),title:"",image:"",role:"PL",date:"",statuses:[],ho:[],cf:{c:0,f:0},system:"",ed:"",url:"",thoughts:"",addedAt:Date.now()};
   DATA.cards.push(c);refresh();
   openEdit(DATA.cards.length-1);
 }
