@@ -62,7 +62,27 @@
   .badge{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;letter-spacing:.02em}
   .badge.role-KP{background:#eaf1fb;color:#2f5fa8;border:1px solid #cfe0f5}
   .badge.role-PL{background:#eef6ee;color:#3a7d3a;border:1px solid #d6ead6}
+  .badge.role-KPレス{background:#f3edfb;color:#7a4fa8;border:1px solid #e2d4f2}
   .badge.role-other{background:#f0f0f0;color:#666;border:1px solid #ddd}
+  .tag.ho{background:#eef2f7;color:#4a6484;border-color:#d8e1ec}
+  .tag.cf{background:#fbf1f1;color:#8b0000;border:1px solid #f0dede;font-weight:700;letter-spacing:.02em}
+  /* CFステッパー */
+  .cf-row{display:flex;gap:16px;align-items:center}
+  .cf-item{display:flex;align-items:center;gap:6px}
+  .cf-item .lb{font-size:13px;font-weight:700;color:#8b0000}
+  .cf-item .stp{display:flex;align-items:center;border:1px solid var(--line2);border-radius:7px;overflow:hidden}
+  .cf-item .stp button{border:none;background:#f3f3f3;width:26px;height:28px;font-size:14px;cursor:pointer;color:var(--ink);line-height:1}
+  .cf-item .stp button:hover{background:#e6e6e6}
+  .cf-item .stp .num{min-width:30px;text-align:center;font-size:14px;font-weight:700}
+  /* タグ入力（ステータス/HO） */
+  .taglist{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+  .taglist .t{display:inline-flex;align-items:center;gap:5px;background:#eef6ee;color:#3a7d3a;border:1px solid #d6ead6;border-radius:5px;padding:2px 6px 2px 8px;font-size:12px}
+  .taglist.ho-list .t{background:#eef2f7;color:#4a6484;border-color:#d8e1ec}
+  .taglist .t button{border:none;background:transparent;color:inherit;cursor:pointer;font-size:13px;line-height:1;padding:0}
+  .tagpick{display:flex;gap:6px}
+  .tagpick select{flex:1}
+  .tagpick input{flex:1}
+  .tagpick .addbtn{border:1px solid var(--line2);background:#fff;border-radius:6px;padding:0 12px;font-size:12px;cursor:pointer;color:var(--ink);white-space:nowrap}
   .card-date{font-size:11px;color:var(--muted)}
   .card-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
   .tag{font-size:10px;border-radius:5px;padding:2px 7px;background:#f0efe9;color:#555;border:1px solid #e2e0d5}
@@ -153,10 +173,11 @@ header.eth{background:#8b0000}
 
   <div class="toolbar" id="toolbar">
     <div class="grp" id="roleFilter">
-      <span class="count" style="margin-right:2px">役割</span>
+      <span class="count" style="margin-right:2px">KP/PL</span>
       <button class="chip on" data-role="">すべて</button>
       <button class="chip" data-role="KP">KP</button>
       <button class="chip" data-role="PL">PL</button>
+      <button class="chip" data-role="KPレス">KPレス</button>
     </div>
     <div class="grp" id="statusFilter"></div>
     <span class="sp"></span>
@@ -202,7 +223,7 @@ function toDirectImageUrl(u){
 }
 
 function ghToken(){const v=$("#token");return (v&&v.value.trim())||localStorage.getItem(GH_TOKEN_KEY)||"";}
-function ghHeaders(t){const h={"Accept":"application/vnd.github.v3+json","Cache-Control":"no-cache"};if(t)h["Authorization"]="token "+t;if(1)h["Content-Type"]="application/json";return h;}
+function ghHeaders(t){return {"Authorization":"token "+t,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"};}
 function decodeB64(b64){const bin=atob(String(b64).replace(/\n/g,""));return decodeURIComponent(Array.prototype.map.call(bin,function(c){return "%"+("00"+c.charCodeAt(0).toString(16)).slice(-2);}).join(""));}
 function encodeB64(str){return btoa(unescape(encodeURIComponent(str)));}
 
@@ -229,9 +250,11 @@ function normalize(o){
   const cards=(o&&Array.isArray(o.cards))?o.cards:[];
   DATA.cards=cards.map(function(c){
     c=c||{};
+    const cf=(c.cf&&typeof c.cf==="object")?{c:Number(c.cf.c)||0,f:Number(c.cf.f)||0}:{c:0,f:0};
     return {id:c.id||uid(),title:c.title||"",image:c.image||"",role:c.role||"PL",
       date:c.date||"",statuses:Array.isArray(c.statuses)?c.statuses:(c.status?[c.status]:[]),
-      code:c.code||"",members:c.members||"",thoughts:c.thoughts||"",
+      ho:Array.isArray(c.ho)?c.ho:[],cf:cf,
+      members:c.members||"",thoughts:c.thoughts||"",
       addedAt:Number(c.addedAt)||0};
   });
 }
@@ -295,7 +318,15 @@ function sortedCards(){
   return arr;
 }
 function statusTag(s){return '<span class="tag status'+(isWarnStatus(s)?" warn":"")+'">'+esc(s)+'</span>';}
-function roleBadge(r){const cls=(r==="KP"||r==="PL")?("role-"+r):"role-other";return '<span class="badge '+cls+'">'+esc(r||"")+'</span>';}
+function hoTag(s){return '<span class="tag ho">'+esc(s)+'</span>';}
+function cfTag(cf){
+  if(!cf)return "";
+  const parts=[];
+  if(cf.c>0)parts.push("◆C"+cf.c);
+  if(cf.f>0)parts.push("◆F"+cf.f);
+  return parts.length?'<span class="tag cf">'+parts.join("　")+'</span>':"";
+}
+function roleBadge(r){const cls=(r==="KP"||r==="PL"||r==="KPレス")?("role-"+r):"role-other";return '<span class="badge '+cls+'">'+esc(r||"")+'</span>';}
 
 function renderGallery(){
   const g=$("#gallery");g.innerHTML="";
@@ -312,7 +343,7 @@ function renderGallery(){
     const img=toDirectImageUrl(c.image);
     const imgHtml=img?'<div class="card-img" style="background-image:url(\''+esc(img)+'\')"></div>'
                      :'<div class="card-img empty">No Image</div>';
-    const tags=(c.statuses||[]).map(statusTag).join("")+(c.code?'<span class="tag code">'+esc(c.code)+'</span>':"");
+    const tags=(c.statuses||[]).map(statusTag).join("")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
     let editBtns="";
     if(IS_EDIT&&!READONLY){
       editBtns='<div class="card-edit-btns">'+
@@ -355,7 +386,7 @@ function refresh(){renderStatusFilter();renderGallery();}
 function openDetail(i){
   const c=DATA.cards[i];if(!c)return;
   const img=toDirectImageUrl(c.image);
-  const tags=(c.statuses||[]).map(statusTag).join("")+(c.code?'<span class="tag code">'+esc(c.code)+'</span>':"");
+  const tags=(c.statuses||[]).map(statusTag).join("")+(c.ho||[]).map(hoTag).join("")+cfTag(c.cf);
   const box=$("#modalBox");
   box.innerHTML='<div class="modal-wrap">'+
     '<button class="modal-close" id="mClose">×</button>'+
@@ -375,8 +406,17 @@ function closeModal(){$("#modal").classList.remove("open");}
 $("#modal").addEventListener("click",function(e){if(e.target===$("#modal"))closeModal();});
 
 /* ---- 編集モーダル ---- */
+// 既存の全カードから候補を集める
+function statusOptions(){const s=[];DATA.cards.forEach(function(c){(c.statuses||[]).forEach(function(v){if(v&&s.indexOf(v)<0)s.push(v);});});return s;}
+function hoOptions(){const s=[];DATA.cards.forEach(function(c){(c.ho||[]).forEach(function(v){if(v&&s.indexOf(v)<0)s.push(v);});});return s;}
+
 function openEdit(i){
   const c=DATA.cards[i];if(!c)return;
+  // 作業用コピー（保存時に反映）
+  let statuses=(c.statuses||[]).slice();
+  let ho=(c.ho||[]).slice();
+  let cf={c:(c.cf&&c.cf.c)||0,f:(c.cf&&c.cf.f)||0};
+
   const box=$("#modalBox");
   box.innerHTML='<div class="modal-wrap"><button class="modal-close" id="mClose">×</button>'+
     '<div class="modal-body"><h3 class="modal-title">卓を編集</h3>'+
@@ -386,33 +426,100 @@ function openEdit(i){
         '<input id="ef_image" placeholder="画像URL（Dropbox可）" style="flex:1;min-width:120px">'+
         '<label class="file-btn">アップロード<input type="file" id="ef_file" accept="image/*" style="display:none"></label>'+
       '</div></div>'+
-      '<div class="two"><div><label>役割</label><select id="ef_role"><option>PL</option><option>KP</option><option>他</option></select></div>'+
-        '<div><label>日付</label><input id="ef_date" placeholder="2026年3月20日 など"></div></div>'+
-      '<div><label>ステータス（カンマ区切り：生還, 両生還, エンドA 等）</label><input id="ef_status"></div>'+
-      '<div><label>コード（任意）</label><input id="ef_code" placeholder="0c2f 等"></div>'+
-      '<div><label>同卓PC</label><textarea id="ef_members"></textarea></div>'+
+      '<div><label>日付</label><div class="two"><input id="ef_date" placeholder="2026年3月20日 など" style="flex:2">'+
+        '<input type="date" id="ef_datepick" title="カレンダーから選択" style="flex:1"></div></div>'+
+      '<div class="two">'+
+        '<div><label>KP/PL</label><select id="ef_role"><option>PL</option><option>KP</option><option>KPレス</option><option>他</option></select></div>'+
+        '<div><label>HO</label>'+
+          '<div class="taglist ho-list" id="ef_holist"></div>'+
+          '<div class="tagpick"><select id="ef_hosel"></select><input id="ef_hoinput" placeholder="自由入力で追加"><button class="addbtn" id="ef_hoadd">追加</button></div>'+
+        '</div>'+
+      '</div>'+
+      '<div><label>ステータス</label>'+
+        '<div class="taglist" id="ef_stlist"></div>'+
+        '<div class="tagpick"><select id="ef_stsel"></select><input id="ef_stinput" placeholder="自由入力で追加"><button class="addbtn" id="ef_stadd">追加</button></div>'+
+      '</div>'+
+      '<div><label>CF</label><div class="cf-row">'+
+        '<div class="cf-item"><span class="lb">◆C</span><div class="stp"><button id="ef_cminus">−</button><span class="num" id="ef_cnum">0</span><button id="ef_cplus">＋</button></div></div>'+
+        '<div class="cf-item"><span class="lb">◆F</span><div class="stp"><button id="ef_fminus">−</button><span class="num" id="ef_fnum">0</span><button id="ef_fplus">＋</button></div></div>'+
+      '</div></div>'+
       '<div><label>感想</label><textarea id="ef_thoughts"></textarea></div>'+
+      '<div><label>同卓PC</label><textarea id="ef_members"></textarea></div>'+
       '<div class="ef-foot"><button class="act ghost" id="ef_cancel">キャンセル</button><button class="act" id="ef_save">保存</button></div>'+
     '</div></div></div>';
+
   $("#ef_title").value=c.title||"";
   $("#ef_image").value=c.image||"";
-  $("#ef_role").value=(c.role==="KP"||c.role==="PL")?c.role:"他";
+  $("#ef_role").value=(c.role==="KP"||c.role==="PL"||c.role==="KPレス")?c.role:"他";
   $("#ef_date").value=c.date||"";
-  $("#ef_status").value=(c.statuses||[]).join(", ");
-  $("#ef_code").value=c.code||"";
   $("#ef_members").value=c.members||"";
   $("#ef_thoughts").value=c.thoughts||"";
+
+  // 画像プレビュー
   const prev=$("#ef_prev");
-  function upd(){const u=toDirectImageUrl($("#ef_image").value);prev.style.backgroundImage=u?"url('"+u+"')":"";}
-  upd();
-  $("#ef_image").addEventListener("input",upd);
-  [$("#ef_members"),$("#ef_thoughts")].forEach(function(t){const g=function(){t.style.height="auto";t.style.height=t.scrollHeight+"px";};t.addEventListener("input",g);setTimeout(g,0);});
+  function updImg(){const u=toDirectImageUrl($("#ef_image").value);prev.style.backgroundImage=u?"url('"+u+"')":"";}
+  updImg();
+  $("#ef_image").addEventListener("input",updImg);
   $("#ef_file").addEventListener("change",function(){
     const f=this.files[0];if(!f)return;
     const rd=new FileReader();
-    rd.onload=function(){resizeDataUrl(rd.result,900,function(durl){$("#ef_image").value=durl;upd();});};
+    rd.onload=function(){resizeDataUrl(rd.result,900,function(durl){$("#ef_image").value=durl;updImg();});};
     rd.readAsDataURL(f);
   });
+
+  // 日付カレンダー→テキストに反映（YYYY年M月D日）
+  $("#ef_datepick").addEventListener("change",function(){
+    const v=this.value;if(!v)return;
+    const p=v.split("-");
+    $("#ef_date").value=Number(p[0])+"年"+Number(p[1])+"月"+Number(p[2])+"日";
+  });
+
+  // CF ステッパー
+  function drawCf(){$("#ef_cnum").textContent=cf.c;$("#ef_fnum").textContent=cf.f;}
+  drawCf();
+  $("#ef_cplus").addEventListener("click",function(){cf.c++;drawCf();});
+  $("#ef_cminus").addEventListener("click",function(){cf.c=Math.max(0,cf.c-1);drawCf();});
+  $("#ef_fplus").addEventListener("click",function(){cf.f++;drawCf();});
+  $("#ef_fminus").addEventListener("click",function(){cf.f=Math.max(0,cf.f-1);drawCf();});
+
+  // タグUI共通
+  function fillSelect(sel,opts,cur){
+    sel.innerHTML='<option value="">選択して追加…</option>';
+    opts.forEach(function(o){ if(cur.indexOf(o)<0){const op=document.createElement("option");op.value=o;op.textContent=o;sel.appendChild(op);} });
+  }
+  function drawTags(listEl,arr,ondel,cls){
+    listEl.innerHTML="";
+    arr.forEach(function(v,idx){
+      const t=document.createElement("span");t.className="t";
+      t.innerHTML=esc(v)+' <button title="削除">×</button>';
+      t.querySelector("button").addEventListener("click",function(){ondel(idx);});
+      listEl.appendChild(t);
+    });
+  }
+  // ステータス
+  function refreshSt(){
+    drawTags($("#ef_stlist"),statuses,function(idx){statuses.splice(idx,1);refreshSt();});
+    fillSelect($("#ef_stsel"),statusOptions(),statuses);
+  }
+  function addSt(v){v=(v||"").trim();if(!v||statuses.indexOf(v)>=0)return;statuses.push(v);refreshSt();}
+  refreshSt();
+  $("#ef_stsel").addEventListener("change",function(){addSt(this.value);this.value="";});
+  $("#ef_stadd").addEventListener("click",function(){addSt($("#ef_stinput").value);$("#ef_stinput").value="";});
+  $("#ef_stinput").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSt(this.value);this.value="";}});
+  // HO
+  function refreshHo(){
+    drawTags($("#ef_holist"),ho,function(idx){ho.splice(idx,1);refreshHo();});
+    fillSelect($("#ef_hosel"),hoOptions(),ho);
+  }
+  function addHo(v){v=(v||"").trim();if(!v||ho.indexOf(v)>=0)return;ho.push(v);refreshHo();}
+  refreshHo();
+  $("#ef_hosel").addEventListener("change",function(){addHo(this.value);this.value="";});
+  $("#ef_hoadd").addEventListener("click",function(){addHo($("#ef_hoinput").value);$("#ef_hoinput").value="";});
+  $("#ef_hoinput").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addHo(this.value);this.value="";}});
+
+  // 感想（自動伸縮）・同卓PC
+  [$("#ef_thoughts"),$("#ef_members")].forEach(function(t){const g=function(){t.style.height="auto";t.style.height=t.scrollHeight+"px";};t.addEventListener("input",g);setTimeout(g,0);});
+
   $("#modal").classList.add("open");
   $("#mClose").addEventListener("click",closeModal);
   $("#ef_cancel").addEventListener("click",closeModal);
@@ -421,8 +528,9 @@ function openEdit(i){
     c.image=$("#ef_image").value.trim();
     c.role=$("#ef_role").value;
     c.date=$("#ef_date").value.trim();
-    c.statuses=$("#ef_status").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
-    c.code=$("#ef_code").value.trim();
+    c.statuses=statuses.slice();
+    c.ho=ho.slice();
+    c.cf={c:cf.c,f:cf.f};
     c.members=$("#ef_members").value;
     c.thoughts=$("#ef_thoughts").value;
     if(!c.addedAt)c.addedAt=Date.now();
@@ -445,7 +553,7 @@ function resizeDataUrl(dataUrl,maxW,cb){
 }
 
 function addCard(){
-  const c={id:uid(),title:"",image:"",role:"PL",date:"",statuses:[],code:"",members:"",thoughts:"",addedAt:Date.now()};
+  const c={id:uid(),title:"",image:"",role:"PL",date:"",statuses:[],ho:[],cf:{c:0,f:0},members:"",thoughts:"",addedAt:Date.now()};
   DATA.cards.push(c);refresh();
   openEdit(DATA.cards.length-1);
 }
