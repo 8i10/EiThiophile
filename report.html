@@ -93,6 +93,7 @@
   .tagpick input{flex:1}
   .tagpick .addbtn{border:1px solid var(--line2);background:#fff;border-radius:6px;padding:0 12px;font-size:12px;cursor:pointer;color:var(--ink);white-space:nowrap}
   .card-date{font-size:11px;color:var(--muted)}
+  .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .card-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
   .tag{font-size:10px;border-radius:5px;padding:2px 7px;background:#f0efe9;color:#555;border:1px solid #e2e0d5}
   .tag.status{background:#eef6ee;color:#3a7d3a;border-color:#d6ead6}
@@ -317,6 +318,9 @@ async function saveToRepo(){
 function allStatuses(){
   const set=[];
   DATA.cards.forEach(function(c){(c.statuses||[]).forEach(function(s){if(s&&set.indexOf(s)<0)set.push(s);});});
+  // 「通過中」を先頭に
+  const pi=set.indexOf("通過中");
+  if(pi>0){ set.splice(pi,1); set.unshift("通過中"); }
   return set;
 }
 function isWarnStatus(s){return /死|敗|ロスト|再起不能|狂気|通過中|進行/.test(s);}
@@ -402,8 +406,7 @@ function renderGallery(){
     }
     card.innerHTML=imgHtml+'<div class="card-pad">'+
       '<div class="card-title">'+esc(c.title||"（無題）")+'</div>'+
-      '<div>'+roleBadge(c.role)+'</div>'+
-      (c.date?'<div class="card-date">'+esc(c.date)+'</div>':"")+
+      '<div class="card-meta">'+roleBadge(c.role)+(c.date?'<span class="card-date">'+esc(c.date)+'</span>':"")+'</div>'+
       (tags?'<div class="card-tags">'+tags+'</div>':"")+
       editBtns+
     '</div>';
