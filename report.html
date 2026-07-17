@@ -198,6 +198,7 @@ header.eth{background:#8b0000}
 <script>
 const REPO="8i10/kp-scenario", BRANCH="main", FILE="report.json";
 const GH_API="https://api.github.com/repos/"+REPO+"/contents/"+FILE;
+const GH_RAW="https://raw.githubusercontent.com/"+REPO+"/"+BRANCH+"/"+FILE;
 const GH_TOKEN_KEY="gh_token_v1";
 const IS_EDIT=new URLSearchParams(location.search).get("edit")==="1";
 const VIEW_GIST=new URLSearchParams(location.search).get("view");
@@ -231,6 +232,12 @@ function setStatus(m,e){const el=$("#status");el.textContent=m;el.className="sta
 
 /* ---- 読み込み ---- */
 async function loadFromRepo(){
+  // まず raw（回数制限なし・キャッシュはクエリで回避）で取得
+  try{
+    const r=await fetch(GH_RAW+"?t="+Date.now(),{cache:"no-store"});
+    if(r.ok){ return JSON.parse(await r.text()); }
+  }catch(e){}
+  // 失敗時は Contents API（プライベート等）
   const t=ghToken();
   const res=await fetch(GH_API+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});
   if(!res.ok) throw new Error("HTTP "+res.status);
@@ -330,10 +337,8 @@ function statusTag(s){return '<span class="tag status'+(isWarnStatus(s)?" warn":
 function hoTag(s){return '<span class="tag ho">'+esc(s)+'</span>';}
 function cfTag(cf){
   if(!cf)return "";
-  const parts=[];
-  if(cf.c>0)parts.push("C"+cf.c);
-  if(cf.f>0)parts.push("F"+cf.f);
-  return parts.length?'<span class="tag cf">'+parts.join("　")+'</span>':"";
+  if((Number(cf.c)||0)===0 && (Number(cf.f)||0)===0) return "";
+  return '<span class="tag">'+(Number(cf.c)||0)+"c"+(Number(cf.f)||0)+"f</span>";
 }
 function roleBadge(r){const cls=(r==="KP"||r==="PL"||r==="KPレス")?("role-"+r):"role-other";return '<span class="badge '+cls+'">'+esc(r||"")+'</span>';}
 
