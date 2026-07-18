@@ -89,6 +89,14 @@
   /* ---- item ---- */
   .item{padding:8px 0;}
   .item:last-of-type{border-bottom:none;}
+  .lockbox{background:#f7f7f7;border:1px dashed #c9b3b3;border-radius:8px;padding:10px 12px;margin:2px 0}
+  .lock-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .lock-ic{font-size:14px}
+  .lock-input{flex:1 1 160px;min-width:120px;border:1px solid var(--line-soft,#ccc);border-radius:6px;padding:5px 9px;font:inherit;font-size:12px}
+  .lock-btn{background:#8b0000;color:#fff;border:none;border-radius:6px;padding:5px 14px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .lock-msg{font-size:11px;color:#b23b3b}
+  .lock-edit{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#8b0000;margin-left:4px}
+  .lock-edit input[type=text]{border:1px solid #ccc;border-radius:5px;padding:3px 6px;font:inherit;font-size:11px;width:120px}
   .item-name{
     font-weight:700;font-size:13px;margin-bottom:6px;
     padding-left:10px;border-left:3px solid #ff0000;
@@ -305,6 +313,33 @@ let READONLY = false;
 function canEdit(){ return !READONLY && IS_EDIT_MODE; }
 
 function uid(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
+/* 鍵：解除済みidを一時保持（保存されない） */
+var _unlocked = {};
+function isUnlocked(o){ return !o.locked || _unlocked[o.id]; }
+function tryUnlock(o, input){
+  if (String(input) === String(o.pass || "")) { _unlocked[o.id] = true; return true; }
+  return false;
+}
+function buildLockBox(o, onOpen){
+  const box = document.createElement("div");
+  box.className = "lockbox";
+  const row = document.createElement("div");
+  row.className = "lock-row";
+  const ic = document.createElement("span"); ic.className = "lock-ic"; ic.textContent = "🔒";
+  const inp = document.createElement("input");
+  inp.type = "password"; inp.className = "lock-input"; inp.placeholder = "パスワード（未設定なら空欄でOK）";
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "lock-btn"; btn.textContent = "解除";
+  const msg = document.createElement("span"); msg.className = "lock-msg";
+  function attempt(){
+    if (tryUnlock(o, inp.value)) { onOpen(); }
+    else { msg.textContent = "パスワードが違います"; }
+  }
+  btn.addEventListener("click", attempt);
+  inp.addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); attempt(); } });
+  row.appendChild(ic); row.appendChild(inp); row.appendChild(btn); row.appendChild(msg);
+  box.appendChild(row);
+  return box;
+}
 function $(s){ return document.querySelector(s); }
 
 /* ---------- Discord記法レンダリング ---------- */
@@ -476,7 +511,25 @@ function render(){
     head.appendChild(up); head.appendChild(dn);
     head.appendChild(titleView); head.appendChild(titleInput);
     head.appendChild(delSec);
+    if (EDITING){
+      const lk = document.createElement("label");
+      lk.className = "lock-edit";
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!sec.locked;
+      const pw = document.createElement("input"); pw.type = "text"; pw.placeholder = "パス(空欄可)"; pw.value = sec.pass || ""; pw.style.display = sec.locked ? "" : "none";
+      cb.addEventListener("change", function(){ sec.locked = cb.checked; pw.style.display = cb.checked ? "" : "none"; });
+      pw.addEventListener("input", function(){ sec.pass = pw.value; });
+      lk.appendChild(cb); lk.appendChild(document.createTextNode("🔒")); lk.appendChild(pw);
+      head.appendChild(lk);
+    }
     box.appendChild(head);
+
+    /* 見出しロック：閲覧時、未解除なら中身を隠す */
+    if (!EDITING && !isUnlocked(sec)){
+      const lb = buildLockBox(sec, function(){ render(); });
+      box.appendChild(lb);
+      wrap.appendChild(box);
+      return;
+    }
 
     /* 項目 */
     const body = document.createElement("div");
@@ -563,6 +616,14 @@ function buildItem(sec, it, si, ii){
     if (!confirm("この項目を削除しますか？")) return;
     sec.items.splice(ii, 1); render();
   }));
+  const ilk = document.createElement("label");
+  ilk.className = "lock-edit";
+  const icb = document.createElement("input"); icb.type = "checkbox"; icb.checked = !!it.locked;
+  const ipw = document.createElement("input"); ipw.type = "text"; ipw.placeholder = "パス(空欄可)"; ipw.value = it.pass || ""; ipw.style.display = it.locked ? "" : "none";
+  icb.addEventListener("change", function(){ it.locked = icb.checked; ipw.style.display = icb.checked ? "" : "none"; });
+  ipw.addEventListener("input", function(){ it.pass = ipw.value; });
+  ilk.appendChild(icb); ilk.appendChild(document.createTextNode("🔒")); ilk.appendChild(ipw);
+  ed.appendChild(ilk);
   row.appendChild(ed);
 
   /* 項目名（閲覧）：未入力なら非表示 */
@@ -576,6 +637,12 @@ function buildItem(sec, it, si, ii){
   const val = document.createElement("div");
   val.className = "item-val";
   let lView, rView;
+
+  if (!EDITING && !isUnlocked(it)){
+    val.appendChild(buildLockBox(it, function(){ render(); }));
+    row.appendChild(val);
+    return row;
+  }
 
   if ((it.type || "text") === "meter"){
     const mw = document.createElement("div");
@@ -664,6 +731,8 @@ function loadPayload(obj){
     return {
       id: s.id || uid(),
       title: s.title || "",
+      locked: !!s.locked,
+      pass: s.pass || "",
       items: (Array.isArray(s.items) ? s.items : []).map(function(i){
         return {
           id: i.id || uid(),
@@ -672,7 +741,9 @@ function loadPayload(obj){
           left: i.left || "",
           right: i.right || "",
           value: i.value || "",
-          level: Number(i.level) || 0
+          level: Number(i.level) || 0,
+          locked: !!i.locked,
+          pass: i.pass || ""
         };
       })
     };

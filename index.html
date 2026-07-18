@@ -185,6 +185,14 @@ body:not(.edit-mode) .header-btns{display:none}
 
 /* ---- 項目・メーター ---- */
 .item{padding:8px 0}
+.lockbox{background:#f7f7f7;border:1px dashed #c9b3b3;border-radius:8px;padding:10px 12px;margin:2px 0}
+.lock-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.lock-ic{font-size:14px}
+.lock-input{flex:1 1 160px;min-width:120px;border:1px solid #ccc;border-radius:6px;padding:5px 9px;font:inherit;font-size:12px}
+.lock-btn{background:#8b0000;color:#fff;border:none;border-radius:6px;padding:5px 14px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.lock-msg{font-size:11px;color:#b23b3b}
+.lock-edit{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#8b0000}
+.lock-edit input[type=text]{border:1px solid #ccc;border-radius:5px;padding:3px 6px;font:inherit;font-size:11px;width:110px}
 .item-name{font-weight:700;font-size:13px;margin-bottom:6px;padding-left:10px;border-left:3px solid #ff0000}
 .item-val{padding-left:13px}
 .item-text{font-size:11px;line-height:1.15;word-break:break-word}
@@ -347,6 +355,41 @@ const FIELD_LABELS = { x:'X（Twitter）' };
 /* DATA = { profile:{}, majors:[ {id,name,pages:[{id,name,type,sections:[{heading,items:[{id,name,type,value,left,right,level}]}]}]} ] } */
 const LEVELS = 7;
 function itemUid(){ return 'it' + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
+/* 鍵：解除済みidを一時保持 */
+var _unlocked = {};
+function isUnlocked(o){ return !o.locked || _unlocked[o.id]; }
+function lockBoxHtml(id){
+  return '<div class="lockbox" data-lockid="' + esc(id) + '">' +
+    '<div class="lock-row"><span class="lock-ic">🔒</span>' +
+    '<input type="password" class="lock-input" placeholder="パスワード（未設定なら空欄でOK）">' +
+    '<button type="button" class="lock-btn">解除</button>' +
+    '<span class="lock-msg"></span></div></div>';
+}
+function findLockObj(id){
+  const pg = getPage(); if(!pg) return null;
+  const secs = pg.sections || [];
+  for(let i=0;i<secs.length;i++){
+    if(secs[i].id===id) return secs[i];
+    const its = secs[i].items || [];
+    for(let j=0;j<its.length;j++){ if(its[j].id===id) return its[j]; }
+  }
+  return null;
+}
+function wireLockboxes(){
+  document.querySelectorAll('#secView .lockbox').forEach(function(box){
+    const id = box.getAttribute('data-lockid');
+    const inp = box.querySelector('.lock-input');
+    const btn = box.querySelector('.lock-btn');
+    const msg = box.querySelector('.lock-msg');
+    function attempt(){
+      const o = findLockObj(id); if(!o) return;
+      if(String(inp.value) === String(o.pass || '')){ _unlocked[id] = true; renderView(); }
+      else { msg.textContent = 'パスワードが違います'; }
+    }
+    btn.addEventListener('click', attempt);
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); attempt(); } });
+  });
+}
 let DATA = { profile:{}, majors:[] };
 let curMajor = 0, curPage = 0;
 let editing = false;
@@ -615,21 +658,27 @@ function renderView(){
   if(pg){
     (pg.sections || []).forEach(function(s){
       const items = s.items || [];
-      const hasContent = s.heading || items.some(function(it){
-        return (it.name && it.name.trim()) || (it.type==='meter') || (it.value && it.value.trim());
+      const hasContent = s.heading || s.locked || items.some(function(it){
+        return (it.name && it.name.trim()) || (it.type==='meter') || (it.value && it.value.trim()) || it.locked;
       });
       if(!hasContent) return;
       const head = s.heading
         ? '<div class="sec-head"><img class="hd-ico" src="' + HD_ICON + '" alt="">' + esc(s.heading) + '</div>'
         : '';
       let body = '';
+      const secLocked = !isUnlocked(s);
+      if(secLocked){
+        body = lockBoxHtml(s.id);
+      } else {
       items.forEach(function(it){
         const isMeter = it.type === 'meter';
-        if(!isMeter && !(it.value && it.value.trim()) && !(it.name && it.name.trim())) return;
+        if(!isMeter && !(it.value && it.value.trim()) && !(it.name && it.name.trim()) && !it.locked) return;
         const nm = (it.name && it.name.trim())
           ? '<div class="item-name">' + esc(it.name) + '</div>' : '';
         let val;
-        if(isMeter){
+        if(it.locked && !isUnlocked(it)){
+          val = lockBoxHtml(it.id);
+        } else if(isMeter){
           let segs = '';
           for(let lv=1; lv<=LEVELS; lv++){
             segs += '<button type="button" class="seg' + (Number(it.level)===lv?' on':'') + '"></button>';
@@ -643,6 +692,7 @@ function renderView(){
         }
         body += '<div class="item">' + nm + '<div class="item-val">' + val + '</div></div>';
       });
+      }
       sec += '<div class="sec">' + head +
                '<div class="sec-body">' + body + '</div>' +
              '</div>';
@@ -650,6 +700,7 @@ function renderView(){
   }
   if(!sec && (!pg || pg.type !== 'profile')) sec = '<div class="empty">内容がありません</div>';
   document.getElementById('secView').innerHTML = sec;
+  wireLockboxes();
 }
 
 /* ========== 編集描画 ========== */
@@ -683,14 +734,20 @@ function renderEdit(){
 function buildSecRow(s, i){
   const div = document.createElement('div');
   div.className = 'ed-sec';
+  div.dataset.secId = s.id || (s.id = itemUid());
   const top = document.createElement('div');
   top.className = 'ed-sec-top';
   top.innerHTML =
     '<button class="ed-move" title="上へ">▲</button>' +
     '<button class="ed-move" title="下へ">▼</button>' +
     '<input class="form-input sec-h" placeholder="見出し">' +
+    '<label class="lock-edit"><input type="checkbox" class="sec-lock-cb">🔒<input type="text" class="sec-lock-pw" placeholder="パス(空欄可)"></label>' +
     '<button class="btn-del" title="削除">削除</button>';
   top.querySelector('.sec-h').value = s.heading || '';
+  const scb = top.querySelector('.sec-lock-cb');
+  const spw = top.querySelector('.sec-lock-pw');
+  scb.checked = !!s.locked; spw.value = s.pass || ''; spw.style.display = s.locked ? '' : 'none';
+  scb.addEventListener('change', function(){ spw.style.display = scb.checked ? '' : 'none'; });
   const mv = top.querySelectorAll('.ed-move');
   mv[0].addEventListener('click', function(){ moveSection(i, -1); });
   mv[1].addEventListener('click', function(){ moveSection(i, 1); });
@@ -748,6 +805,12 @@ function buildItemRow(si, s, it, j){
     top.appendChild(lf); top.appendChild(rg);
   }
   top.appendChild(del);
+  const ilk = document.createElement('label'); ilk.className='lock-edit';
+  const icb = document.createElement('input'); icb.type='checkbox'; icb.className='it-lock-cb'; icb.checked=!!it.locked;
+  const ipw = document.createElement('input'); ipw.type='text'; ipw.className='it-lock-pw'; ipw.placeholder='パス(空欄可)'; ipw.value=it.pass||''; ipw.style.display=it.locked?'':'none';
+  icb.addEventListener('change', function(){ ipw.style.display = icb.checked ? '' : 'none'; });
+  ilk.appendChild(icb); ilk.appendChild(document.createTextNode('🔒')); ilk.appendChild(ipw);
+  top.appendChild(ilk);
   box.appendChild(top);
 
   const val = document.createElement('div'); val.className='item-val';
@@ -805,6 +868,8 @@ function collectEdit(){
   const secs = [];
   document.querySelectorAll('#secEdit .ed-sec').forEach(function(d){
     const heading = d.querySelector('.sec-h').value.trim();
+    const secLockCb = d.querySelector('.sec-lock-cb');
+    const secLockPw = d.querySelector('.sec-lock-pw');
     const items = [];
     d.querySelectorAll('.ed-item').forEach(function(ib){
       const type = ib.querySelector('select').value;
@@ -812,6 +877,8 @@ function collectEdit(){
       const lbs = ib.querySelectorAll('.it-lb');
       const mw = ib.querySelector('.meter-wrap');
       const ta = ib.querySelector('.it-body');
+      const ilcb = ib.querySelector('.it-lock-cb');
+      const ilpw = ib.querySelector('.it-lock-pw');
       items.push({
         id: ib.dataset.itemId || undefined,
         name: name,
@@ -819,10 +886,12 @@ function collectEdit(){
         value: ta ? ta.value : '',
         left: lbs[0] ? lbs[0].value.trim() : '',
         right: lbs[1] ? lbs[1].value.trim() : '',
-        level: mw ? (Number(mw.dataset.level)||0) : 0
+        level: mw ? (Number(mw.dataset.level)||0) : 0,
+        locked: ilcb ? ilcb.checked : false,
+        pass: ilpw ? ilpw.value : ''
       });
     });
-    secs.push({ heading: heading, items: items });
+    secs.push({ id: d.dataset.secId || undefined, heading: heading, locked: secLockCb ? secLockCb.checked : false, pass: secLockPw ? secLockPw.value : '', items: items });
   });
   pg.sections = secs;
 }
@@ -1051,16 +1120,18 @@ function normSection(s){
         value: it.value || '',
         left: it.left || '',
         right: it.right || '',
-        level: Number(it.level) || 0
+        level: Number(it.level) || 0,
+        locked: !!it.locked,
+        pass: it.pass || ''
       };
     });
   } else {
     /* 旧形式（body）→ テキスト項目1つに移行 */
     items = (s.body && String(s.body).trim())
-      ? [{ id:itemUid(), name:'', type:'text', value:s.body, left:'', right:'', level:0 }]
+      ? [{ id:itemUid(), name:'', type:'text', value:s.body, left:'', right:'', level:0, locked:false, pass:'' }]
       : [];
   }
-  return { heading: s.heading || '', items: items };
+  return { id: s.id || itemUid(), heading: s.heading || '', locked: !!s.locked, pass: s.pass || '', items: items };
 }
 function normPage(p){
   const url = (p.url || '').trim();
