@@ -43,10 +43,10 @@
     transition:transform .2s,box-shadow .2s;opacity:0;animation:fadeUp .5s ease forwards}
   .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.10)}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  .card-portrait{width:100%;height:200px;background:#eee;overflow:hidden;position:relative}
+  .card-portrait{width:100%;height:200px;background:#f7f7f7;overflow:hidden;position:relative}
   .card-portrait img{width:100%;height:100%;object-fit:cover}
-  .card-portrait-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0e9e9}
-  .placeholder-monogram{font-size:3.5rem;font-weight:300;color:#d4b8b8}
+  .card-portrait-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f2f2f2}
+  .placeholder-monogram{font-size:3.5rem;font-weight:300;color:#c9c9c9}
   .card-status-badge{position:absolute;top:10px;right:10px;padding:2px 9px;font-size:11px;font-weight:700;border-radius:5px;letter-spacing:.04em}
   .status-生存,.status-生還{background:#eef6ee;color:#3a7d3a;border:1px solid #d6ead6}
   .status-死亡{background:#fdeeee;color:#b23b3b;border:1px solid #f2d4d4}
@@ -71,9 +71,9 @@
   .modal-close{position:absolute;top:12px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;z-index:10}
   .modal-top{display:grid;grid-template-columns:260px 1fr}
   @media(max-width:560px){.modal-top{grid-template-columns:1fr}}
-  .modal-portrait{background:#eee;min-height:300px;overflow:hidden}
+  .modal-portrait{background:#f7f7f7;min-height:300px;overflow:hidden}
   .modal-portrait img{width:100%;height:100%;object-fit:cover;min-height:300px}
-  .modal-portrait-placeholder{width:100%;height:100%;min-height:300px;display:flex;align-items:center;justify-content:center;background:#f0e9e9}
+  .modal-portrait-placeholder{width:100%;height:100%;min-height:300px;display:flex;align-items:center;justify-content:center;background:#f2f2f2}
   .modal-info{padding:22px 22px 6px}
   .modal-furigana{font-size:11px;color:var(--muted);letter-spacing:.15em;margin-bottom:3px}
   .modal-name{font-size:22px;font-weight:700;letter-spacing:.03em;margin-bottom:12px}
@@ -88,6 +88,12 @@
   .modal-body{padding:6px 22px 24px}
   .modal-section-title{font-size:13px;font-weight:700;color:var(--accent-dark);letter-spacing:.06em;margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
   .modal-profile{font-size:13px;line-height:1.9;color:var(--ink);white-space:pre-wrap}
+  .memo-gate{background:#f7f7f7;border:1px dashed #c9b3b3;border-radius:8px;padding:12px 14px}
+  .memo-gate-msg{font-size:13px;color:var(--ink);margin-bottom:9px}
+  .memo-gate-warn{display:block;font-size:12px;color:#8b0000;font-weight:700;margin-top:4px}
+  .memo-gate-row{display:flex;gap:8px;align-items:center}
+  .memo-gate-input{width:80px;border:1px solid var(--line2);border-radius:6px;padding:6px 10px;font:inherit;font-size:13px}
+  .memo-gate-btn{background:#8b0000;color:#fff;border:none;border-radius:6px;padding:6px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
   .traits-table{width:100%;border-collapse:collapse;font-size:12px}
   .traits-table th{background:var(--accent-dim);color:var(--accent-dark);font-weight:700;letter-spacing:.04em;padding:6px 8px;border:1px solid var(--line);text-align:left}
   .traits-table td{padding:6px 8px;border:1px solid var(--line)}
@@ -262,7 +268,7 @@ function renderGrid() {
     const sc = c.imageScale || 1.0;
     return `
     <div class="card" style="animation-delay:${i*0.07}s" onclick="openModal('${c.id}')">
-      <div class="card-portrait" style="background:linear-gradient(160deg,${c.color||'#7c9bb5'}22,#1a1a1f)">
+      <div class="card-portrait" style="background:#f7f7f7">
         ${c.image
           ?`<img src="${fixDropboxUrl(c.image)}" alt="${c.name}" loading="lazy" style="object-position:${pos};--img-ox:${ox};--img-oy:${oy};--img-scale:${sc};transform:scale(${sc});transform-origin:${ox} ${oy}">`
           :`<div class="card-portrait-placeholder"><span class="placeholder-monogram">${c.name?c.name.charAt(0):'?'}</span></div>`}
@@ -280,10 +286,9 @@ function renderGrid() {
 function openModal(id) {
   const c = characters.find(x => x.id === id);
   if (!c) return;
-
   document.getElementById('modalFurigana').textContent = c.furigana || '';
   document.getElementById('modalName').textContent = c.name || '';
-  document.getElementById('modalProfile').textContent = c.profile || '';
+  renderMemoGate(c);
 
   document.getElementById('modalMeta').innerHTML = `
     ${c.age?`<span>年齢<strong>${c.age}歳</strong></span>`:''}
@@ -351,6 +356,31 @@ function openModal(id) {
   document.body.style.overflow = 'hidden';
 }
 
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderMemoGate(c){
+  const el = document.getElementById('modalProfile');
+  const memo = c.profile || '';
+  const firstSession = (c.sessions && c.sessions[0]) || '';
+  function reveal(){ el.innerHTML=''; el.textContent = memo; }
+  el.innerHTML =
+    '<div class="memo-gate">' +
+      '<div class="memo-gate-msg">' + (firstSession ? escHtml(firstSession) : '') +
+        '<span class="memo-gate-warn">ネタバレの可能性あり　y/n</span></div>' +
+      '<div class="memo-gate-row">' +
+        '<input type="text" class="memo-gate-input" placeholder="y / n" maxlength="3">' +
+        '<button type="button" class="memo-gate-btn">開く</button>' +
+      '</div>' +
+    '</div>';
+  const inp = el.querySelector('.memo-gate-input');
+  const btn = el.querySelector('.memo-gate-btn');
+  function attempt(){
+    const v = (inp.value || '').trim().toLowerCase();
+    if (v === 'y' || v === 'yes') reveal();
+    else if (v === 'n' || v === 'no') { closeModal(); }
+  }
+  btn.addEventListener('click', attempt);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); attempt(); } });
+}
 function toggleAccordion() {
   document.getElementById('sessAccordion')?.classList.toggle('open');
 }
