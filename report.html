@@ -189,6 +189,10 @@ header.eth{background:#8b0000}
       <button class="chip" data-role="PL">PL</button>
       <button class="chip" data-role="KPレス">KPレス</button>
     </div>
+    <div class="grp" id="yearFilterWrap">
+      <span class="count" style="margin-right:2px">年</span>
+      <select id="yearSel"><option value="">すべて</option></select>
+    </div>
     <div class="statusacc" id="statusAcc">
       <button class="statusacc-head" id="statusAccHead"><span class="chev">▶</span>状態で絞り込み<span class="statusacc-cur" id="statusAccCur"></span></button>
       <div class="statusacc-body" id="statusFilter"></div>
@@ -217,7 +221,7 @@ const IS_EDIT=new URLSearchParams(location.search).get("edit")==="1";
 const VIEW_GIST=new URLSearchParams(location.search).get("view");
 
 let DATA={cards:[]};
-let fRole="", fStatus="";
+let fRole="", fStatus="", fYear="";
 let sortMode="date-desc";
 let READONLY=false;
 
@@ -349,10 +353,21 @@ function dateKey(s){
   const y=Number(m[1]), mo=Number(m[2]||1), da=Number(m[3]||1);
   return y*10000 + mo*100 + da;
 }
+function yearOf(s){
+  const m=String(s||"").match(/(\d{4})/);
+  return m?m[1]:"";
+}
+function allYears(){
+  const set=[];
+  DATA.cards.forEach(function(c){ const y=yearOf(c.date); if(y&&set.indexOf(y)<0)set.push(y); });
+  set.sort(function(a,b){return Number(b)-Number(a);}); // 新しい年が上
+  return set;
+}
 function sortedCards(){
   let arr=DATA.cards.slice();
   if(fRole) arr=arr.filter(function(c){return c.role===fRole;});
   if(fStatus) arr=arr.filter(function(c){return (c.statuses||[]).indexOf(fStatus)>=0;});
+  if(fYear) arr=arr.filter(function(c){return yearOf(c.date)===fYear;});
   arr.sort(function(a,b){
     if(sortMode==="title") return (a.title||"").localeCompare(b.title||"","ja");
     const ka=dateKey(a.date), kb=dateKey(b.date);
@@ -360,6 +375,15 @@ function sortedCards(){
     return (kb-ka) || (b.addedAt-a.addedAt); // date-desc
   });
   return arr;
+}
+function renderYearFilter(){
+  const sel=document.getElementById("yearSel");
+  if(!sel) return;
+  const years=allYears();
+  const cur=fYear;
+  sel.innerHTML='<option value="">すべて</option>'+years.map(function(y){
+    return '<option value="'+y+'"'+(y===cur?" selected":"")+'>'+y+'年</option>';
+  }).join("");
 }
 function statusTag(s){return '<span class="tag status'+(isWarnStatus(s)?" warn":"")+'">'+esc(s)+'</span>';}
 function sortHo(arr){
@@ -431,7 +455,7 @@ function renderGallery(){
   });
 }
 function moveCard(i,d){const j=i+d;if(j<0||j>=DATA.cards.length)return;const t=DATA.cards[i];DATA.cards[i]=DATA.cards[j];DATA.cards[j]=t;refresh();}
-function refresh(){renderStatusFilter();renderGallery();}
+function refresh(){renderStatusFilter();renderYearFilter();renderGallery();}
 
 /* ---- 詳細モーダル ---- */
 function openDetail(i){
@@ -634,6 +658,8 @@ function init(){
     });
   });
   $("#sortSel").addEventListener("change",function(){sortMode=this.value;renderGallery();});
+  const ys=document.getElementById("yearSel");
+  if(ys) ys.addEventListener("change",function(){fYear=this.value;renderGallery();});
   const sAccHead=$("#statusAccHead");
   if(sAccHead) sAccHead.addEventListener("click",function(){$("#statusAcc").classList.toggle("open");});
   $("#saveBtn").addEventListener("click",saveToRepo);
