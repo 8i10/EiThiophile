@@ -849,6 +849,7 @@ if (document.readyState === "loading"){
 
       menu.innerHTML = "";
       majors.forEach(function(m){
+        if(m.hidden) return;
         var b = document.createElement("button");
         var here = (cur && m.id === cur.id);
         b.className = "eth-mtab" + (here ? " active" : "");
@@ -860,9 +861,11 @@ if (document.readyState === "loading"){
       var bar = document.getElementById("ethTabbar");
       var inner = document.getElementById("ethTabbarInner");
       inner.innerHTML = "";
-      if(cur && (cur.pages || []).length > 1){
+      var _vis = (cur ? (cur.pages || []) : []).filter(function(p){ return !p.hidden; });
+      if(cur && _vis.length > 1){
         bar.style.display = "";
         cur.pages.forEach(function(p){
+          if(p.hidden) return;
           var b = document.createElement("button");
           b.className = "eth-tab" + (isSelf(p.url) ? " active" : "");
           b.textContent = p.name || "(無題)";

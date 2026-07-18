@@ -186,6 +186,7 @@ body:not(.edit-mode) .header-btns{display:none}
 /* ---- 項目・メーター ---- */
 .item{padding:8px 0}
 .lockbox{background:#f7f7f7;border:1px dashed #c9b3b3;border-radius:8px;padding:10px 12px;margin:2px 0}
+.pg-hide-lb{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#777;white-space:nowrap}
 .lock-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .lock-ic{font-size:14px}
 .lock-input{flex:1 1 160px;min-width:120px;border:1px solid #ccc;border-radius:6px;padding:5px 9px;font:inherit;font-size:12px}
@@ -361,7 +362,7 @@ function isUnlocked(o){ return !o.locked || _unlocked[o.id]; }
 function lockBoxHtml(id){
   return '<div class="lockbox" data-lockid="' + esc(id) + '">' +
     '<div class="lock-row"><span class="lock-ic">🔒</span>' +
-    '<input type="password" class="lock-input" placeholder="パスワード（未設定なら空欄でOK）">' +
+    '<input type="password" class="lock-input" >' +
     '<button type="button" class="lock-btn">解除</button>' +
     '<span class="lock-msg"></span></div></div>';
 }
@@ -554,6 +555,7 @@ function renderMenus(){
   const mb = document.getElementById('navMenu');
   mb.innerHTML = '';
   DATA.majors.forEach(function(m, i){
+    if(m.hidden) return;
     const b = document.createElement('button');
     const ps0 = m.pages || [];
     const allExt = ps0.length > 0 && ps0.every(function(p){ return !!p.url; });
@@ -578,8 +580,10 @@ function renderMenus(){
   tb.innerHTML = '';
   const m = getMajor();
   const pages = (m && !m.url) ? (m.pages || []) : [];
-  document.querySelector('.tabbar').style.display = pages.length > 1 ? '' : 'none';
+  const visPages = pages.filter(function(p){ return !p.hidden; });
+  document.querySelector('.tabbar').style.display = visPages.length > 1 ? '' : 'none';
   pages.forEach(function(p, i){
+    if(p.hidden) return;
     const b = document.createElement('button');
     b.className = 'tab' + (!p.url && i === curPage ? ' active' : '');
     b.textContent = p.name || '(無題)';
@@ -951,8 +955,10 @@ function renderPgList(){
       '<button class="ed-move" title="上へ">▲</button>' +
       '<button class="ed-move" title="下へ">▼</button>' +
       '<input class="form-input" value="' + esc(m.name || '') + '" placeholder="大ページ名">' +
+      '<label class="pg-hide-lb"><input type="checkbox" class="mj-hide"' + (m.hidden ? ' checked' : '') + '>非表示</label>' +
       (hasProfile(m) ? '<span class="pg-lock">基本情報</span>' : '<button class="btn-del">削除</button>');
     mrow.querySelector('.form-input').addEventListener('input', function(){ pgTmp[mi].name = this.value; });
+    mrow.querySelector('.mj-hide').addEventListener('change', function(){ pgTmp[mi].hidden = this.checked; });
     const mmv = mrow.querySelectorAll('.ed-move');
     mmv[0].addEventListener('click', function(){ moveMajor(mi, -1); });
     mmv[1].addEventListener('click', function(){ moveMajor(mi, 1); });
@@ -983,9 +989,11 @@ function renderPgList(){
         '<button class="ed-move" title="下へ">▼</button>' +
         '<input class="form-input pg-name" value="' + esc(p.name || '') + '" placeholder="小ページ名">' +
         '<input class="form-input pg-url" value="' + esc(p.url || '') + '" placeholder="外部URL（任意）">' +
+        '<label class="pg-hide-lb"><input type="checkbox" class="pg-hide"' + (p.hidden ? ' checked' : '') + '>非表示</label>' +
         (p.type === 'profile' ? '<span class="pg-lock">基本情報</span>' : '<button class="btn-del">削除</button>');
       row.querySelector('.pg-name').addEventListener('input', function(){ pgTmp[mi].pages[pi].name = this.value; });
       row.querySelector('.pg-url').addEventListener('input', function(){ pgTmp[mi].pages[pi].url = this.value; });
+      row.querySelector('.pg-hide').addEventListener('change', function(){ pgTmp[mi].pages[pi].hidden = this.checked; });
       const mv = row.querySelectorAll('.ed-move');
       mv[0].addEventListener('click', function(){ movePage(mi, pi, -1); });
       mv[1].addEventListener('click', function(){ movePage(mi, pi, 1); });
@@ -1139,6 +1147,7 @@ function normPage(p){
     id: p.id || newId(),
     name: p.name || '(無題)',
     url: url,
+    hidden: !!p.hidden,
     type: (!url && p.type === 'profile') ? 'profile' : 'free',
     sections: (Array.isArray(p.sections) ? p.sections : []).map(normSection)
   };
@@ -1149,10 +1158,10 @@ function normalize(j){
   if(j && Array.isArray(j.majors) && j.majors.length){
     majors = j.majors.map(function(m){
       const url = (m.url || '').trim();
-      if(url) return { id:m.id || newId(), name:m.name || '(無題)', url:url, pages:[] };
+      if(url) return { id:m.id || newId(), name:m.name || '(無題)', url:url, hidden:!!m.hidden, pages:[] };
       const pages = (Array.isArray(m.pages) && m.pages.length) ? m.pages.map(normPage)
                    : [{ id:newId(), name:'ページ1', type:'free', sections:[] }];
-      return { id:m.id || newId(), name:m.name || '(無題)', url:'', pages:pages };
+      return { id:m.id || newId(), name:m.name || '(無題)', url:'', hidden:!!m.hidden, pages:pages };
     });
   } else if(j && Array.isArray(j.pages) && j.pages.length){
     /* 旧形式（小ページのみ）→ 大ページ1件に格納 */
@@ -1180,7 +1189,7 @@ function normalize(j){
 let _latestSha = null;
 function fetchViaApi(){
   const token = getGHToken();
-  const headers = { 'Accept':'application/vnd.github.v3+json', 'Cache-Control':'no-cache' };
+  const headers = { 'Accept':'application/vnd.github.v3+json' };
   if(token) headers['Authorization'] = 'token ' + token;
   return fetch(GH_API + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers:headers, cache:'no-store' })
     .then(function(r){ if(!r.ok) throw new Error('api ' + r.status); return r.json(); })
