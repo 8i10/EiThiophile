@@ -52,6 +52,16 @@
   .stat-table tr:nth-child(even) td{background:#faf9f9}
   .stat-table td.num{text-align:right;font-variant-numeric:tabular-nums}
   .stat-table tfoot td{font-weight:700;background:#f2eeee}
+  .ho-acc{border-bottom:1px solid var(--line)}
+  .ho-acc-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;font:inherit;font-size:14px;font-weight:700;color:var(--accent-dark);padding:11px 4px;cursor:pointer;text-align:left}
+  .ho-acc-head:hover{background:#faf7f7}
+  .ho-acc-head .chev{font-size:.72em;color:var(--accent);transition:transform .18s ease}
+  .ho-acc.open .ho-acc-head .chev{transform:rotate(90deg)}
+  .ho-acc-head .ho-count{margin-left:auto;font-size:11px;color:var(--muted);font-weight:400}
+  .ho-acc-body{display:none;list-style:none;margin:0;padding:0 4px 12px 22px}
+  .ho-acc.open .ho-acc-body{display:block}
+  .ho-acc-body li{font-size:13px;color:var(--ink);padding:3px 0;border-bottom:1px dashed var(--line)}
+  .ho-acc-body li:last-child{border-bottom:none}
   .ho-block{margin-bottom:16px}
   .ho-block h3{font-size:14px;color:var(--accent-dark);margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
   .ho-block .ho-count{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
@@ -422,6 +432,20 @@ function renderYearFilter(){
   }).join("");
 }
 function statusTag(s){return '<span class="tag status'+(isWarnStatus(s)?" warn":"")+'">'+esc(s)+'</span>';}
+function normHoKey(h){
+  h=String(h||"").trim();
+  // 「HO参」「HO 三」等の漢数字を算用数字へ（HO1〜HO10程度を想定）
+  const kanjiMap={"〇":0,"零":0,"一":1,"壱":1,"二":2,"弐":2,"三":3,"参":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10};
+  const m=/^HO\s*(.+)$/i.exec(h);
+  if(m){
+    const rest=m[1].trim();
+    if(/^\d+$/.test(rest)) return "HO"+Number(rest);
+    if(rest.length===1 && kanjiMap.hasOwnProperty(rest)) return "HO"+kanjiMap[rest];
+    // 「十一」等の簡易2桁
+    if(rest==="十一") return "HO11"; if(rest==="十二") return "HO12";
+  }
+  return h;
+}
 function sortHo(arr){
   arr=(arr||[]).slice();
   const num=[], other=[];
@@ -517,22 +541,29 @@ function renderCfTab(){
 }
 function renderHoTab(){
   const el=document.getElementById("tabHo");
-  const map={}; // ho -> [titles]
+  const map={}; // 正規化ho -> [titles]
   DATA.cards.forEach(function(c){
     (c.ho||[]).forEach(function(h){
       if(!h) return;
-      if(!map[h]) map[h]=[];
-      map[h].push(c.title||"（無題）");
+      const key=normHoKey(h);
+      if(!map[key]) map[key]=[];
+      map[key].push(c.title||"（無題）");
     });
   });
   const hos=sortHo(Object.keys(map));
   if(!hos.length){ el.innerHTML='<div class="stat-title">HOまとめ</div><div class="count">HOの登録がありません。</div>'; return; }
   let blocks=hos.map(function(h){
-    const list=map[h];
-    return '<div class="ho-block"><h3>'+esc(h)+'<span class="ho-count">'+list.length+'件</span></h3>'+
-      '<ul class="ho-list">'+list.map(function(t){return '<li>'+esc(t)+'</li>';}).join("")+'</ul></div>';
+    const list=map[h].slice().sort(function(a,b){return a.localeCompare(b,"ja");}); // 五十音順
+    const items=list.map(function(t){return '<li>'+esc(t)+'</li>';}).join("");
+    return '<div class="ho-acc">'+
+      '<button type="button" class="ho-acc-head"><span class="chev">▶</span>'+esc(h)+'<span class="ho-count">'+list.length+'件</span></button>'+
+      '<ul class="ho-acc-body">'+items+'</ul>'+
+    '</div>';
   }).join("");
   el.innerHTML='<div class="stat-title">HOまとめ</div>'+blocks;
+  el.querySelectorAll(".ho-acc-head").forEach(function(btn){
+    btn.addEventListener("click",function(){ btn.parentNode.classList.toggle("open"); });
+  });
 }
 function switchTab(tab){
   document.querySelectorAll("#rtabs .rtab").forEach(function(b){ b.classList.toggle("on", b.dataset.tab===tab); });
