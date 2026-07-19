@@ -294,13 +294,20 @@ function setStatus(m,e){const el=$("#status");el.textContent=m;el.className="sta
 
 /* ---- 読み込み ---- */
 async function loadFromRepo(){
-  // まず raw（回数制限なし・キャッシュはクエリで回避）で取得
+  const t=ghToken();
+  // トークンがあれば Contents API（常に最新・キャッシュなし）を優先＝保存直後もすぐ反映
+  if(t){
+    try{
+      const res=await fetch(GH_API+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});
+      if(res.ok){ const j=await res.json(); if(j&&j.content) return JSON.parse(decodeB64(j.content)); }
+    }catch(e){}
+  }
+  // トークンなし（閲覧者）は raw（回数制限なし）
   try{
     const r=await fetch(GH_RAW+"?t="+Date.now(),{cache:"no-store"});
     if(r.ok){ return JSON.parse(await r.text()); }
   }catch(e){}
-  // 失敗時は Contents API（プライベート等）
-  const t=ghToken();
+  // 最後の手段：API（未ログイン）
   const res=await fetch(GH_API+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});
   if(!res.ok) throw new Error("HTTP "+res.status);
   const j=await res.json();
