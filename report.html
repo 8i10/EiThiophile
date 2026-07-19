@@ -41,6 +41,26 @@
 
   /* ---- ツールバー（フィルタ・並べ替え） ---- */
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px}
+  .search-wrap{position:relative;max-width:340px;margin:0 0 14px}
+  .rtabs{display:flex;gap:6px;margin:0 0 16px;border-bottom:1px solid var(--line);padding-bottom:0}
+  .rtab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;margin-bottom:-1px}
+  .rtab:hover{color:var(--ink)}
+  .rtab.on{color:var(--accent-dark);border-bottom-color:var(--accent)}
+  .stat-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px}
+  .stat-table th{background:var(--accent-dim,rgba(139,0,0,.06));color:var(--accent-dark);font-weight:700;padding:8px 12px;border:1px solid var(--line);text-align:left}
+  .stat-table td{padding:8px 12px;border:1px solid var(--line)}
+  .stat-table tr:nth-child(even) td{background:#faf9f9}
+  .stat-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .stat-table tfoot td{font-weight:700;background:#f2eeee}
+  .ho-block{margin-bottom:16px}
+  .ho-block h3{font-size:14px;color:var(--accent-dark);margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+  .ho-block .ho-count{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+  .ho-list{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+  .ho-list li{font-size:12px;background:#f3f3f3;border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+  .stat-title{font-size:15px;font-weight:700;margin:0 0 12px;color:var(--ink)}
+  .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:13px}
+  .search-input{width:100%;background:#fff;border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:8px 12px 8px 32px;font-family:inherit;font-size:13px;outline:none}
+  .search-input:focus{border-color:var(--accent)}
   .toolbar .grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
   .chip{border:1px solid var(--line2);background:#fff;color:var(--muted);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit}
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent-dark);font-weight:700}
@@ -181,6 +201,17 @@ header.eth{background:#8b0000}
     <div class="hint">「GitHubへ保存」でリポジトリの report.json を更新（別端末でも反映）。トークンはこのブラウザ内のみ。</div>
   </div>
 
+  <div class="rtabs" id="rtabs">
+    <button class="rtab on" data-tab="list">卓一覧</button>
+    <button class="rtab" data-tab="cf">年別CF</button>
+    <button class="rtab" data-tab="ho">HOまとめ</button>
+  </div>
+
+  <div id="tabList">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="シナリオ名で検索…">
+  </div>
   <div class="toolbar" id="toolbar">
     <div class="grp" id="roleFilter">
       <span class="count" style="margin-right:2px">KP/PL</span>
@@ -208,6 +239,10 @@ header.eth{background:#8b0000}
 
   <button class="add-card-btn" id="addCardBtn" style="margin-top:0;margin-bottom:16px">＋ 卓を追加</button>
   <div class="gallery" id="gallery"></div>
+  </div>
+
+  <div id="tabCf" style="display:none"></div>
+  <div id="tabHo" style="display:none"></div>
 </div>
 
 <div class="modal" id="modal"><div class="modal-box" id="modalBox"></div></div>
@@ -221,7 +256,7 @@ const IS_EDIT=new URLSearchParams(location.search).get("edit")==="1";
 const VIEW_GIST=new URLSearchParams(location.search).get("view");
 
 let DATA={cards:[]};
-let fRole="", fStatus="", fYear="";
+let fRole="", fStatus="", fYear="", fQuery="";
 let sortMode="date-desc";
 let READONLY=false;
 
@@ -368,6 +403,7 @@ function sortedCards(){
   if(fRole) arr=arr.filter(function(c){return c.role===fRole;});
   if(fStatus) arr=arr.filter(function(c){return (c.statuses||[]).indexOf(fStatus)>=0;});
   if(fYear) arr=arr.filter(function(c){return yearOf(c.date)===fYear;});
+  if(fQuery){ const q=fQuery.toLowerCase(); arr=arr.filter(function(c){return (c.title||"").toLowerCase().indexOf(q)>=0;}); }
   arr.sort(function(a,b){
     if(sortMode==="title") return (a.title||"").localeCompare(b.title||"","ja");
     const ka=dateKey(a.date), kb=dateKey(b.date);
@@ -455,6 +491,57 @@ function renderGallery(){
   });
 }
 function moveCard(i,d){const j=i+d;if(j<0||j>=DATA.cards.length)return;const t=DATA.cards[i];DATA.cards[i]=DATA.cards[j];DATA.cards[j]=t;refresh();}
+function renderCfTab(){
+  const el=document.getElementById("tabCf");
+  const map={}; // year -> {c,f,n}
+  DATA.cards.forEach(function(c){
+    const y=yearOf(c.date)||"不明";
+    if(!map[y]) map[y]={c:0,f:0,n:0};
+    map[y].c += Number(c.cf&&c.cf.c)||0;
+    map[y].f += Number(c.cf&&c.cf.f)||0;
+    map[y].n += 1;
+  });
+  const years=Object.keys(map).sort(function(a,b){
+    if(a==="不明") return 1; if(b==="不明") return -1;
+    return Number(b)-Number(a);
+  });
+  let totC=0,totF=0,totN=0;
+  let rows=years.map(function(y){
+    const m=map[y]; totC+=m.c; totF+=m.f; totN+=m.n;
+    return '<tr><td>'+esc(y==="不明"?"不明":(y+"年"))+'</td><td class="num">'+m.n+'</td><td class="num">'+m.c+'</td><td class="num">'+m.f+'</td></tr>';
+  }).join("");
+  el.innerHTML='<div class="stat-title">年別 CF 総数</div>'+
+    '<table class="stat-table"><thead><tr><th>年</th><th>卓数</th><th>C 合計</th><th>F 合計</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr><td>合計</td><td class="num">'+totN+'</td><td class="num">'+totC+'</td><td class="num">'+totF+'</td></tr></tfoot></table>';
+}
+function renderHoTab(){
+  const el=document.getElementById("tabHo");
+  const map={}; // ho -> [titles]
+  DATA.cards.forEach(function(c){
+    (c.ho||[]).forEach(function(h){
+      if(!h) return;
+      if(!map[h]) map[h]=[];
+      map[h].push(c.title||"（無題）");
+    });
+  });
+  const hos=sortHo(Object.keys(map));
+  if(!hos.length){ el.innerHTML='<div class="stat-title">HOまとめ</div><div class="count">HOの登録がありません。</div>'; return; }
+  let blocks=hos.map(function(h){
+    const list=map[h];
+    return '<div class="ho-block"><h3>'+esc(h)+'<span class="ho-count">'+list.length+'件</span></h3>'+
+      '<ul class="ho-list">'+list.map(function(t){return '<li>'+esc(t)+'</li>';}).join("")+'</ul></div>';
+  }).join("");
+  el.innerHTML='<div class="stat-title">HOまとめ</div>'+blocks;
+}
+function switchTab(tab){
+  document.querySelectorAll("#rtabs .rtab").forEach(function(b){ b.classList.toggle("on", b.dataset.tab===tab); });
+  document.getElementById("tabList").style.display = tab==="list" ? "" : "none";
+  document.getElementById("tabCf").style.display   = tab==="cf"   ? "" : "none";
+  document.getElementById("tabHo").style.display   = tab==="ho"   ? "" : "none";
+  if(tab==="cf") renderCfTab();
+  if(tab==="ho") renderHoTab();
+}
 function refresh(){renderStatusFilter();renderYearFilter();renderGallery();}
 
 /* ---- 詳細モーダル ---- */
@@ -660,6 +747,11 @@ function init(){
   $("#sortSel").addEventListener("change",function(){sortMode=this.value;renderGallery();});
   const ys=document.getElementById("yearSel");
   if(ys) ys.addEventListener("change",function(){fYear=this.value;renderGallery();});
+  const si=document.getElementById("searchInput");
+  if(si) si.addEventListener("input",function(){fQuery=this.value.trim();renderGallery();});
+  document.querySelectorAll("#rtabs .rtab").forEach(function(b){
+    b.addEventListener("click",function(){ switchTab(b.dataset.tab); });
+  });
   const sAccHead=$("#statusAccHead");
   if(sAccHead) sAccHead.addEventListener("click",function(){$("#statusAcc").classList.toggle("open");});
   $("#saveBtn").addEventListener("click",saveToRepo);
