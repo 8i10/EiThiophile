@@ -1103,15 +1103,22 @@ async function getFileSha(token) {
 
 // data.jsonを読み込む
 async function apiGet() {
-  // GitHub Contents APIで取得（キャッシュなし・即時反映）
   const token = getGHToken();
+  // 未ログイン（閲覧者）は raw から取得＝APIレート制限を回避
+  if (!token) {
+    try {
+      const r = await fetch('https://raw.githubusercontent.com/' + GH_REPO + '/' + GH_BRANCH + '/' + GH_FILE + '?t=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) { const arr = JSON.parse(await r.text()); if (Array.isArray(arr)) return arr; }
+    } catch (e) {}
+  }
+  // トークンあり（編集者）は Contents API で最新取得
   const headers = token ? ghHeaders(token) : { 'Accept': 'application/vnd.github.v3+json' };
   const res = await fetch(GH_API + '?t=' + Date.now(), { headers });
   if (!res.ok) return [];
   const json = await res.json();
-  // contentはBase64エンコード済み
+  if (!json || typeof json.content !== 'string') return []; // content無し（制限超過等）は空扱い
   const decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
-  return JSON.parse(decoded);
+  try { return JSON.parse(decoded); } catch (e) { return []; }
 }
 
 // data.jsonを書き込む（トークン必須）
@@ -1165,8 +1172,9 @@ async function loadFromGitHub() {
     }
   } catch(e) {
     console.warn('GitHub取得失敗:', e);
+  } finally {
+    showLoading(false);
   }
-  showLoading(false);
   updateTotalCount();
   applyFiltersFromData();
 }
