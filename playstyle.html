@@ -114,7 +114,7 @@
   .item-text{font-size:11px;line-height:1.15;word-break:break-word;}
   .item-text p{margin:3px 0;}
   .item-text ul{margin:3px 0 3px 20px;}
-  .item-text blockquote{border-left:3px solid var(--line-soft);padding-left:10px;color:var(--muted);margin:5px 0;}
+  .item-text blockquote{border-left:3px solid #8b0000;padding-left:10px;color:#333333;margin:5px 0;}
   .item-text code{background:#ececec;padding:1px 5px;border-radius:4px;}
   .item-text pre{background:#ececec;padding:9px;border-radius:6px;overflow-x:auto;margin:5px 0;white-space:pre-wrap;word-break:break-word;}
   .item-text pre code{background:none;padding:0;}
@@ -431,7 +431,16 @@ function renderMarkdown(src){
     if (/^###\s+/.test(line)){ closeList(); html += "<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"; continue; }
     if (/^##\s+/.test(line)){ closeList(); html += "<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"; continue; }
     if (/^#\s+/.test(line)){ closeList(); html += "<h1>" + inline(line.replace(/^#\s+/, "")) + "</h1>"; continue; }
-    if (/^>\s?/.test(line)){ closeList(); html += "<blockquote>" + inline(line.replace(/^>\s?/, "")) + "</blockquote>"; continue; }
+    if (/^>\s?/.test(line)){
+      closeList();
+      var qbuf = [inline(line.replace(/^>\s?/, ""))];
+      while (i + 1 < lines.length && /^>\s?/.test(String(lines[i+1]).trim())) {
+        i++;
+        qbuf.push(inline(String(lines[i]).trim().replace(/^>\s?/, "")));
+      }
+      html += "<blockquote>" + qbuf.join("<br>") + "</blockquote>";
+      continue;
+    }
     if (/^[-*]\s+/.test(line)){
       if (!inList){ html += "<ul>"; inList = true; }
       html += "<li" + indentStyle(raw) + ">" + inline(line.replace(/^[-*]\s+/, "")) + "</li>";

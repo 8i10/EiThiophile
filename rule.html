@@ -73,7 +73,7 @@
   .rule-view code{background:var(--surface2);border-radius:4px;padding:1px 6px;}
   .rule-view pre{background:var(--surface2);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0;white-space:pre-wrap;word-break:break-word;}
   .rule-view pre code{background:none;border:none;padding:0;}
-  .rule-view blockquote{border-left:3px solid var(--accent);padding:4px 14px;margin:10px 0;color:var(--text-muted);background:rgba(0,0,0,.06);border-radius:0 6px 6px 0;}
+  .rule-view blockquote{border-left:3px solid #8b0000;padding:4px 14px;margin:10px 0;color:#333333;background:rgba(0,0,0,.04);border-radius:0 6px 6px 0;}
   .rule-view .spoiler{background:var(--text);color:var(--text);border-radius:4px;padding:0 4px;cursor:pointer;transition:color .15s;}
   .rule-view .spoiler.revealed{color:var(--surface);}
 
@@ -265,7 +265,13 @@ function renderMarkdown(src){
     if(/^# (.*)/.test(line)){flushList();html+='<h1>'+inline(esc(line.replace(/^# /,'')))+'</h1>';continue;}
     if(/^## (.*)/.test(line)){flushList();html+='<h2>'+inline(esc(line.replace(/^## /,'')))+'</h2>';continue;}
     if(/^### (.*)/.test(line)){flushList();html+='<h3>'+inline(esc(line.replace(/^### /,'')))+'</h3>';continue;}
-    if(/^> (.*)/.test(line)){flushList();html+='<blockquote>'+inline(esc(line.replace(/^> /,'')))+'</blockquote>';continue;}
+    if(/^> (.*)/.test(line)){
+      flushList();
+      var qbuf=[inline(esc(line.replace(/^> /,'')))];
+      while(i+1<lines.length && /^> /.test(String(lines[i+1]))){ i++; qbuf.push(inline(esc(String(lines[i]).replace(/^> /,'')))); }
+      html+='<blockquote>'+qbuf.join('<br>')+'</blockquote>';
+      continue;
+    }
     if(/^[-*] (.*)/.test(line)){if(!inList){html+='<ul>';inList=true;}html+='<li>'+inline(esc(line.replace(/^[-*] /,'')))+'</li>';continue;}
     flushList();
     if(line.trim()==='')html+='<br>';
