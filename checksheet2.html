@@ -837,9 +837,18 @@ if (document.readyState === "loading"){
     return withEdit(HOME + "?major=" + encodeURIComponent(m.id || "") + "&page=" + encodeURIComponent(p.id || ""));
   }
 
+  var CACHE_KEY = "eth_profile_cache_v1";
+  function readCache(){
+    try{ var s = localStorage.getItem(CACHE_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; }
+  }
+  function writeCache(j){
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify(j)); }catch(e){}
+  }
   fetch(JSON_URL + "?t=" + Date.now())
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(j){
+      if(j && Array.isArray(j.majors)) writeCache(j);
+      else j = readCache();               /* 取得失敗時は前回の内容を使う */
       var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
       var cur = null;
       majors.forEach(function(m){
@@ -874,7 +883,26 @@ if (document.readyState === "loading"){
         });
       }
     })
-    .catch(function(){ /* 取得失敗時はメニュー空 */ });
+    .catch(function(){
+      /* 通信自体が失敗 → 前回内容で描画 */
+      var j = readCache();
+      var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
+      if(!majors.length) return;
+      var cur = null;
+      majors.forEach(function(m){
+        if(isSelf(m.url)) cur = m;
+        (m.pages || []).forEach(function(p){ if(isSelf(p.url)) cur = m; });
+      });
+      menu.innerHTML = "";
+      majors.forEach(function(m){
+        if(m.hidden) return;
+        var b = document.createElement("button");
+        b.className = "eth-mtab" + ((cur && m.id === cur.id) ? " active" : "");
+        b.textContent = m.name || "(無題)";
+        b.addEventListener("click", function(){ closeMenu(); location.href = majorHref(m); });
+        menu.appendChild(b);
+      });
+    });
 })();
 </script>
 
