@@ -185,13 +185,30 @@ body:not(.edit-mode) .header-btns{display:none}
 
 /* ---- 項目・メーター ---- */
 .item{padding:8px 0}
-.colorbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 5px}
-.colorbar-lb{font-size:10px;color:#888;margin-right:2px}
-.color-dot{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
+.colorbar-fixed{position:fixed;left:0;right:0;top:0;z-index:1150;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  background:#ffffff;border-bottom:1px solid #d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.10);padding:8px 12px}
+.colorbar-lb{font-size:11px;color:#888;margin-right:2px}
+.color-dot{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
 .color-dot:hover{transform:scale(1.12)}
-.color-pick{width:24px;height:20px;border:1px solid #ccc;border-radius:4px;padding:0;background:#fff;cursor:pointer}
-.color-clear{font-size:10px;border:1px solid #ccc;background:#fff;border-radius:4px;padding:2px 7px;cursor:pointer;color:#555}
+.color-pick{width:28px;height:24px;border:1px solid #ccc;border-radius:4px;padding:0;background:#fff;cursor:pointer}
+.color-clear{font-size:11px;border:1px solid #ccc;background:#fff;border-radius:5px;padding:4px 10px;cursor:pointer;color:#555}
 .color-clear:hover{background:#f0f0f0}
+
+/* ===== 編集パネル（playstyle統一） ===== */
+.panel{background:#fff;border:1px solid #d4d4d4;border-radius:8px;padding:8px 10px;margin:0 0 18px}
+body:not(.editmode) .panel{display:none}
+.panel-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.panel .field{flex:1 1 200px;min-width:150px}
+.panel .field input{width:100%;border:1px solid #d4d4d4;border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:#fff;color:#222}
+.panel .field input:focus{outline:2px solid #8b0000;outline-offset:1px}
+button.act{border:1px solid #6b0000;background:#8b0000;color:#fff;font:inherit;font-weight:700;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap}
+button.act.ghost{background:#fff;color:#6b0000}
+button.act:hover{filter:brightness(1.06)}
+.panel .status{font-size:12px;color:#6b0000}
+.panel .status:empty{display:none}
+.panel .status.err{color:#a13232}
+.panel .hint{font-size:10px;color:#999}
+.panel-meta{display:flex;flex-direction:column;gap:3px;margin-top:6px}
 .lockbox{background:#f7f7f7;border:1px dashed #c9b3b3;border-radius:8px;padding:10px 12px;margin:2px 0}
 .pg-hide-lb{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#777;white-space:nowrap}
 .lock-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -295,10 +312,7 @@ body:not(.edit-mode) .header-btns{display:none}
       <div class="header-title">EITHIOPHILE</div>
       <div style="display:flex;align-items:center;gap:6px">
         <div class="header-btns">
-          <button class="btn-h" id="editToggle" onclick="toggleEdit()">✏️ 編集</button>
           <button class="btn-h" onclick="openPageModal()">⚙ ページ管理</button>
-          <button class="btn-h" onclick="copyViewUrl()">🔗 閲覧用URL</button>
-          <button class="btn-h" onclick="openTokenModal()">🔑 トークン</button>
         </div>
         <div class="nav-wrap">
           <button class="btn-nav" id="navBtn" onclick="toggleNav(event)" aria-label="メニュー">≡</button>
@@ -311,6 +325,21 @@ body:not(.edit-mode) .header-btns{display:none}
 </div>
 
 <div class="main">
+
+  <div class="panel" id="panel">
+    <div class="panel-row">
+      <div class="field">
+        <input type="password" id="token" autocomplete="off" aria-label="GitHubトークン（repo権限）" placeholder="GitHubトークン（repo権限）">
+      </div>
+      <button class="act" id="editBtn" onclick="toggleEdit()">✏️ 編集</button>
+      <button class="act" id="syncBtn" onclick="saveProfile()">GitHubへ保存</button>
+      <button class="act ghost" id="loadBtn" onclick="reloadFromRepo()">再読込</button>
+    </div>
+    <div class="panel-meta">
+      <div class="status" id="status"></div>
+      <div class="hint">「GitHubへ保存」でリポジトリの JSON を更新（別端末でも反映）。トークンはこのブラウザ内のみ。</div>
+    </div>
+  </div>
   <div id="viewWrap">
     <div id="pfCardWrap"></div>
     <div id="secView"></div>
@@ -362,25 +391,30 @@ const FIELD_LABELS = { x:'X（Twitter）' };
 
 /* DATA = { profile:{}, majors:[ {id,name,pages:[{id,name,type,sections:[{heading,items:[{id,name,type,value,left,right,level}]}]}]} ] } */
 const LEVELS = 7;
-/* ===== 文字色ツールバー（共通） ===== */
+/* ===== 文字色ツールバー（編集時・上部固定／共通） ===== */
 var COLOR_PRESETS = [
   {name:"赤", v:"#e03131"}, {name:"青", v:"#1971c2"}, {name:"緑", v:"#2f9e44"},
   {name:"オレンジ", v:"#e8590c"}, {name:"紫", v:"#7048e8"}, {name:"ピンク", v:"#d6336c"},
   {name:"茶", v:"#8b5e34"}, {name:"グレー", v:"#868e96"}
 ];
+var _activeTa = null;                       /* 最後にさわった入力欄 */
+function registerColorTarget(ta){
+  if(!ta) return;
+  ta.addEventListener("focus", function(){ _activeTa = ta; });
+  ta.addEventListener("click", function(){ _activeTa = ta; });
+  ta.addEventListener("keyup", function(){ _activeTa = ta; });
+  if(!_activeTa) _activeTa = ta;
+}
 function applyColorToTextarea(ta, color){
   if(!ta) return;
-  var s = ta.selectionStart, e = ta.selectionEnd;
-  var val = ta.value;
-  if(s === e){ return; }               /* 選択なしなら何もしない */
+  var s = ta.selectionStart, e = ta.selectionEnd, val = ta.value;
+  if(s === e) return;
   var sel = val.slice(s, e);
-  /* すでに色指定されている選択なら色を差し替え */
   var m = /^\{c:(#[0-9a-fA-F]{3,6}|[a-zA-Z]+)\}([\s\S]*)\{\/c\}$/.exec(sel);
   var wrapped = m ? ("{c:" + color + "}" + m[2] + "{/c}") : ("{c:" + color + "}" + sel + "{/c}");
   ta.value = val.slice(0, s) + wrapped + val.slice(e);
   var np = s + wrapped.length;
-  ta.focus();
-  ta.setSelectionRange(np, np);
+  ta.focus(); ta.setSelectionRange(np, np);
   ta.dispatchEvent(new Event("input", {bubbles:true}));
 }
 function clearColorFromTextarea(ta){
@@ -394,9 +428,12 @@ function clearColorFromTextarea(ta){
   ta.focus(); ta.setSelectionRange(np, np);
   ta.dispatchEvent(new Event("input", {bubbles:true}));
 }
-function buildColorBar(ta){
+/* 画面上部に1つだけ出す色バー */
+function showColorBar(){
+  if(document.getElementById("colorBarFixed")) return;
   var bar = document.createElement("div");
-  bar.className = "colorbar";
+  bar.id = "colorBarFixed";
+  bar.className = "colorbar-fixed";
   var lb = document.createElement("span");
   lb.className = "colorbar-lb"; lb.textContent = "文字色";
   bar.appendChild(lb);
@@ -405,21 +442,33 @@ function buildColorBar(ta){
     b.type = "button"; b.className = "color-dot"; b.title = c.name;
     b.style.background = c.v;
     b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-    b.addEventListener("click", function(){ applyColorToTextarea(ta, c.v); });
+    b.addEventListener("click", function(){ applyColorToTextarea(_activeTa, c.v); });
     bar.appendChild(b);
   });
-  /* 任意の色 */
   var pick = document.createElement("input");
   pick.type = "color"; pick.className = "color-pick"; pick.value = "#000000"; pick.title = "好きな色";
-  pick.addEventListener("input", function(){ applyColorToTextarea(ta, pick.value); });
+  pick.addEventListener("input", function(){ applyColorToTextarea(_activeTa, pick.value); });
   bar.appendChild(pick);
-  /* 解除 */
   var clr = document.createElement("button");
   clr.type = "button"; clr.className = "color-clear"; clr.textContent = "色を消す";
   clr.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-  clr.addEventListener("click", function(){ clearColorFromTextarea(ta); });
+  clr.addEventListener("click", function(){ clearColorFromTextarea(_activeTa); });
   bar.appendChild(clr);
-  return bar;
+  document.body.appendChild(bar);
+  positionColorBar();
+  window.addEventListener("resize", positionColorBar);
+}
+function positionColorBar(){
+  var bar = document.getElementById("colorBarFixed");
+  if(!bar) return;
+  var hd = document.querySelector(".eth-fix");
+  var h = hd ? hd.getBoundingClientRect().height : 0;
+  bar.style.top = h + "px";
+}
+function hideColorBar(){
+  var el = document.getElementById("colorBarFixed");
+  if(el) el.parentNode.removeChild(el);
+  _activeTa = null;
 }
 
 function itemUid(){ return 'it' + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
@@ -918,7 +967,7 @@ function buildItemRow(si, s, it, j){
     const ta=document.createElement('textarea'); ta.className='form-textarea it-body'; ta.placeholder='自由入力'; ta.value=it.value||'';
     ta.addEventListener('input', function(){ autoGrow(ta); });
     ta.addEventListener('keydown', handleTab);
-    val.appendChild(buildColorBar(ta));
+    registerColorTarget(ta);
     val.appendChild(ta);
     setTimeout(function(){ autoGrow(ta); }, 0);
   }
@@ -1172,9 +1221,13 @@ function applyPages(){
 /* ========== 編集モード ========== */
 function toggleEdit(){
   editing = !editing;
+  if(editing) showColorBar(); else hideColorBar();
   document.getElementById('editorWrap').classList.toggle('open', editing);
   document.getElementById('viewWrap').style.display = editing ? 'none' : '';
-  document.getElementById('editToggle').textContent = editing ? '👁 プレビュー' : '✏️ 編集';
+  const _et = document.getElementById('editToggle');
+  if(_et) _et.textContent = editing ? '👁 プレビュー' : '✏️ 編集';
+  const _eb = document.getElementById('editBtn');
+  if(_eb) _eb.textContent = editing ? '👁 プレビュー' : '✏️ 編集';
   if(editing){ renderEdit(); }
   else { collectEdit(); renderView(); }
 }
@@ -1367,7 +1420,7 @@ function persist(){
 function saveProfile(){
   collectEdit();
   persist().then(function(){
-    alert('保存しました');
+    setStatus('GitHubへ保存しました。');
     editing = false;
     document.getElementById('editorWrap').classList.remove('open');
     document.getElementById('viewWrap').style.display = '';
@@ -1388,7 +1441,30 @@ function syncUrl(){
 }
 
 /* ========== 初期化 ========== */
-if(IS_EDIT_MODE) document.body.classList.add('edit-mode');
+if(IS_EDIT_MODE){ document.body.classList.add('edit-mode'); document.body.classList.add('editmode'); }
+/* ===== 編集パネル（playstyle統一） ===== */
+function setStatus(msg, isErr){
+  const el = document.getElementById('status');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.className = 'status' + (isErr ? ' err' : '');
+}
+function initPanel(){
+  const t = document.getElementById('token');
+  if(t){
+    t.value = getGHToken();
+    t.addEventListener('input', function(){ localStorage.setItem(GH_TOKEN_KEY, t.value.trim()); });
+  }
+}
+function reloadFromRepo(){
+  setStatus('読込中…');
+  loadData().then(function(){
+    renderMenus(); renderView();
+    if(editing){ renderEdit(); }
+    setStatus('最新を読み込みました。');
+  }).catch(function(e){ setStatus('読込に失敗しました：' + (e && e.message ? e.message : ''), true); });
+}
+initPanel();
 loadData().then(function(){
   const sp = new URLSearchParams(location.search);
   curMajor = firstNormalMajor();

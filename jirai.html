@@ -190,12 +190,13 @@ header.site .updated{
 }
 .dc-list{margin:.3em 0;padding-left:1.5em}
 .dc-list li{margin:.1em 0}
-.colorbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 5px}
-.colorbar-lb{font-size:10px;color:#888;margin-right:2px}
-.color-dot{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
+.colorbar-fixed{position:fixed;left:0;right:0;top:0;z-index:1150;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  background:#ffffff;border-bottom:1px solid #d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.10);padding:8px 12px}
+.colorbar-lb{font-size:11px;color:#888;margin-right:2px}
+.color-dot{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
 .color-dot:hover{transform:scale(1.12)}
-.color-pick{width:24px;height:20px;border:1px solid #ccc;border-radius:4px;padding:0;background:#fff;cursor:pointer}
-.color-clear{font-size:10px;border:1px solid #ccc;background:#fff;border-radius:4px;padding:2px 7px;cursor:pointer;color:#555}
+.color-pick{width:28px;height:24px;border:1px solid #ccc;border-radius:4px;padding:0;background:#fff;cursor:pointer}
+.color-clear{font-size:11px;border:1px solid #ccc;background:#fff;border-radius:5px;padding:4px 10px;cursor:pointer;color:#555}
 .color-clear:hover{background:#f0f0f0}
 .dc-code{
   background:var(--bg3); border-radius:4px;
@@ -395,25 +396,30 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== 文字色ツールバー（共通） ===== */
+/* ===== 文字色ツールバー（編集時・上部固定／共通） ===== */
 var COLOR_PRESETS = [
   {name:"赤", v:"#e03131"}, {name:"青", v:"#1971c2"}, {name:"緑", v:"#2f9e44"},
   {name:"オレンジ", v:"#e8590c"}, {name:"紫", v:"#7048e8"}, {name:"ピンク", v:"#d6336c"},
   {name:"茶", v:"#8b5e34"}, {name:"グレー", v:"#868e96"}
 ];
+var _activeTa = null;                       /* 最後にさわった入力欄 */
+function registerColorTarget(ta){
+  if(!ta) return;
+  ta.addEventListener("focus", function(){ _activeTa = ta; });
+  ta.addEventListener("click", function(){ _activeTa = ta; });
+  ta.addEventListener("keyup", function(){ _activeTa = ta; });
+  if(!_activeTa) _activeTa = ta;
+}
 function applyColorToTextarea(ta, color){
   if(!ta) return;
-  var s = ta.selectionStart, e = ta.selectionEnd;
-  var val = ta.value;
-  if(s === e){ return; }               /* 選択なしなら何もしない */
+  var s = ta.selectionStart, e = ta.selectionEnd, val = ta.value;
+  if(s === e) return;
   var sel = val.slice(s, e);
-  /* すでに色指定されている選択なら色を差し替え */
   var m = /^\{c:(#[0-9a-fA-F]{3,6}|[a-zA-Z]+)\}([\s\S]*)\{\/c\}$/.exec(sel);
   var wrapped = m ? ("{c:" + color + "}" + m[2] + "{/c}") : ("{c:" + color + "}" + sel + "{/c}");
   ta.value = val.slice(0, s) + wrapped + val.slice(e);
   var np = s + wrapped.length;
-  ta.focus();
-  ta.setSelectionRange(np, np);
+  ta.focus(); ta.setSelectionRange(np, np);
   ta.dispatchEvent(new Event("input", {bubbles:true}));
 }
 function clearColorFromTextarea(ta){
@@ -427,9 +433,12 @@ function clearColorFromTextarea(ta){
   ta.focus(); ta.setSelectionRange(np, np);
   ta.dispatchEvent(new Event("input", {bubbles:true}));
 }
-function buildColorBar(ta){
+/* 画面上部に1つだけ出す色バー */
+function showColorBar(){
+  if(document.getElementById("colorBarFixed")) return;
   var bar = document.createElement("div");
-  bar.className = "colorbar";
+  bar.id = "colorBarFixed";
+  bar.className = "colorbar-fixed";
   var lb = document.createElement("span");
   lb.className = "colorbar-lb"; lb.textContent = "文字色";
   bar.appendChild(lb);
@@ -438,21 +447,33 @@ function buildColorBar(ta){
     b.type = "button"; b.className = "color-dot"; b.title = c.name;
     b.style.background = c.v;
     b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-    b.addEventListener("click", function(){ applyColorToTextarea(ta, c.v); });
+    b.addEventListener("click", function(){ applyColorToTextarea(_activeTa, c.v); });
     bar.appendChild(b);
   });
-  /* 任意の色 */
   var pick = document.createElement("input");
   pick.type = "color"; pick.className = "color-pick"; pick.value = "#000000"; pick.title = "好きな色";
-  pick.addEventListener("input", function(){ applyColorToTextarea(ta, pick.value); });
+  pick.addEventListener("input", function(){ applyColorToTextarea(_activeTa, pick.value); });
   bar.appendChild(pick);
-  /* 解除 */
   var clr = document.createElement("button");
   clr.type = "button"; clr.className = "color-clear"; clr.textContent = "色を消す";
   clr.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-  clr.addEventListener("click", function(){ clearColorFromTextarea(ta); });
+  clr.addEventListener("click", function(){ clearColorFromTextarea(_activeTa); });
   bar.appendChild(clr);
-  return bar;
+  document.body.appendChild(bar);
+  positionColorBar();
+  window.addEventListener("resize", positionColorBar);
+}
+function positionColorBar(){
+  var bar = document.getElementById("colorBarFixed");
+  if(!bar) return;
+  var hd = document.querySelector(".eth-fix");
+  var h = hd ? hd.getBoundingClientRect().height : 0;
+  bar.style.top = h + "px";
+}
+function hideColorBar(){
+  var el = document.getElementById("colorBarFixed");
+  if(el) el.parentNode.removeChild(el);
+  _activeTa = null;
 }
 
 "use strict";
@@ -854,7 +875,7 @@ function entryForm(e,idx){
     '</div>';
   const et=box.querySelector(".et"), eb=box.querySelector(".eb");
   et.value=e.title||""; eb.value=e.body||"";
-  eb.parentNode.insertBefore(buildColorBar(eb), eb);
+  registerColorTarget(eb);
   const grow=()=>{ const sy=window.pageYOffset||document.documentElement.scrollTop; eb.style.height="auto"; eb.style.height=eb.scrollHeight+"px"; window.scrollTo(0,sy); };
   eb.addEventListener("input", grow);
   setTimeout(grow, 0);
@@ -917,6 +938,7 @@ function buildToolbar(){
 function toggleEdit(){
   if(readOnly) return;
   editing=!editing; editingEntry=null;
+  if(editing) showColorBar(); else hideColorBar();
   if(!editing){ // leaving edit: capture contenteditable
     state.title = $("#titleEl").textContent.trim() || "地雷・苦手";
     state.intro = $("#introEl").textContent;
