@@ -70,6 +70,13 @@
   .rule-view u{text-decoration:underline;}
   .rule-view s{text-decoration:line-through;}
   .rule-view a{color:#8b0000;text-decoration:none;}
+.colorbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 5px}
+.colorbar-lb{font-size:10px;color:#888;margin-right:2px}
+.color-dot{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
+.color-dot:hover{transform:scale(1.12)}
+.color-pick{width:24px;height:20px;border:1px solid #ccc;border-radius:4px;padding:0;background:#fff;cursor:pointer}
+.color-clear{font-size:10px;border:1px solid #ccc;background:#fff;border-radius:4px;padding:2px 7px;cursor:pointer;color:#555}
+.color-clear:hover{background:#f0f0f0}
   .rule-view code{background:var(--surface2);border-radius:4px;padding:1px 6px;}
   .rule-view pre{background:var(--surface2);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0;white-space:pre-wrap;word-break:break-word;}
   .rule-view pre code{background:none;border:none;padding:0;}
@@ -294,9 +301,73 @@ function renderMarkdown(src){
   if(inCode)html+='<pre><code>'+esc(codeBuf.join('\n'))+'</code></pre>';
   return html;
 }
+/* ===== 文字色ツールバー（共通） ===== */
+var COLOR_PRESETS = [
+  {name:"赤", v:"#e03131"}, {name:"青", v:"#1971c2"}, {name:"緑", v:"#2f9e44"},
+  {name:"オレンジ", v:"#e8590c"}, {name:"紫", v:"#7048e8"}, {name:"ピンク", v:"#d6336c"},
+  {name:"茶", v:"#8b5e34"}, {name:"グレー", v:"#868e96"}
+];
+function applyColorToTextarea(ta, color){
+  if(!ta) return;
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  var val = ta.value;
+  if(s === e){ return; }               /* 選択なしなら何もしない */
+  var sel = val.slice(s, e);
+  /* すでに色指定されている選択なら色を差し替え */
+  var m = /^\{c:(#[0-9a-fA-F]{3,6}|[a-zA-Z]+)\}([\s\S]*)\{\/c\}$/.exec(sel);
+  var wrapped = m ? ("{c:" + color + "}" + m[2] + "{/c}") : ("{c:" + color + "}" + sel + "{/c}");
+  ta.value = val.slice(0, s) + wrapped + val.slice(e);
+  var np = s + wrapped.length;
+  ta.focus();
+  ta.setSelectionRange(np, np);
+  ta.dispatchEvent(new Event("input", {bubbles:true}));
+}
+function clearColorFromTextarea(ta){
+  if(!ta) return;
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  if(s === e) return;
+  var val = ta.value, sel = val.slice(s, e);
+  var stripped = sel.replace(/\{c:(?:#[0-9a-fA-F]{3,6}|[a-zA-Z]+)\}([\s\S]*?)\{\/c\}/g, "$1");
+  ta.value = val.slice(0, s) + stripped + val.slice(e);
+  var np = s + stripped.length;
+  ta.focus(); ta.setSelectionRange(np, np);
+  ta.dispatchEvent(new Event("input", {bubbles:true}));
+}
+function buildColorBar(ta){
+  var bar = document.createElement("div");
+  bar.className = "colorbar";
+  var lb = document.createElement("span");
+  lb.className = "colorbar-lb"; lb.textContent = "文字色";
+  bar.appendChild(lb);
+  COLOR_PRESETS.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "color-dot"; b.title = c.name;
+    b.style.background = c.v;
+    b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+    b.addEventListener("click", function(){ applyColorToTextarea(ta, c.v); });
+    bar.appendChild(b);
+  });
+  /* 任意の色 */
+  var pick = document.createElement("input");
+  pick.type = "color"; pick.className = "color-pick"; pick.value = "#000000"; pick.title = "好きな色";
+  pick.addEventListener("input", function(){ applyColorToTextarea(ta, pick.value); });
+  bar.appendChild(pick);
+  /* 解除 */
+  var clr = document.createElement("button");
+  clr.type = "button"; clr.className = "color-clear"; clr.textContent = "色を消す";
+  clr.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+  clr.addEventListener("click", function(){ clearColorFromTextarea(ta); });
+  bar.appendChild(clr);
+  return bar;
+}
+
 function inline(s){
   s=s.replace(/\|\|(.+?)\|\|/g,'<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
   s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s=s.replace(/\{c:(#[0-9a-fA-F]{3,6}|[a-zA-Z]+)\}([\s\S]*?)\{\/c\}/g,function(m,col,txt){
+    var ok=/^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$|^[a-zA-Z]+$/.test(col);
+    return ok?'<span style="color:'+col+'">'+txt+'</span>':m;
+  });
   s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
   s=s.replace(/__(.+?)__/g,'<u>$1</u>');
   s=s.replace(/~~(.+?)~~/g,'<s>$1</s>');
@@ -422,6 +493,7 @@ function buildItemEdit(s,it,si,j){
     const ta=document.createElement('textarea'); ta.className='sec-body'; ta.placeholder='自由入力（Discord記法対応）'; ta.value=it.value||'';
     ta.addEventListener('input',function(){it.value=this.value;autoGrow(ta);});
     ta.addEventListener('keydown',function(e){if(e.key!=='Tab')return;e.preventDefault();const st=ta.selectionStart,en=ta.selectionEnd;ta.value=ta.value.slice(0,st)+'\u3000'+ta.value.slice(en);ta.selectionStart=ta.selectionEnd=st+1;it.value=ta.value;autoGrow(ta);});
+    val.appendChild(buildColorBar(ta));
     val.appendChild(ta);
   }
   box.appendChild(val);
