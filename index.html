@@ -185,7 +185,8 @@ body:not(.edit-mode) .header-btns{display:none}
 
 /* ---- 項目・メーター ---- */
 .item{padding:8px 0}
-.colorbar-fixed{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fafafa;border:1px solid #e2e2e2;border-radius:6px;padding:6px 8px;margin:0 0 6px}
+.colorbar-fixed{position:fixed;left:0;right:0;z-index:1150;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  background:#ffffff;border-bottom:1px solid #d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.10);padding:8px 12px}
 .colorbar-lb{font-size:11px;color:#888;margin-right:2px}
 .color-dot{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
 .color-dot:hover{transform:scale(1.12)}
@@ -403,39 +404,6 @@ function registerColorTarget(ta){
   ta.addEventListener("click", function(){ _activeTa = ta; });
   ta.addEventListener("keyup", function(){ _activeTa = ta; });
   if(!_activeTa) _activeTa = ta;
-  /* 入力欄の直上に色バーを置く（保存ボタン等との重なりを防ぐ） */
-  attachColorBar(ta);
-}
-function attachColorBar(ta){
-  if(!ta) return;
-  if(!ta.parentNode){ setTimeout(function(){ attachColorBar(ta); }, 0); return; }
-  var prev = ta.previousElementSibling;
-  if(prev && prev.className && String(prev.className).indexOf("colorbar-fixed") >= 0) return;
-  ta.parentNode.insertBefore(makeColorBar(ta), ta);
-}
-function makeColorBar(ta){
-  var bar = document.createElement("div");
-  bar.className = "colorbar-fixed";
-  var lb = document.createElement("span");
-  lb.className = "colorbar-lb"; lb.textContent = "文字色";
-  bar.appendChild(lb);
-  COLOR_PRESETS.forEach(function(c){
-    var b = document.createElement("button");
-    b.type = "button"; b.className = "color-dot"; b.title = c.name; b.style.background = c.v;
-    b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-    b.addEventListener("click", function(){ applyColorToTextarea(ta, c.v); });
-    bar.appendChild(b);
-  });
-  var pick = document.createElement("input");
-  pick.type = "color"; pick.className = "color-pick"; pick.value = "#000000"; pick.title = "好きな色";
-  pick.addEventListener("input", function(){ applyColorToTextarea(ta, pick.value); });
-  bar.appendChild(pick);
-  var clr = document.createElement("button");
-  clr.type = "button"; clr.className = "color-clear"; clr.textContent = "色を消す";
-  clr.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-  clr.addEventListener("click", function(){ clearColorFromTextarea(ta); });
-  bar.appendChild(clr);
-  return bar;
 }
 function applyColorToTextarea(ta, color){
   if(!ta) return;
@@ -487,19 +455,36 @@ function showColorBar(){
   clr.addEventListener("click", function(){ clearColorFromTextarea(_activeTa); });
   bar.appendChild(clr);
   document.body.appendChild(bar);
+  /* 本文（保存パネル含む）を色バーの下へずらす */
+  var sp = document.getElementById("colorBarSpacer");
+  if(!sp){
+    sp = document.createElement("div");
+    sp.id = "colorBarSpacer";
+    var hd0 = document.querySelector(".eth-fix, .head-fix");
+    if(hd0 && hd0.parentNode) hd0.parentNode.insertBefore(sp, hd0.nextSibling);
+    else document.body.insertBefore(sp, document.body.firstChild);
+  }
   positionColorBar();
+  setTimeout(positionColorBar, 0);
   window.addEventListener("resize", positionColorBar);
 }
 function positionColorBar(){
   var bar = document.getElementById("colorBarFixed");
   if(!bar) return;
-  var hd = document.querySelector(".eth-fix");
+  var hd = document.querySelector(".eth-fix, .head-fix");
   var h = hd ? hd.getBoundingClientRect().height : 0;
   bar.style.top = h + "px";
+  var sp = document.getElementById("colorBarSpacer");
+  if(sp){
+    var bh = bar.getBoundingClientRect().height || bar.offsetHeight || 0;
+    sp.style.height = bh + "px";
+  }
 }
 function hideColorBar(){
   var el = document.getElementById("colorBarFixed");
-  if(el) el.parentNode.removeChild(el);
+  if(el && el.parentNode) el.parentNode.removeChild(el);
+  var sp = document.getElementById("colorBarSpacer");
+  if(sp && sp.parentNode) sp.parentNode.removeChild(sp);
   _activeTa = null;
 }
 
@@ -1261,6 +1246,7 @@ function toggleEdit(){
   if(_eb) _eb.textContent = editing ? '👁 プレビュー' : '✏️ 編集';
   if(editing){ renderEdit(); }
   else { collectEdit(); renderView(); }
+  if(editing) showColorBar(); else hideColorBar();
 }
 function cancelEdit(){
   if(!confirm('編集内容を破棄しますか？')) return;
