@@ -70,8 +70,7 @@
   .rule-view u{text-decoration:underline;}
   .rule-view s{text-decoration:line-through;}
   .rule-view a{color:#8b0000;text-decoration:none;}
-.colorbar-fixed{position:fixed;left:0;right:0;top:0;z-index:1150;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-  background:#ffffff;border-bottom:1px solid #d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.10);padding:8px 12px}
+.colorbar-fixed{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fafafa;border:1px solid #e2e2e2;border-radius:6px;padding:6px 8px;margin:0 0 6px}
 .colorbar-lb{font-size:11px;color:#888;margin-right:2px}
 .color-dot{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
 .color-dot:hover{transform:scale(1.12)}
@@ -345,6 +344,39 @@ function registerColorTarget(ta){
   ta.addEventListener("click", function(){ _activeTa = ta; });
   ta.addEventListener("keyup", function(){ _activeTa = ta; });
   if(!_activeTa) _activeTa = ta;
+  /* 入力欄の直上に色バーを置く（保存ボタン等との重なりを防ぐ） */
+  attachColorBar(ta);
+}
+function attachColorBar(ta){
+  if(!ta) return;
+  if(!ta.parentNode){ setTimeout(function(){ attachColorBar(ta); }, 0); return; }
+  var prev = ta.previousElementSibling;
+  if(prev && prev.className && String(prev.className).indexOf("colorbar-fixed") >= 0) return;
+  ta.parentNode.insertBefore(makeColorBar(ta), ta);
+}
+function makeColorBar(ta){
+  var bar = document.createElement("div");
+  bar.className = "colorbar-fixed";
+  var lb = document.createElement("span");
+  lb.className = "colorbar-lb"; lb.textContent = "文字色";
+  bar.appendChild(lb);
+  COLOR_PRESETS.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "color-dot"; b.title = c.name; b.style.background = c.v;
+    b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+    b.addEventListener("click", function(){ applyColorToTextarea(ta, c.v); });
+    bar.appendChild(b);
+  });
+  var pick = document.createElement("input");
+  pick.type = "color"; pick.className = "color-pick"; pick.value = "#000000"; pick.title = "好きな色";
+  pick.addEventListener("input", function(){ applyColorToTextarea(ta, pick.value); });
+  bar.appendChild(pick);
+  var clr = document.createElement("button");
+  clr.type = "button"; clr.className = "color-clear"; clr.textContent = "色を消す";
+  clr.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+  clr.addEventListener("click", function(){ clearColorFromTextarea(ta); });
+  bar.appendChild(clr);
+  return bar;
 }
 function applyColorToTextarea(ta, color){
   if(!ta) return;
@@ -459,7 +491,6 @@ function renderRules(){
 
 function toggleEdit(){
   editing=!editing;
-  if(editing) showColorBar(); else hideColorBar();
   document.getElementById('editorWrap').classList.toggle('active',editing);
   document.getElementById('ruleView').style.display=editing?'none':'block';
   document.getElementById('editToggle').textContent=editing?'👁 プレビュー':'✏️ 編集';
