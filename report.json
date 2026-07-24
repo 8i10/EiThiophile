@@ -1,7 +1,7 @@
 {
   "type": "trpg_report",
   "version": 1,
-  "updatedAt": "2026-07-24T06:35:08.152Z",
+  "updatedAt": "2026-07-24T06:55:12.759Z",
   "cards": [
     {
       "id": "c19f6f931008",
@@ -14606,7 +14606,7 @@
         "HO食人鬼"
       ],
       "cf": {
-        "c": 3,
+        "c": 4,
         "f": 1
       },
       "system": "CoC6th",
