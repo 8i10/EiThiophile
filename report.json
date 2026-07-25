@@ -1,7 +1,7 @@
 {
   "type": "trpg_report",
   "version": 1,
-  "updatedAt": "2026-07-24T06:55:12.759Z",
+  "updatedAt": "2026-07-25T05:25:55.514Z",
   "cards": [
     {
       "id": "c19f6f931008",
@@ -14634,6 +14634,24 @@
       "url": "",
       "thoughts": "",
       "addedAt": 1784874876374
+    },
+    {
+      "id": "cmrzxdoth2os",
+      "title": "感覚共有ぬいえっち！",
+      "image": "https://media.discordapp.net/attachments/1012376817665048619/1530445706555424829/image.png?ex=6a659a22&is=6a6448a2&hm=bd863004dd00f356f34452e931e78c147eabef3eb816af1e04c6302ed613d178&=&format=webp&quality=lossless&width=1063&height=701",
+      "role": "KP",
+      "date": "2026年7月25日",
+      "statuses": [],
+      "ho": [],
+      "cf": {
+        "c": 2,
+        "f": 1
+      },
+      "system": "CoC6th",
+      "ed": "エンドB",
+      "url": "",
+      "thoughts": "",
+      "addedAt": 1784957115365
     }
   ]
 }
