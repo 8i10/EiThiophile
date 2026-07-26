@@ -161,11 +161,13 @@
   .owned-table th{padding:9px 12px;text-align:left;font-weight:700;font-size:11px;color:var(--text-muted);letter-spacing:0.08em;border-bottom:1px solid var(--border);white-space:nowrap;}
   .owned-table th:first-child{text-align:center;}
   .owned-table th:nth-child(3),
-  .owned-table th:nth-child(4){text-align:center;}
+  .owned-table th:nth-child(4),
+  .owned-table th:nth-child(5){text-align:center;}
   .owned-table td{padding:7px 12px;vertical-align:middle;border-bottom:1px solid var(--border);}
   .owned-table tbody tr:last-child td{border-bottom:none;}
   .owned-table tbody tr:hover{background:var(--hover-row);}
   .owned-table .td-name{font-weight:500;color:var(--text);font-size:11px;min-width:140px;max-width:260px;}
+  .owned-table .owned-biko{font-size:11px;color:var(--text);white-space:pre-wrap;max-width:220px;}
   .owned-booth a{color:var(--accent);text-decoration:none;font-size:11px;}
   .owned-booth a:hover{text-decoration:underline;}
   .owned-booth .none{color:var(--text-muted);opacity:.5;font-size:11px;}
@@ -1327,7 +1329,7 @@ async function ownedSaveRun(token){
 }
 function normOwned(o){
   o = o || {};
-  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'', memo:o.memo||'' };
+  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'', memo:o.memo||'', biko:o.biko||'', kpx:!!o.kpx };
 }
 // 回せるシナリオ由来 ＋ 手動追加 を結合した表示リスト（新しい追加が上）
 function buildOwnedList(){
@@ -1337,7 +1339,7 @@ function buildOwnedList(){
   src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
   OWNED_MANUAL.forEach(function(o, idx){
     if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
-    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'' });
+    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'', biko:o.biko||'', kpx:!!o.kpx });
   });
   src.forEach(function(r){
     const name = r['名前'] || '';
@@ -1423,12 +1425,13 @@ function renderOwnedTable(){
     wrap.innerHTML = html; return;
   }
   html += '<div class="owned-wrap"><table class="owned-table"><thead><tr>' +
-    '<th>R</th><th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>BOOTH</th>' + (canEdit ? '<th></th>' : '') +
+    '<th>R</th><th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>KP×</th><th>備考</th>' + (canEdit ? '<th></th>' : '') +
     '</tr></thead><tbody>';
   list.forEach(function(o){
     const rating = o.rating || '全年齢';
     const readCell = o.read ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
-    const boothCell = ownedBoothLink(o.url);
+    const kpxCell = (o.source === 'manual' && o.kpx) ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
+    const bikoCell = (o.source === 'manual') ? escHtml(o.biko || '') : '';
     const idAttr = o.source === 'auto'
       ? 'data-src="auto" data-key="' + escAttr(o.key) + '"'
       : 'data-src="manual" data-mi="' + o.mi + '"';
@@ -1448,7 +1451,8 @@ function renderOwnedTable(){
       nameCell +
       '<td class="td-ninzu">' + escHtml(o.players || '—') + '</td>' +
       '<td class="td-heya">' + readCell + '</td>' +
-      '<td class="owned-booth">' + boothCell + '</td>' +
+      '<td class="td-heya">' + kpxCell + '</td>' +
+      '<td class="owned-biko">' + bikoCell + '</td>' +
       opCell +
       '</tr>';
   });
@@ -1521,6 +1525,7 @@ function openOwnedManualModal(mi){
   const rating = o.rating || '全年齢';
   const players = o.players || '—';
   const readHtml = o.read ? '<span class="heya-check">✓ 既読</span>' : '<span class="heya-dash">- 未読</span>';
+  const kpxHtml = o.kpx ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
   const title = document.getElementById('modalTitle');
   if(title) title.textContent = o.name || '';
   const rowsEl = document.getElementById('modalRows');
@@ -1532,8 +1537,11 @@ function openOwnedManualModal(mi){
       '</div>' +
       '<div class="modal-pair">' +
         '<div class="modal-cell"><span class="modal-label">既読/未読</span><span class="modal-val">' + readHtml + '</span></div>' +
-        '<div class="modal-cell"></div>' +
+        '<div class="modal-cell"><span class="modal-label">KP×</span><span class="modal-val">' + kpxHtml + '</span></div>' +
       '</div>';
+    if(o.biko && o.biko.trim()){
+      h += '<div class="modal-row"><span class="modal-label">備考</span><span class="modal-val" style="white-space:pre-wrap;">' + escHtml(o.biko) + '</span></div>';
+    }
     if(o.memo && o.memo.trim()){
       h += '<div class="modal-row"><span class="modal-label">メモ</span><span class="modal-val" style="white-space:pre-wrap;">' + escHtml(o.memo) + '</span></div>';
     }
@@ -1596,8 +1604,10 @@ function openOwnedEdit(mi){
         '<div style="flex:1;"><label class="oe-lbl">レーティング</label><select class="owned-select" id="oe_rating">' + rOpts + '</select></div>' +
         '<div style="flex:1;"><label class="oe-lbl">人数</label><select class="owned-select" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></div>' +
       '</div>' +
-      '<div><label class="owned-read-cell" style="cursor:pointer;"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></div>' +
+      '<div><label class="owned-read-cell" style="cursor:pointer;"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label>' +
+        '<label class="owned-read-cell" style="cursor:pointer;margin-left:16px;"><input type="checkbox" id="oe_kpx"' + (o.kpx ? ' checked' : '') + '>KP×</label></div>' +
       '<div><label class="oe-lbl">BOOTH URL</label><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></div>' +
+      '<div><label class="oe-lbl">備考</label><input class="owned-input" id="oe_biko" value="' + escAttr(o.biko || '') + '" placeholder="備考（一覧に表示）"></div>' +
       '<div><label class="oe-lbl">メモ（ポップアップに表示）</label><textarea class="owned-input" id="oe_memo" placeholder="メモ" style="min-height:60px;resize:vertical;">' + escHtml(o.memo || '') + '</textarea></div>' +
       '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px;">' +
         '<button class="btn-cancel" onclick="closeOwnedEdit()">キャンセル</button>' +
@@ -1615,6 +1625,8 @@ function ownedSaveEdit(){
     players: document.getElementById('oe_players').value.trim(),
     read: document.getElementById('oe_read').checked,
     url: document.getElementById('oe_url').value.trim(),
+    biko: document.getElementById('oe_biko').value.trim(),
+    kpx: document.getElementById('oe_kpx').checked,
     memo: document.getElementById('oe_memo').value.trim()
   };
   if(ownedEditingMi == null){
