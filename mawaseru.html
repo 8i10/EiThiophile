@@ -823,9 +823,9 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 <div class="main" id="mainArea"></div>
 <div id="spCardList" style="display:none;flex-direction:column;gap:6px;padding:8px 8px 60px;"></div>
 
-<div id="ownedArea" style="display:none;padding:14px 16px 60px;">
-  <div style="max-width:900px;margin:0 auto;">
-    <div id="ownedSearchWrap" style="margin-bottom:12px;"></div>
+<div id="ownedArea" style="display:none;">
+  <div id="ownedSearchWrap"></div>
+  <div style="max-width:900px;margin:0 auto;padding:14px 16px 60px;">
     <div id="ownedTableWrap"></div>
   </div>
 </div>
@@ -967,8 +967,8 @@ function renderTable(area) {
   const cols = [
     { key: 'レーティング', label: 'R', sortable: true },
     { key: '名前', label: 'シナリオ名', sortable: true },
-    { key: 'kp_num', label: 'KP回数', sortable: true },
     { key: '人数', label: '人数', sortable: true },
+    { key: 'kp_num', label: 'KP回数', sortable: true },
     { key: 'heya', label: '部屋', sortable: false },
     { key: '要相談', label: '要相談', sortable: false },
   ];
@@ -991,8 +991,8 @@ function renderTable(area) {
     return `<tr onclick="openModal(${rowData})" style="cursor:pointer">
       <td class="td-rating"><span class="rating-badge ${getRatingClass(rating)}">${rating || '全年齢'}</span></td>
       <td class="td-name"><button class="name-btn" onclick="openModal(${rowData})">${row['名前']}</button></td>
-      <td class="td-kp${kp>=5?' many':''}">#${kp}</td>
       <td class="td-ninzu">${row['人数']||'—'}</td>
+      <td class="td-kp${kp>=5?' many':''}">#${kp}</td>
       <td class="td-heya">${heya ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>'}</td>
       <td class="td-sodan">${sodan}</td>
     </tr>`;
@@ -1197,7 +1197,11 @@ const OWNED_API  = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + OW
 let OWNED = [];
 let ownedTab = 'mawaseru';
 let ownedSearch = '';
+let ownedFRating = '';
+let ownedFNinzu = '';
+let ownedFRead = '';
 const OWNED_NINZU = ['1PL','タイマン','タイマンor2PL','2PL','3PL','4PL','5PL以上','複数人'];
+const OWNED_RATINGS = ['全年齢','R15','R18','R18+G','R18G'];
 
 function switchMawaseruTab(tab){
   ownedTab = tab;
@@ -1258,25 +1262,48 @@ async function ownedSave(){
 }
 function normOwned(o){
   o = o || {};
-  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', players:o.players||'', read:!!o.read, url:o.url||'' };
+  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'' };
 }
 function renderOwned(){
   const wrap = document.getElementById('ownedTableWrap');
   if(!wrap) return;
   const canEdit = !!getGHToken();
-  // 検索欄
+  // 検索＋絞り込み（回せるシナリオと同じレイアウト）
   const sw = document.getElementById('ownedSearchWrap');
   if(sw){
     if(!sw.dataset.ready){
-      sw.innerHTML = '<input type="search" class="owned-search" id="ownedSearchInput" placeholder="シナリオ名で検索…">';
+      let rOpts = '<option value="">すべて</option>' + OWNED_RATINGS.map(function(v){ return '<option value="'+escAttr(v)+'">'+escHtml(v)+'</option>'; }).join('');
+      let nOpts = '<option value="">すべて</option>' + OWNED_NINZU.map(function(v){ return '<option value="'+escAttr(v)+'">'+escHtml(v)+'</option>'; }).join('');
+      sw.innerHTML =
+        '<div class="controls"><div class="controls-inner">' +
+          '<div class="sp-search-row">' +
+            '<div class="search-wrap"><span class="search-icon">🔍</span>' +
+            '<input type="search" id="ownedSearchInput" placeholder="シナリオ名で検索…"></div>' +
+            '<div class="result-info"><span id="ownedResultCount">0</span> 件</div>' +
+          '</div>' +
+          '<div class="sp-filter-row">' +
+            '<div class="filter-group"><span class="filter-label">レーティング</span>' +
+              '<select id="ownedRatingFilter">' + rOpts + '</select></div>' +
+            '<div class="filter-group"><span class="filter-label">人数</span>' +
+              '<select id="ownedNinzuFilter">' + nOpts + '</select></div>' +
+            '<div class="filter-group"><span class="filter-label">既読/未読</span>' +
+              '<select id="ownedReadFilter"><option value="">すべて</option><option value="read">既読</option><option value="unread">未読</option></select></div>' +
+          '</div>' +
+        '</div></div>';
       const si = document.getElementById('ownedSearchInput');
       si.value = ownedSearch;
       si.addEventListener('input', function(){ ownedSearch = si.value; renderOwnedTable(); });
+      const rf = document.getElementById('ownedRatingFilter');
+      rf.value = ownedFRating; rf.addEventListener('change', function(){ ownedFRating = rf.value; renderOwnedTable(); });
+      const nf = document.getElementById('ownedNinzuFilter');
+      nf.value = ownedFNinzu; nf.addEventListener('change', function(){ ownedFNinzu = nf.value; renderOwnedTable(); });
+      const df = document.getElementById('ownedReadFilter');
+      df.value = ownedFRead; df.addEventListener('change', function(){ ownedFRead = df.value; renderOwnedTable(); });
       sw.dataset.ready = '1';
     } else {
-      const si = document.getElementById('ownedSearchInput');
-      if(si) si.value = ownedSearch;
+      const si = document.getElementById('ownedSearchInput'); if(si) si.value = ownedSearch;
     }
+    if(typeof applySpLayout === 'function') applySpLayout();
   }
   renderOwnedTable();
 }
@@ -1286,7 +1313,17 @@ function renderOwnedTable(){
   const canEdit = !!getGHToken();
   const kw = ownedSearch.trim().toLowerCase();
   const list = OWNED.map(function(o,i){ return {o:o, i:i}; })
-    .filter(function(x){ return !kw || String(x.o.name||'').toLowerCase().indexOf(kw) >= 0; });
+    .filter(function(x){
+      const o = x.o;
+      if(kw && String(o.name||'').toLowerCase().indexOf(kw) < 0) return false;
+      if(ownedFRating && (o.rating||'全年齢') !== ownedFRating) return false;
+      if(ownedFNinzu && !ownedNinzuMatch(o.players||'', ownedFNinzu)) return false;
+      if(ownedFRead === 'read' && !o.read) return false;
+      if(ownedFRead === 'unread' && o.read) return false;
+      return true;
+    });
+  const rc = document.getElementById('ownedResultCount');
+  if(rc) rc.textContent = list.length;
   let html = '';
   if(canEdit){ html += '<button class="owned-add" onclick="ownedAddRow()">＋ 所持シナリオを追加</button>'; }
   if(!OWNED.length){
@@ -1294,20 +1331,22 @@ function renderOwnedTable(){
     wrap.innerHTML = html; return;
   }
   if(!list.length){
-    html += '<div class="owned-empty">「' + escHtml(ownedSearch) + '」に一致する所持シナリオはありません。</div>';
+    html += '<div class="owned-empty">条件に一致する所持シナリオはありません。</div>';
     wrap.innerHTML = html; return;
   }
   html += '<table class="owned-table"><thead><tr>' +
-    '<th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>URL</th>' + (canEdit ? '<th></th>' : '') +
+    '<th>R</th><th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>URL</th>' + (canEdit ? '<th></th>' : '') +
     '</tr></thead><tbody>';
   list.forEach(function(x){
     const o = x.o, i = x.i;
+    const rating = o.rating || '全年齢';
     const rb = o.read ? '<span class="read-badge read"' : '<span class="read-badge unread"';
     const badge = canEdit
       ? rb + ' onclick="ownedToggleRead(' + i + ')">' + (o.read ? '既読' : '未読') + '</span>'
       : rb.replace(' onclick','') + '>' + (o.read ? '既読' : '未読') + '</span>';
     const urlCell = o.url ? '<span class="owned-url"><a href="' + escAttr(o.url) + '" target="_blank" rel="noopener">リンク</a></span>' : '';
     html += '<tr data-oi="' + i + '">' +
+      '<td class="td-rating"><span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span></td>' +
       '<td class="owned-name">' + escHtml(o.name || '（無題）') + '</td>' +
       '<td>' + escHtml(o.players || '') + '</td>' +
       '<td>' + badge + '</td>' +
@@ -1317,6 +1356,14 @@ function renderOwnedTable(){
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
+}
+function ownedNinzuMatch(n, val){
+  if(!val) return true;
+  if(val === 'タイマン') return n === 'タイマン';
+  if(val === 'タイマンor2PL') return n === 'タイマンor2PL' || n === '1PL, タイマンor2PL';
+  if(val === '5PL以上') return /[5-9]PL/.test(n);
+  if(val === '複数人') return n.indexOf('複数人') >= 0;
+  return n.indexOf(val) >= 0;
 }
 function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
@@ -1341,7 +1388,10 @@ function ownedEditRow(i){
   let opts = '';
   OWNED_NINZU.forEach(function(v){ opts += '<option value="' + escAttr(v) + '"' + (o.players === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
   const other = (o.players && OWNED_NINZU.indexOf(o.players) < 0) ? '<option value="' + escAttr(o.players) + '" selected>' + escHtml(o.players) + '</option>' : '';
+  let rOpts = '';
+  OWNED_RATINGS.forEach(function(v){ rOpts += '<option value="' + escAttr(v) + '"' + ((o.rating||'全年齢') === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
   tr.innerHTML =
+    '<td><select class="owned-input" id="oe_rating">' + rOpts + '</select></td>' +
     '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></td>' +
     '<td><select class="owned-input" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></td>' +
     '<td><label class="owned-read-cell"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></td>' +
@@ -1350,6 +1400,7 @@ function ownedEditRow(i){
   const nm = document.getElementById('oe_name'); if(nm) nm.focus();
 }
 function ownedSaveRow(i){
+  OWNED[i].rating = document.getElementById('oe_rating').value;
   OWNED[i].name = document.getElementById('oe_name').value.trim();
   OWNED[i].players = document.getElementById('oe_players').value.trim();
   OWNED[i].read = document.getElementById('oe_read').checked;
@@ -1785,27 +1836,7 @@ const _origOpenEditModal = openEditModal;
 window.openEditModal = function() { requireLogin(_origOpenEditModal); };
 
 
-// スマホ用コントロールレイアウト切替
-function applySpLayout() {
-  const isSp = window.innerWidth <= 640;
-  const searchRow = document.querySelector('.sp-search-row');
-  const filterRow = document.querySelector('.sp-filter-row');
-  if (!searchRow || !filterRow) return;
-  if (isSp) {
-    searchRow.style.display = 'flex';
-    searchRow.style.width   = '100%';
-    searchRow.style.gap     = '6px';
-    searchRow.style.alignItems = 'center';
-    filterRow.style.display = 'flex';
-    filterRow.style.width   = '100%';
-    filterRow.style.gap     = '5px';
-  } else {
-    searchRow.style.display = 'contents';
-    filterRow.style.display = 'contents';
-  }
-}
-applySpLayout();
-window.addEventListener('resize', applySpLayout);
+
 
 
 
@@ -1879,10 +1910,8 @@ function renderSpCards() {
 // コントロールレイアウト切替
 function applySpLayout() {
   const sp = isSp();
-  const sr = document.querySelector('.sp-search-row');
-  const fr = document.querySelector('.sp-filter-row');
-  if (sr) sr.style.display = sp ? 'flex' : 'contents';
-  if (fr) fr.style.display = sp ? 'flex' : 'contents';
+  document.querySelectorAll('.sp-search-row').forEach(function(sr){ sr.style.display = sp ? 'flex' : 'contents'; });
+  document.querySelectorAll('.sp-filter-row').forEach(function(fr){ fr.style.display = sp ? 'flex' : 'contents'; });
 }
 applySpLayout();
 
