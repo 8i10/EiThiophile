@@ -146,6 +146,30 @@
   .header-btns .theme-btn { align-self: auto; margin-top: 0; }
 
   /* コントロールパネル */
+  .mtabs{display:flex;gap:4px;padding:8px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);}
+  body.owned-mode #controlsBar,
+  body.owned-mode #mainArea,
+  body.owned-mode #spCardList{display:none!important;}
+  body.owned-mode #ownedArea{display:block!important;}
+  .mtab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;margin-bottom:-1px;}
+  .mtab:hover{color:var(--text);}
+  .mtab.on{color:var(--accent);border-bottom-color:var(--accent);}
+  .owned-add{background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;margin-bottom:12px;}
+  .owned-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .owned-table th{background:var(--surface2);color:var(--text-muted);font-weight:700;font-size:11px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .owned-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .owned-table tr:hover td{background:var(--surface2);}
+  .owned-name{font-weight:600;color:var(--text);}
+  .owned-url a{color:var(--accent);text-decoration:none;font-size:12px;}
+  .owned-url a:hover{text-decoration:underline;}
+  .read-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;cursor:pointer;border:1px solid transparent;}
+  .read-badge.read{background:rgba(47,158,68,.12);color:#2f9e44;border-color:rgba(47,158,68,.3);}
+  .read-badge.unread{background:rgba(134,142,150,.12);color:#868e96;border-color:rgba(134,142,150,.3);}
+  .owned-op{display:inline-flex;gap:6px;}
+  .owned-op button{background:none;border:1px solid var(--border);border-radius:5px;font-size:11px;padding:3px 8px;cursor:pointer;color:var(--text-muted);font-family:inherit;}
+  .owned-op button:hover{border-color:var(--accent);color:var(--accent);}
+  .owned-empty{color:var(--text-muted);font-size:13px;padding:24px;text-align:center;}
+  .owned-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:var(--surface);color:var(--text);}
   .controls {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -734,15 +758,17 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
   <div class="header-inner">
     <div>
       <div class="header-title"></div>
-      <div class="header-sub">TRPG / CoC6th Scenario Library</div>
     </div>
-    <div class="header-btns">
-      <button class="add-btn" onclick="openAddModal()">＋ 追加</button>
-    </div>
+    <div class="header-btns"></div>
   </div>
 </header>
 
-<div class="controls">
+<div class="mtabs" id="mtabs">
+  <button class="mtab on" data-mtab="mawaseru" onclick="switchMawaseruTab('mawaseru')">回せるシナリオ</button>
+  <button class="mtab" data-mtab="owned" onclick="switchMawaseruTab('owned')">所持シナリオ</button>
+</div>
+
+<div class="controls" id="controlsBar">
   <div class="controls-inner">
     <!-- PC: 1行。スマホ: 2行に分割 -->
     <div class="sp-search-row" style="display:contents">
@@ -792,6 +818,10 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 
 <div class="main" id="mainArea"></div>
 <div id="spCardList" style="display:none;flex-direction:column;gap:6px;padding:8px 8px 60px;"></div>
+
+<div id="ownedArea" style="display:none;padding:14px 16px 60px;">
+  <div id="ownedTableWrap"></div>
+</div>
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal" id="modal">
@@ -1153,6 +1183,132 @@ function showLoading(on) {
 
 const DATA_KEY = 'trpg_data_v1';
 let DATA = JSON.parse(JSON.stringify(SCENARIOS)).map((r,i) => ({...r, _idx: i}));
+
+// ===== 所持シナリオ =====
+const OWNED_FILE = 'owned.json';
+const OWNED_API  = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + OWNED_FILE;
+let OWNED = [];
+let ownedTab = 'mawaseru';
+
+function switchMawaseruTab(tab){
+  ownedTab = tab;
+  document.querySelectorAll('#mtabs .mtab').forEach(function(b){ b.classList.toggle('on', b.dataset.mtab === tab); });
+  var isMaw = (tab === 'mawaseru');
+  document.body.classList.toggle('owned-mode', !isMaw);
+  var controls = document.getElementById('controlsBar');
+  var main = document.getElementById('mainArea');
+  var sp = document.getElementById('spCardList');
+  var owned = document.getElementById('ownedArea');
+  if(controls) controls.style.display = isMaw ? '' : 'none';
+  if(main) main.style.display = isMaw ? '' : 'none';
+  if(sp && !isMaw) sp.style.display = 'none';
+  if(owned) owned.style.display = isMaw ? 'none' : 'block';
+  if(isMaw){ render(); } else { loadOwnedAndRender(); }
+}
+async function loadOwnedAndRender(){
+  const wrap = document.getElementById('ownedTableWrap');
+  if(wrap) wrap.innerHTML = '<div class="owned-empty">読み込み中…</div>';
+  OWNED = (await ownedGet()).map(normOwned);
+  renderOwned();
+}
+
+async function ownedGet(){
+  const token = getGHToken();
+  if(!token){
+    try{
+      const r = await fetch('https://raw.githubusercontent.com/' + GH_REPO + '/' + GH_BRANCH + '/' + OWNED_FILE + '?t=' + Date.now(), {cache:'no-store'});
+      if(r.ok){ const a = JSON.parse(await r.text()); if(Array.isArray(a)) return a; }
+    }catch(e){}
+    return [];
+  }
+  try{
+    const res = await fetch(OWNED_API + '?t=' + Date.now(), {headers: ghHeaders(token)});
+    if(!res.ok) return [];
+    const j = await res.json();
+    if(!j || typeof j.content !== 'string') return [];
+    const arr = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+async function ownedGetSha(token){
+  try{ const res = await fetch(OWNED_API + '?ref=' + GH_BRANCH, {headers: ghHeaders(token)}); if(res.ok){ const j = await res.json(); return j.sha || null; } }catch(e){}
+  return null;
+}
+async function ownedSave(){
+  const token = getGHToken();
+  if(!token){ alert('🔑 トークンを設定してください'); return; }
+  showLoading(true);
+  try{
+    const sha = await ownedGetSha(token);
+    const body = { message:'Update owned.json', content: btoa(unescape(encodeURIComponent(JSON.stringify(OWNED, null, 2)))), branch: GH_BRANCH };
+    if(sha) body.sha = sha;
+    const res = await fetch(OWNED_API, {method:'PUT', headers:ghHeaders(token), body:JSON.stringify(body)});
+    if(!res.ok){ const e = await res.json(); throw new Error(e.message || 'error'); }
+  }catch(e){ alert('保存失敗: ' + e.message); }
+  showLoading(false);
+}
+function normOwned(o){
+  o = o || {};
+  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', players:o.players||'', read:!!o.read, url:o.url||'' };
+}
+function renderOwned(){
+  const wrap = document.getElementById('ownedTableWrap');
+  if(!wrap) return;
+  const canEdit = !!getGHToken();
+  let html = '';
+  if(canEdit){ html += '<button class="owned-add" onclick="ownedAddRow()">＋ 所持シナリオを追加</button>'; }
+  if(!OWNED.length){
+    html += '<div class="owned-empty">所持シナリオはまだありません。' + (canEdit ? '「＋ 所持シナリオを追加」から登録できます。' : '') + '</div>';
+    wrap.innerHTML = html; return;
+  }
+  html += '<table class="owned-table"><thead><tr>' +
+    '<th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>URL</th>' + (canEdit ? '<th></th>' : '') +
+    '</tr></thead><tbody>';
+  OWNED.forEach(function(o, i){
+    const rb = o.read ? '<span class="read-badge read"' : '<span class="read-badge unread"';
+    const badge = canEdit
+      ? rb + ' onclick="ownedToggleRead(' + i + ')">' + (o.read ? '既読' : '未読') + '</span>'
+      : rb.replace(' onclick','') + '>' + (o.read ? '既読' : '未読') + '</span>';
+    const urlCell = o.url ? '<span class="owned-url"><a href="' + escAttr(o.url) + '" target="_blank" rel="noopener">リンク</a></span>' : '';
+    html += '<tr>' +
+      '<td class="owned-name">' + escHtml(o.name || '（無題）') + '</td>' +
+      '<td>' + escHtml(o.players || '') + '</td>' +
+      '<td>' + badge + '</td>' +
+      '<td>' + urlCell + '</td>' +
+      (canEdit ? '<td><span class="owned-op"><button onclick="ownedEditRow(' + i + ')">編集</button><button onclick="ownedDelRow(' + i + ')">削除</button></span></td>' : '') +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
+
+function ownedAddRow(){ OWNED.push(normOwned({})); renderOwned(); ownedEditRow(OWNED.length-1); }
+function ownedDelRow(i){ if(!confirm('この所持シナリオを削除しますか？')) return; OWNED.splice(i,1); renderOwned(); ownedSave(); }
+function ownedToggleRead(i){ OWNED[i].read = !OWNED[i].read; renderOwned(); ownedSave(); }
+function ownedEditRow(i){
+  const o = OWNED[i];
+  const wrap = document.getElementById('ownedTableWrap');
+  const rows = wrap.querySelectorAll('tbody tr');
+  const tr = rows[i]; if(!tr) return;
+  tr.innerHTML =
+    '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></td>' +
+    '<td><input class="owned-input" id="oe_players" value="' + escAttr(o.players) + '" placeholder="人数"></td>' +
+    '<td><select class="owned-input" id="oe_read"><option value="0"' + (!o.read?' selected':'') + '>未読</option><option value="1"' + (o.read?' selected':'') + '>既読</option></select></td>' +
+    '<td><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></td>' +
+    '<td><span class="owned-op"><button onclick="ownedSaveRow(' + i + ')">保存</button><button onclick="renderOwned()">取消</button></span></td>';
+  const nm = document.getElementById('oe_name'); if(nm) nm.focus();
+}
+function ownedSaveRow(i){
+  OWNED[i].name = document.getElementById('oe_name').value.trim();
+  OWNED[i].players = document.getElementById('oe_players').value.trim();
+  OWNED[i].read = document.getElementById('oe_read').value === '1';
+  OWNED[i].url = document.getElementById('oe_url').value.trim();
+  renderOwned();
+  ownedSave();
+}
+
 let editingIdx = null;
 
 // GitHubからデータ取得して画面を更新
@@ -1473,7 +1629,8 @@ function updateAuthUI() {
     }
     info.innerHTML = `
       <span style="flex:1;opacity:0.6">ログイン中</span>
-      <button onclick="openTokenModal()" style="background:none;border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">🔑 トークン設定</button>
+      <button onclick="openAddModal()" style="background:var(--accent);border:1px solid var(--accent);color:#fff;font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">＋ 追加</button>
+      <button onclick="openTokenModal()" style="background:none;border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">🔑 設定</button>
       <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--text-muted);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">ログアウト</button>`;
 
   } else {
@@ -1702,26 +1859,6 @@ function saveToken() {
 }
 
 
-// 編集モード時：閲覧用URL発行ボタンを表示
-if (IS_EDIT_MODE) {
-  const headerBtns = document.querySelector('.header-btns');
-  const makeShareBtn = () => {
-    const b = document.createElement('button');
-    b.className = 'add-btn';
-    b.textContent = '🔗 閲覧用URL';
-    b.onclick = copyViewUrl;
-    return b;
-  };
-  if (headerBtns) headerBtns.insertBefore(makeShareBtn(), headerBtns.firstChild);
-}
-function copyViewUrl() {
-  const url = location.origin + location.pathname; // editパラメータなし
-  navigator.clipboard.writeText(url).then(() => {
-    alert('閲覧用URLをコピーしました:\n' + url);
-  }).catch(() => {
-    prompt('閲覧用URL（コピーしてください）', url);
-  });
-}
 
 </script>
 

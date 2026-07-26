@@ -186,9 +186,7 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
       <div class="header-title"></div>
       <div class="header-desc">オレンジ色は行きたさ強めシナリオ<br>この中に地雷/苦手を踏むシナリオがあればDMとかで教えてください</div>
     </div>
-    <div class="header-btns">
-      <button class="add-btn" onclick="openAddModal()">＋ 追加</button>
-    </div>
+    <div class="header-btns"></div>
   </div>
 </header>
 
@@ -492,7 +490,8 @@ function updateAuthUI(){
       if(fix) fix.insertAdjacentElement('afterend', bar); else document.body.appendChild(bar);
     }
     bar.innerHTML=`<span style="flex:1;opacity:.6">ログイン中</span>
-      <button onclick="openTokenModal()" style="background:none;border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">🔑 トークン設定</button>
+      <button onclick="openAddModal()" style="background:var(--accent);border:1px solid var(--accent);color:#fff;font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">＋ 追加</button>
+      <button onclick="openTokenModal()" style="background:none;border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">🔑 設定</button>
       <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--text-muted);font-size:11px;padding:2px 10px;border-radius:6px;cursor:pointer;font-family:inherit">ログアウト</button>`;
   } else {
     if(bar) bar.remove();
@@ -563,20 +562,6 @@ document.addEventListener('keydown',e=>{
 });
 
 
-// 編集モード時：閲覧用URLボタン
-if (IS_EDIT_MODE) {
-  const hb = document.querySelector('.header-btns');
-  if (hb) {
-    const b = document.createElement('button');
-    b.className = 'add-btn';
-    b.textContent = '🔗 閲覧用URL';
-    b.onclick = () => {
-      const url = location.origin + location.pathname;
-      navigator.clipboard.writeText(url).then(()=>alert('閲覧用URLをコピーしました:\n'+url)).catch(()=>prompt('閲覧用URL', url));
-    };
-    hb.insertBefore(b, hb.firstChild);
-  }
-}
 
 // ===== 初期化 =====
 if (IS_EDIT_MODE) document.body.classList.add('edit-mode');
