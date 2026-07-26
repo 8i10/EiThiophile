@@ -1298,7 +1298,7 @@ async function ownedSave(){
 }
 function normOwned(o){
   o = o || {};
-  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'' };
+  return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'', memo:o.memo||'' };
 }
 // 回せるシナリオ由来 ＋ 手動追加 を結合した表示リスト（新しい追加が上）
 function buildOwnedList(){
@@ -1321,7 +1321,7 @@ function buildOwnedList(){
   src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
   OWNED_MANUAL.forEach(function(o, idx){
     if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
-    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read });
+    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'' });
   });
   return list;
 }
@@ -1413,7 +1413,7 @@ function renderOwnedTable(){
     }
     const nameCell = o.source === 'auto'
       ? '<td class="td-name"><button class="name-btn" onclick="openOwnedModal(' + JSON.stringify(o.key).replace(/"/g,'&quot;') + ')">' + escHtml(o.name || '（無題）') + '</button></td>'
-      : '<td class="td-name">' + escHtml(o.name || '（無題）') + '</td>';
+      : '<td class="td-name"><button class="name-btn" onclick="openOwnedManualModal(' + o.mi + ')">' + escHtml(o.name || '（無題）') + '</button></td>';
     html += '<tr ' + idAttr + '>' +
       '<td class="td-rating"><span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span></td>' +
       nameCell +
@@ -1431,7 +1431,7 @@ function renderOwnedTable(){
     const readHtml = o.read ? '<span class="sp-c-heya heya-check">✓</span>' : '<span class="sp-c-heya heya-dash">—</span>';
     const clickAttr = o.source === 'auto'
       ? ' onclick="openOwnedModal(' + JSON.stringify(o.key).replace(/"/g,'&quot;') + ')" style="cursor:pointer"'
-      : '';
+      : ' onclick="openOwnedManualModal(' + o.mi + ')" style="cursor:pointer"';
     html += '<div class="sp-card"' + clickAttr + '>' +
       '<div class="sp-card-row1">' +
         '<span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span>' +
@@ -1486,6 +1486,44 @@ function openOwnedModal(key){
   const ov = document.getElementById('modalOverlay');
   if(ov) ov.classList.add('open');
 }
+function openOwnedManualModal(mi){
+  const o = OWNED_MANUAL[mi];
+  if(!o) return;
+  const rating = o.rating || '全年齢';
+  const players = o.players || '—';
+  const readHtml = o.read ? '<span class="heya-check">✓ 既読</span>' : '<span class="heya-dash">- 未読</span>';
+  const title = document.getElementById('modalTitle');
+  if(title) title.textContent = o.name || '';
+  const rowsEl = document.getElementById('modalRows');
+  if(rowsEl){
+    let h =
+      '<div class="modal-pair">' +
+        '<div class="modal-cell"><span class="modal-label">レーティング</span><span class="modal-val"><span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span></span></div>' +
+        '<div class="modal-cell"><span class="modal-label">人数</span><span class="modal-val">' + escHtml(players) + '</span></div>' +
+      '</div>' +
+      '<div class="modal-pair">' +
+        '<div class="modal-cell"><span class="modal-label">既読/未読</span><span class="modal-val">' + readHtml + '</span></div>' +
+        '<div class="modal-cell"></div>' +
+      '</div>';
+    if(o.memo && o.memo.trim()){
+      h += '<div class="modal-row"><span class="modal-label">メモ</span><span class="modal-val" style="white-space:pre-wrap;">' + escHtml(o.memo) + '</span></div>';
+    }
+    rowsEl.innerHTML = h;
+  }
+  const genreBox = document.getElementById('modalGenreBox');
+  if(genreBox) genreBox.innerHTML = '';
+  const link = document.getElementById('modalLink');
+  if(link){
+    const url = (o.url || '').trim();
+    const unavail = ['未公開','非公開','非公開？','公開終了','BOOTHのではない',''];
+    if(!url || unavail.indexOf(url) >= 0 || !/^https?:\/\//.test(url)){ link.style.display = 'none'; }
+    else { link.style.display = ''; link.href = url; }
+  }
+  const editBtn = document.getElementById('modalEditBtn');
+  if(editBtn) editBtn.style.display = 'none';
+  const ov = document.getElementById('modalOverlay');
+  if(ov) ov.classList.add('open');
+}
 function ownedBoothLink(url){
   const unavail = ['未公開','非公開','非公開？','公開終了','BOOTHのではない',''];
   const u = (url || '').trim();
@@ -1521,7 +1559,8 @@ function ownedEditManual(mi){
   OWNED_RATINGS.forEach(function(v){ rOpts += '<option value="' + escAttr(v) + '"' + ((o.rating||'全年齢') === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
   tr.innerHTML =
     '<td><select class="owned-input" id="oe_rating">' + rOpts + '</select></td>' +
-    '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></td>' +
+    '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名">' +
+      '<textarea class="owned-input" id="oe_memo" placeholder="メモ（ポップアップに表示）" style="margin-top:4px;min-height:44px;resize:vertical;">' + escHtml(o.memo || '') + '</textarea></td>' +
     '<td><select class="owned-input" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></td>' +
     '<td><label class="owned-read-cell"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></td>' +
     '<td><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></td>' +
@@ -1534,6 +1573,8 @@ function ownedSaveManual(mi){
   OWNED_MANUAL[mi].players = document.getElementById('oe_players').value.trim();
   OWNED_MANUAL[mi].read = document.getElementById('oe_read').checked;
   OWNED_MANUAL[mi].url = document.getElementById('oe_url').value.trim();
+  const memoEl = document.getElementById('oe_memo');
+  OWNED_MANUAL[mi].memo = memoEl ? memoEl.value.trim() : '';
   renderOwned();
   ownedSave();
 }
