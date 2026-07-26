@@ -1250,6 +1250,14 @@ async function loadOwnedAndRender(){
     OWNED_READS = (raw && raw.reads) ? raw.reads : {};
     OWNED_MANUAL = (raw && Array.isArray(raw.manual)) ? raw.manual.map(normOwned) : [];
   }
+  // 回せるに同名がある手動追加分は削除（回せる由来を優先）。編集者のみ保存
+  if(typeof DATA !== 'undefined' && Array.isArray(DATA)){
+    const autoNames = {};
+    DATA.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
+    const before = OWNED_MANUAL.length;
+    OWNED_MANUAL = OWNED_MANUAL.filter(function(o){ return !autoNames[o.name]; });
+    if(OWNED_MANUAL.length !== before && getGHToken()){ ownedSave(); }
+  }
   renderOwned();
 }
 
@@ -1309,7 +1317,10 @@ function buildOwnedList(){
       read: (OWNED_READS[name] === undefined) ? true : !!OWNED_READS[name]
     });
   });
+  const autoNames = {};
+  src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
   OWNED_MANUAL.forEach(function(o, idx){
+    if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
     list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read });
   });
   return list;
