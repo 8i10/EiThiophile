@@ -1295,18 +1295,34 @@ async function ownedGetSha(token){
   try{ const res = await fetch(OWNED_API + '?ref=' + GH_BRANCH, {headers: ghHeaders(token)}); if(res.ok){ const j = await res.json(); return j.sha || null; } }catch(e){}
   return null;
 }
+let ownedSaveSha = null;   // 直近PUTで得たshaをキャッシュ
+let ownedSaveChain = Promise.resolve();  // 保存を直列化
+async function ownedPutOnce(token, sha){
+  const payload = { reads: OWNED_READS, manual: OWNED_MANUAL };
+  const body = { message:'Update owned.json', content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))), branch: GH_BRANCH };
+  if(sha) body.sha = sha;
+  return await fetch(OWNED_API, {method:'PUT', headers:ghHeaders(token), body:JSON.stringify(body)});
+}
 async function ownedSave(){
   const token = getGHToken();
   if(!token){ alert('🔑 トークンを設定してください'); return; }
+  // 直前の保存が終わってから実行（連続追加時の競合を防ぐ）
+  ownedSaveChain = ownedSaveChain.then(function(){ return ownedSaveRun(token); }, function(){ return ownedSaveRun(token); });
+  return ownedSaveChain;
+}
+async function ownedSaveRun(token){
   showLoading(true);
   try{
-    const sha = await ownedGetSha(token);
-    const payload = { reads: OWNED_READS, manual: OWNED_MANUAL };
-    const body = { message:'Update owned.json', content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))), branch: GH_BRANCH };
-    if(sha) body.sha = sha;
-    const res = await fetch(OWNED_API, {method:'PUT', headers:ghHeaders(token), body:JSON.stringify(body)});
+    let sha = ownedSaveSha || await ownedGetSha(token);
+    let res = await ownedPutOnce(token, sha);
+    if(res.status === 409){ // sha競合 → 最新shaで1回リトライ
+      sha = await ownedGetSha(token);
+      res = await ownedPutOnce(token, sha);
+    }
     if(!res.ok){ const e = await res.json(); throw new Error(e.message || 'error'); }
-  }catch(e){ alert('保存失敗: ' + e.message); }
+    const j = await res.json();
+    ownedSaveSha = (j && j.content && j.content.sha) ? j.content.sha : null;
+  }catch(e){ ownedSaveSha = null; alert('保存失敗: ' + e.message); }
   showLoading(false);
 }
 function normOwned(o){
