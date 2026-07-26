@@ -155,22 +155,23 @@
   .mtab:hover{color:var(--text);}
   .mtab.on{color:var(--accent);border-bottom-color:var(--accent);}
   .owned-add{background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;margin-bottom:12px;}
+  .owned-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
   .owned-table{width:100%;border-collapse:collapse;font-size:13px;}
-  .owned-table th{background:var(--surface2);color:var(--text-muted);font-weight:700;font-size:11px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
-  .owned-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
-  .owned-table tr:hover td{background:var(--surface2);}
-  .owned-name{font-weight:600;color:var(--text);}
-  .owned-url a{color:var(--accent);text-decoration:none;font-size:12px;}
-  .owned-url a:hover{text-decoration:underline;}
-  .read-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;cursor:pointer;border:1px solid transparent;}
-  .read-badge.read{background:rgba(47,158,68,.12);color:#2f9e44;border-color:rgba(47,158,68,.3);}
-  .read-badge.unread{background:rgba(134,142,150,.12);color:#868e96;border-color:rgba(134,142,150,.3);}
+  .owned-table thead{background:var(--surface2);}
+  .owned-table th{padding:9px 12px;text-align:left;font-weight:700;font-size:11px;color:var(--text-muted);letter-spacing:0.08em;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .owned-table th:first-child{text-align:center;}
+  .owned-table td{padding:7px 12px;vertical-align:middle;border-bottom:1px solid var(--border);}
+  .owned-table tbody tr:last-child td{border-bottom:none;}
+  .owned-table tbody tr:hover{background:var(--hover-row);}
+  .owned-table .td-name{font-weight:500;color:var(--text);font-size:11px;min-width:140px;max-width:260px;}
+  .owned-booth a{color:var(--accent);text-decoration:none;font-size:11px;}
+  .owned-booth a:hover{text-decoration:underline;}
+  .owned-booth .none{color:var(--text-muted);opacity:.5;font-size:11px;}
   .owned-op{display:inline-flex;gap:6px;}
   .owned-op button{background:none;border:1px solid var(--border);border-radius:5px;font-size:11px;padding:3px 8px;cursor:pointer;color:var(--text-muted);font-family:inherit;}
   .owned-op button:hover{border-color:var(--accent);color:var(--accent);}
   .owned-empty{color:var(--text-muted);font-size:13px;padding:24px;text-align:center;}
-  .owned-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:var(--surface);color:var(--text);}
-  select.owned-input{-webkit-appearance:menulist;appearance:menulist;background-image:none;}
+  .owned-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:var(--surface2);color:var(--text);}
   .owned-search{width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;background:var(--surface);color:var(--text);}
   .owned-read-cell{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
   .owned-read-cell input[type=checkbox]{width:16px;height:16px;accent-color:var(--all-age);cursor:pointer;}
@@ -1334,28 +1335,35 @@ function renderOwnedTable(){
     html += '<div class="owned-empty">条件に一致する所持シナリオはありません。</div>';
     wrap.innerHTML = html; return;
   }
-  html += '<table class="owned-table"><thead><tr>' +
-    '<th>R</th><th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>URL</th>' + (canEdit ? '<th></th>' : '') +
+  html += '<div class="owned-wrap"><table class="owned-table"><thead><tr>' +
+    '<th>R</th><th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>BOOTH</th>' + (canEdit ? '<th></th>' : '') +
     '</tr></thead><tbody>';
   list.forEach(function(x){
     const o = x.o, i = x.i;
     const rating = o.rating || '全年齢';
-    const rb = o.read ? '<span class="read-badge read"' : '<span class="read-badge unread"';
-    const badge = canEdit
-      ? rb + ' onclick="ownedToggleRead(' + i + ')">' + (o.read ? '既読' : '未読') + '</span>'
-      : rb.replace(' onclick','') + '>' + (o.read ? '既読' : '未読') + '</span>';
-    const urlCell = o.url ? '<span class="owned-url"><a href="' + escAttr(o.url) + '" target="_blank" rel="noopener">リンク</a></span>' : '';
+    const readCell = o.read
+      ? '<span class="heya-check">✓</span>'
+      : '<span class="heya-dash">-</span>';
+    const boothCell = ownedBoothLink(o.url);
     html += '<tr data-oi="' + i + '">' +
       '<td class="td-rating"><span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span></td>' +
-      '<td class="owned-name">' + escHtml(o.name || '（無題）') + '</td>' +
-      '<td>' + escHtml(o.players || '') + '</td>' +
-      '<td>' + badge + '</td>' +
-      '<td>' + urlCell + '</td>' +
+      '<td class="td-name">' + escHtml(o.name || '（無題）') + '</td>' +
+      '<td class="td-ninzu">' + escHtml(o.players || '—') + '</td>' +
+      '<td class="td-heya">' + readCell + '</td>' +
+      '<td class="owned-booth">' + boothCell + '</td>' +
       (canEdit ? '<td><span class="owned-op"><button onclick="ownedEditRow(' + i + ')">編集</button><button onclick="ownedDelRow(' + i + ')">削除</button></span></td>' : '') +
       '</tr>';
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   wrap.innerHTML = html;
+}
+function ownedBoothLink(url){
+  const unavail = ['未公開','非公開','非公開？','公開終了','BOOTHのではない',''];
+  const u = (url || '').trim();
+  if(!u || unavail.indexOf(u) >= 0 || !/^https?:\/\//.test(u)){
+    return '<span class="none">-</span>';
+  }
+  return '<a href="' + escAttr(u) + '" target="_blank" rel="noopener">BOOTHで確認 →</a>';
 }
 function ownedNinzuMatch(n, val){
   if(!val) return true;
@@ -1368,9 +1376,8 @@ function ownedNinzuMatch(n, val){
 function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
 
-function ownedAddRow(){ ownedSearch=''; OWNED.push(normOwned({})); renderOwned(); ownedEditRow(OWNED.length-1); }
+function ownedAddRow(){ ownedSearch=''; ownedFRating=''; ownedFNinzu=''; ownedFRead=''; OWNED.push(normOwned({})); renderOwned(); ownedEditRow(OWNED.length-1); }
 function ownedDelRow(i){ if(!confirm('この所持シナリオを削除しますか？')) return; OWNED.splice(i,1); renderOwned(); ownedSave(); }
-function ownedToggleRead(i){ OWNED[i].read = !OWNED[i].read; renderOwned(); ownedSave(); }
 function ownedEditRow(i){
   const o = OWNED[i];
   const wrap = document.getElementById('ownedTableWrap');
