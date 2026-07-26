@@ -170,6 +170,10 @@
   .owned-op button:hover{border-color:var(--accent);color:var(--accent);}
   .owned-empty{color:var(--text-muted);font-size:13px;padding:24px;text-align:center;}
   .owned-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:var(--surface);color:var(--text);}
+  select.owned-input{-webkit-appearance:menulist;appearance:menulist;background-image:none;}
+  .owned-search{width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;background:var(--surface);color:var(--text);}
+  .owned-read-cell{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+  .owned-read-cell input[type=checkbox]{width:16px;height:16px;accent-color:var(--all-age);cursor:pointer;}
   .controls {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -820,7 +824,10 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 <div id="spCardList" style="display:none;flex-direction:column;gap:6px;padding:8px 8px 60px;"></div>
 
 <div id="ownedArea" style="display:none;padding:14px 16px 60px;">
-  <div id="ownedTableWrap"></div>
+  <div style="max-width:900px;margin:0 auto;">
+    <div id="ownedSearchWrap" style="margin-bottom:12px;"></div>
+    <div id="ownedTableWrap"></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -1189,6 +1196,8 @@ const OWNED_FILE = 'owned.json';
 const OWNED_API  = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + OWNED_FILE;
 let OWNED = [];
 let ownedTab = 'mawaseru';
+let ownedSearch = '';
+const OWNED_NINZU = ['1PL','タイマン','タイマンor2PL','2PL','3PL','4PL','5PL以上','複数人'];
 
 function switchMawaseruTab(tab){
   ownedTab = tab;
@@ -1255,22 +1264,50 @@ function renderOwned(){
   const wrap = document.getElementById('ownedTableWrap');
   if(!wrap) return;
   const canEdit = !!getGHToken();
+  // 検索欄
+  const sw = document.getElementById('ownedSearchWrap');
+  if(sw){
+    if(!sw.dataset.ready){
+      sw.innerHTML = '<input type="search" class="owned-search" id="ownedSearchInput" placeholder="シナリオ名で検索…">';
+      const si = document.getElementById('ownedSearchInput');
+      si.value = ownedSearch;
+      si.addEventListener('input', function(){ ownedSearch = si.value; renderOwnedTable(); });
+      sw.dataset.ready = '1';
+    } else {
+      const si = document.getElementById('ownedSearchInput');
+      if(si) si.value = ownedSearch;
+    }
+  }
+  renderOwnedTable();
+}
+function renderOwnedTable(){
+  const wrap = document.getElementById('ownedTableWrap');
+  if(!wrap) return;
+  const canEdit = !!getGHToken();
+  const kw = ownedSearch.trim().toLowerCase();
+  const list = OWNED.map(function(o,i){ return {o:o, i:i}; })
+    .filter(function(x){ return !kw || String(x.o.name||'').toLowerCase().indexOf(kw) >= 0; });
   let html = '';
   if(canEdit){ html += '<button class="owned-add" onclick="ownedAddRow()">＋ 所持シナリオを追加</button>'; }
   if(!OWNED.length){
     html += '<div class="owned-empty">所持シナリオはまだありません。' + (canEdit ? '「＋ 所持シナリオを追加」から登録できます。' : '') + '</div>';
     wrap.innerHTML = html; return;
   }
+  if(!list.length){
+    html += '<div class="owned-empty">「' + escHtml(ownedSearch) + '」に一致する所持シナリオはありません。</div>';
+    wrap.innerHTML = html; return;
+  }
   html += '<table class="owned-table"><thead><tr>' +
     '<th>シナリオ名</th><th>人数</th><th>既読/未読</th><th>URL</th>' + (canEdit ? '<th></th>' : '') +
     '</tr></thead><tbody>';
-  OWNED.forEach(function(o, i){
+  list.forEach(function(x){
+    const o = x.o, i = x.i;
     const rb = o.read ? '<span class="read-badge read"' : '<span class="read-badge unread"';
     const badge = canEdit
       ? rb + ' onclick="ownedToggleRead(' + i + ')">' + (o.read ? '既読' : '未読') + '</span>'
       : rb.replace(' onclick','') + '>' + (o.read ? '既読' : '未読') + '</span>';
     const urlCell = o.url ? '<span class="owned-url"><a href="' + escAttr(o.url) + '" target="_blank" rel="noopener">リンク</a></span>' : '';
-    html += '<tr>' +
+    html += '<tr data-oi="' + i + '">' +
       '<td class="owned-name">' + escHtml(o.name || '（無題）') + '</td>' +
       '<td>' + escHtml(o.players || '') + '</td>' +
       '<td>' + badge + '</td>' +
@@ -1284,18 +1321,30 @@ function renderOwned(){
 function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
 
-function ownedAddRow(){ OWNED.push(normOwned({})); renderOwned(); ownedEditRow(OWNED.length-1); }
+function ownedAddRow(){ ownedSearch=''; OWNED.push(normOwned({})); renderOwned(); ownedEditRow(OWNED.length-1); }
 function ownedDelRow(i){ if(!confirm('この所持シナリオを削除しますか？')) return; OWNED.splice(i,1); renderOwned(); ownedSave(); }
 function ownedToggleRead(i){ OWNED[i].read = !OWNED[i].read; renderOwned(); ownedSave(); }
 function ownedEditRow(i){
   const o = OWNED[i];
   const wrap = document.getElementById('ownedTableWrap');
   const rows = wrap.querySelectorAll('tbody tr');
-  const tr = rows[i]; if(!tr) return;
+  let tr = null;
+  rows.forEach(function(r){ if(String(r.getAttribute('data-oi')) === String(i)) tr = r; });
+  if(!tr){
+    // フィルタ表示中は一旦全件表示に戻してから編集
+    ownedSearch = '';
+    renderOwned();
+    const rows2 = wrap.querySelectorAll('tbody tr');
+    rows2.forEach(function(r){ if(String(r.getAttribute('data-oi')) === String(i)) tr = r; });
+  }
+  if(!tr) return;
+  let opts = '';
+  OWNED_NINZU.forEach(function(v){ opts += '<option value="' + escAttr(v) + '"' + (o.players === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
+  const other = (o.players && OWNED_NINZU.indexOf(o.players) < 0) ? '<option value="' + escAttr(o.players) + '" selected>' + escHtml(o.players) + '</option>' : '';
   tr.innerHTML =
     '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></td>' +
-    '<td><input class="owned-input" id="oe_players" value="' + escAttr(o.players) + '" placeholder="人数"></td>' +
-    '<td><select class="owned-input" id="oe_read"><option value="0"' + (!o.read?' selected':'') + '>未読</option><option value="1"' + (o.read?' selected':'') + '>既読</option></select></td>' +
+    '<td><select class="owned-input" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></td>' +
+    '<td><label class="owned-read-cell"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></td>' +
     '<td><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></td>' +
     '<td><span class="owned-op"><button onclick="ownedSaveRow(' + i + ')">保存</button><button onclick="renderOwned()">取消</button></span></td>';
   const nm = document.getElementById('oe_name'); if(nm) nm.focus();
@@ -1303,7 +1352,7 @@ function ownedEditRow(i){
 function ownedSaveRow(i){
   OWNED[i].name = document.getElementById('oe_name').value.trim();
   OWNED[i].players = document.getElementById('oe_players').value.trim();
-  OWNED[i].read = document.getElementById('oe_read').value === '1';
+  OWNED[i].read = document.getElementById('oe_read').checked;
   OWNED[i].url = document.getElementById('oe_url').value.trim();
   renderOwned();
   ownedSave();
