@@ -181,6 +181,8 @@
     .owned-sp-list .sp-card-op button{background:none;border:1px solid var(--border);border-radius:5px;font-size:11px;padding:3px 10px;cursor:pointer;color:var(--text-muted);font-family:inherit;}
   }
   .owned-input{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;background:var(--surface2);color:var(--text);}
+  select.owned-select{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font:inherit;font-size:12px;color:var(--text);background-color:var(--surface2);background-image:none;-webkit-appearance:menulist;appearance:menulist;}
+  .oe-lbl{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;}
   .owned-search{width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;background:var(--surface);color:var(--text);}
   .owned-read-cell{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
   .owned-read-cell input[type=checkbox]{width:16px;height:16px;accent-color:var(--all-age);cursor:pointer;}
@@ -917,6 +919,17 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
   </div>
 </div>
 
+<!-- 所持シナリオ 追加/編集モーダル -->
+<div class="modal-overlay" id="ownedEditOverlay" onclick="if(event.target===this)closeOwnedEdit()">
+  <div class="modal" id="ownedEditModal" style="max-width:480px">
+    <div class="modal-head" style="padding:18px 24px 0;position:relative">
+      <div class="modal-title" id="ownedEditTitle">所持シナリオを追加</div>
+      <button class="modal-close" onclick="closeOwnedEdit()">✕</button>
+    </div>
+    <div class="modal-body" id="ownedEditForm" style="padding:16px 24px 22px;"></div>
+  </div>
+</div>
+
 <script>
 // ===== 編集モード判定（?edit=1 のときだけ編集UIを表示）=====
 const IS_EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
@@ -1304,6 +1317,12 @@ function normOwned(o){
 function buildOwnedList(){
   const list = [];
   const src = (typeof DATA !== 'undefined' && Array.isArray(DATA)) ? DATA.slice().reverse() : [];
+  const autoNames = {};
+  src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
+  OWNED_MANUAL.forEach(function(o, idx){
+    if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
+    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'' });
+  });
   src.forEach(function(r){
     const name = r['名前'] || '';
     list.push({
@@ -1316,12 +1335,6 @@ function buildOwnedList(){
       url: r['シナリオURL'] || '',
       read: (OWNED_READS[name] === undefined) ? true : !!OWNED_READS[name]
     });
-  });
-  const autoNames = {};
-  src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
-  OWNED_MANUAL.forEach(function(o, idx){
-    if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
-    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'' });
   });
   return list;
 }
@@ -1543,38 +1556,59 @@ function ownedNinzuMatch(n, val){
 function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
 
-// ---- 手動追加分の操作 ----
-function ownedAddRow(){ ownedSearch=''; ownedFRating=''; ownedFNinzu=''; ownedFRead=''; OWNED_MANUAL.push(normOwned({})); renderOwned(); ownedEditManual(OWNED_MANUAL.length-1); }
+// ---- 手動追加分の操作（ポップアップで追加/編集）----
+let ownedEditingMi = null; // null=新規, 数値=既存編集
+function ownedAddRow(){ openOwnedEdit(null); }
 function ownedDelManual(mi){ if(!confirm('この所持シナリオを削除しますか？')) return; OWNED_MANUAL.splice(mi,1); renderOwned(); ownedSave(); }
-function ownedEditManual(mi){
-  const o = OWNED_MANUAL[mi];
-  if(!o) return;
-  let tr = _findOwnedRow('manual', mi);
-  if(!tr){ ownedSearch=''; ownedFRating=''; ownedFNinzu=''; ownedFRead=''; renderOwned(); tr = _findOwnedRow('manual', mi); }
-  if(!tr) return;
+function ownedEditManual(mi){ openOwnedEdit(mi); }
+function openOwnedEdit(mi){
+  ownedEditingMi = (mi==null ? null : mi);
+  const o = (mi==null) ? normOwned({}) : OWNED_MANUAL[mi];
+  if(mi!=null && !o) return;
+  const titleEl = document.getElementById('ownedEditTitle');
+  if(titleEl) titleEl.textContent = (mi==null) ? '所持シナリオを追加' : '所持シナリオを編集';
   let opts = '';
   OWNED_NINZU.forEach(function(v){ opts += '<option value="' + escAttr(v) + '"' + (o.players === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
   const other = (o.players && OWNED_NINZU.indexOf(o.players) < 0) ? '<option value="' + escAttr(o.players) + '" selected>' + escHtml(o.players) + '</option>' : '';
   let rOpts = '';
   OWNED_RATINGS.forEach(function(v){ rOpts += '<option value="' + escAttr(v) + '"' + ((o.rating||'全年齢') === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
-  tr.innerHTML =
-    '<td><select class="owned-input" id="oe_rating">' + rOpts + '</select></td>' +
-    '<td><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名">' +
-      '<textarea class="owned-input" id="oe_memo" placeholder="メモ（ポップアップに表示）" style="margin-top:4px;min-height:44px;resize:vertical;">' + escHtml(o.memo || '') + '</textarea></td>' +
-    '<td><select class="owned-input" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></td>' +
-    '<td><label class="owned-read-cell"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></td>' +
-    '<td><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></td>' +
-    '<td><span class="owned-op"><button onclick="ownedSaveManual(' + mi + ')">保存</button><button onclick="renderOwned()">取消</button></span></td>';
+  const form = document.getElementById('ownedEditForm');
+  form.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:12px;">' +
+      '<div><label class="oe-lbl">シナリオ名</label><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></div>' +
+      '<div style="display:flex;gap:12px;">' +
+        '<div style="flex:1;"><label class="oe-lbl">レーティング</label><select class="owned-select" id="oe_rating">' + rOpts + '</select></div>' +
+        '<div style="flex:1;"><label class="oe-lbl">人数</label><select class="owned-select" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></div>' +
+      '</div>' +
+      '<div><label class="owned-read-cell" style="cursor:pointer;"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label></div>' +
+      '<div><label class="oe-lbl">BOOTH URL</label><input class="owned-input" id="oe_url" value="' + escAttr(o.url) + '" placeholder="https://"></div>' +
+      '<div><label class="oe-lbl">メモ（ポップアップに表示）</label><textarea class="owned-input" id="oe_memo" placeholder="メモ" style="min-height:60px;resize:vertical;">' + escHtml(o.memo || '') + '</textarea></div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px;">' +
+        '<button class="btn-cancel" onclick="closeOwnedEdit()">キャンセル</button>' +
+        '<button class="btn-save" onclick="ownedSaveEdit()">保存</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('ownedEditOverlay').classList.add('open');
   const nm = document.getElementById('oe_name'); if(nm) nm.focus();
 }
-function ownedSaveManual(mi){
-  OWNED_MANUAL[mi].rating = document.getElementById('oe_rating').value;
-  OWNED_MANUAL[mi].name = document.getElementById('oe_name').value.trim();
-  OWNED_MANUAL[mi].players = document.getElementById('oe_players').value.trim();
-  OWNED_MANUAL[mi].read = document.getElementById('oe_read').checked;
-  OWNED_MANUAL[mi].url = document.getElementById('oe_url').value.trim();
-  const memoEl = document.getElementById('oe_memo');
-  OWNED_MANUAL[mi].memo = memoEl ? memoEl.value.trim() : '';
+function closeOwnedEdit(){ document.getElementById('ownedEditOverlay').classList.remove('open'); ownedEditingMi = null; }
+function ownedSaveEdit(){
+  const rec = {
+    rating: document.getElementById('oe_rating').value,
+    name: document.getElementById('oe_name').value.trim(),
+    players: document.getElementById('oe_players').value.trim(),
+    read: document.getElementById('oe_read').checked,
+    url: document.getElementById('oe_url').value.trim(),
+    memo: document.getElementById('oe_memo').value.trim()
+  };
+  if(ownedEditingMi == null){
+    const o = normOwned(rec);
+    OWNED_MANUAL.unshift(o);
+  } else {
+    const cur = OWNED_MANUAL[ownedEditingMi] || normOwned({});
+    OWNED_MANUAL[ownedEditingMi] = Object.assign({}, cur, rec);
+  }
+  closeOwnedEdit();
   renderOwned();
   ownedSave();
 }
