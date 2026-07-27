@@ -231,7 +231,7 @@
     "url": "https://norinorijoutokai.booth.pm/items/8297502",
     "ho": "",
     "memo": "",
-    "hot": true
+    "hot": false
   },
   {
     "id": "30",
@@ -346,15 +346,6 @@
     "ninzu": "2PL",
     "name": "キルユー！ラブユー！",
     "url": "",
-    "ho": "",
-    "memo": "",
-    "hot": false
-  },
-  {
-    "id": "43",
-    "ninzu": "タイマンor2PL",
-    "name": "DERIVED",
-    "url": "https://bisyokutei.booth.pm/items/4291191",
     "ho": "",
     "memo": "",
     "hot": false
@@ -546,15 +537,6 @@
     "url": "https://kimagurejidaraku.booth.pm/items/7560115",
     "ho": "",
     "memo": "",
-    "hot": true
-  },
-  {
-    "id": "65",
-    "ninzu": "4PL",
-    "name": "警視庁刑事部 犯罪捜査第参〇壱課",
-    "url": "https://booth.pm/ja/items/4833096",
-    "ho": "",
-    "memo": "",
     "hot": false
   },
   {
@@ -573,7 +555,7 @@
     "url": "https://booth.pm/ja/items/4475805",
     "ho": "",
     "memo": "",
-    "hot": true
+    "hot": false
   },
   {
     "id": "68",
@@ -777,10 +759,10 @@
     "id": "90",
     "ninzu": "5PL以上",
     "name": "KUZERO-クゼロ",
-    "url": "",
+    "url": "https://108hako.booth.pm/items/8538994",
     "ho": "",
-    "memo": "出たら",
-    "hot": false
+    "memo": "",
+    "hot": true
   },
   {
     "id": "91",
@@ -861,7 +843,7 @@
     "url": "https://yume-maboroshi.booth.pm/items/6343335",
     "ho": "",
     "memo": "",
-    "hot": false
+    "hot": true
   },
   {
     "id": "1783294506187",
@@ -873,19 +855,82 @@
     "hot": true
   },
   {
-    "id": "1783301486876",
-    "ninzu": "1PL",
-    "name": "その容貌に果てを見る",
-    "url": "https://hebinouenotori.booth.pm/items/5896850",
+    "id": "1783886728561",
+    "ninzu": "タイマン",
+    "name": "驅堕す",
+    "url": "https://minminseminar.booth.pm/items/4907098",
     "ho": "",
     "memo": "",
     "hot": false
   },
   {
-    "id": "1783886728561",
+    "id": "1784121824067",
+    "ninzu": "4PL",
+    "name": "刃鳴は散りても焔は残る",
+    "url": "https://yukizono.booth.pm/items/8612166",
+    "ho": "HO1",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "1784562364445",
     "ninzu": "タイマン",
-    "name": "驅堕す",
-    "url": "https://minminseminar.booth.pm/items/4907098",
+    "name": "ONE SIDED GAME",
+    "url": "https://miso-sp.booth.pm/items/8611961",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1784606822509",
+    "ninzu": "2PL",
+    "name": "「異聞警察」――警視庁生活安全部民俗特異事象対策課の捜査ファイル",
+    "url": "https://booth.pm/ja/items/8350686",
+    "ho": "",
+    "memo": "全case出たら全部行きたい",
+    "hot": true
+  },
+  {
+    "id": "1784612131105",
+    "ninzu": "4PL",
+    "name": "祓魔神事異聞録",
+    "url": "https://booth.pm/ja/items/8497383",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1784612178111",
+    "ninzu": "4PL",
+    "name": "四神見習いは四季に倣う",
+    "url": "https://booth.pm/ja/items/8392314",
+    "ho": "",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1784630194658",
+    "ninzu": "2PL",
+    "name": "死神の夜行曲",
+    "url": "https://husigidoumnn.booth.pm/items/8635497",
+    "ho": "HO1",
+    "memo": "",
+    "hot": false
+  },
+  {
+    "id": "1784630832985",
+    "ninzu": "4PL",
+    "name": "月の居ぬ間に",
+    "url": "https://glassrendezvous.booth.pm/items/8637875",
+    "ho": "",
+    "memo": "",
+    "hot": true
+  },
+  {
+    "id": "1784875191008",
+    "ninzu": "タイマン",
+    "name": "My Beloved Bride",
+    "url": "https://neconodorei.booth.pm/items/8598606",
     "ho": "",
     "memo": "",
     "hot": false
