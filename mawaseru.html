@@ -1592,9 +1592,10 @@ function openOwnedEdit(mi){
   if(mi!=null && !o) return;
   const titleEl = document.getElementById('ownedEditTitle');
   if(titleEl) titleEl.textContent = (mi==null) ? '所持シナリオを追加' : '所持シナリオを編集';
+  const isCustomPlayers = (o.players && OWNED_NINZU.indexOf(o.players) < 0);
   let opts = '';
   OWNED_NINZU.forEach(function(v){ opts += '<option value="' + escAttr(v) + '"' + (o.players === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
-  const other = (o.players && OWNED_NINZU.indexOf(o.players) < 0) ? '<option value="' + escAttr(o.players) + '" selected>' + escHtml(o.players) + '</option>' : '';
+  opts += '<option value="__custom__"' + (isCustomPlayers ? ' selected' : '') + '>その他（自由入力）</option>';
   let rOpts = '';
   OWNED_RATINGS.forEach(function(v){ rOpts += '<option value="' + escAttr(v) + '"' + ((o.rating||'全年齢') === v ? ' selected' : '') + '>' + escHtml(v) + '</option>'; });
   const form = document.getElementById('ownedEditForm');
@@ -1603,7 +1604,8 @@ function openOwnedEdit(mi){
       '<div><label class="oe-lbl">シナリオ名</label><input class="owned-input" id="oe_name" value="' + escAttr(o.name) + '" placeholder="シナリオ名"></div>' +
       '<div style="display:flex;gap:12px;">' +
         '<div style="flex:1;"><label class="oe-lbl">レーティング</label><select class="owned-select" id="oe_rating">' + rOpts + '</select></div>' +
-        '<div style="flex:1;"><label class="oe-lbl">人数</label><select class="owned-select" id="oe_players"><option value="">未選択</option>' + other + opts + '</select></div>' +
+        '<div style="flex:1;"><label class="oe-lbl">人数</label><select class="owned-select" id="oe_players" onchange="ownedPlayersToggle()"><option value="">未選択</option>' + opts + '</select>' +
+          '<input class="owned-input" id="oe_players_custom" value="' + (isCustomPlayers ? escAttr(o.players) : '') + '" placeholder="人数を入力" style="margin-top:6px;' + (isCustomPlayers ? '' : 'display:none;') + '"></div>' +
       '</div>' +
       '<div><label class="owned-read-cell" style="cursor:pointer;"><input type="checkbox" id="oe_read"' + (o.read ? ' checked' : '') + '>既読</label>' +
         '<label class="owned-read-cell" style="cursor:pointer;margin-left:16px;"><input type="checkbox" id="oe_kpx"' + (o.kpx ? ' checked' : '') + '>KP×</label></div>' +
@@ -1618,13 +1620,14 @@ function openOwnedEdit(mi){
   document.getElementById('ownedEditOverlay').classList.add('open');
   const nm = document.getElementById('oe_name'); if(nm) nm.focus();
 }
+function ownedPlayersToggle(){ const s=document.getElementById('oe_players'); const c=document.getElementById('oe_players_custom'); if(s&&c) c.style.display = (s.value==='__custom__') ? '' : 'none'; }
 function ownedEditTryClose(){ if(confirm('追加・編集を中止しますか？')) closeOwnedEdit(); }
 function closeOwnedEdit(){ document.getElementById('ownedEditOverlay').classList.remove('open'); ownedEditingMi = null; }
 function ownedSaveEdit(){
   const rec = {
     rating: document.getElementById('oe_rating').value,
     name: document.getElementById('oe_name').value.trim(),
-    players: document.getElementById('oe_players').value.trim(),
+    players: (function(){ const s=document.getElementById('oe_players'); if(!s) return ''; if(s.value==='__custom__'){ const c=document.getElementById('oe_players_custom'); return c ? c.value.trim() : ''; } return s.value.trim(); })(),
     read: document.getElementById('oe_read').checked,
     url: document.getElementById('oe_url').value.trim(),
     biko: document.getElementById('oe_biko').value.trim(),
