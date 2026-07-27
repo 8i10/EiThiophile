@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>地雷チェックシート2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<style>
+  :root{
+    --teal:#8b0000;
+    --teal-dark:#6b0000;
+    --ink:#222222;
+    --line:#333333;
+    --line-soft:#d4d4d4;
+    --n1:#f3d9d9;
+    --n2:#e2acac;
+    --n3:#cc6b6b;
+    --n4:#a82626;
+    --n5:#8b0000;
+    --seg-empty:#ececec;
+    --note-head:#f0dede;
+    --bg:#f5f5f5;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    padding:0 0 64px;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 14px 0;}
+  h1.page-title{
+    font-size:22px;font-weight:700;text-align:center;margin:0 0 6px;letter-spacing:.04em;
+  }
+  p.page-lead{text-align:center;margin:0 0 20px;font-size:13px;color:#666666;}
+
+  /* ---- control panel ---- */
+  .panel{
+    background:var(--card);border:1px solid var(--line-soft);border-radius:8px;
+    padding:8px 10px;margin:0 auto 18px;max-width:900px;
+  }
+  .panel-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .field{flex:1 1 200px;min-width:150px;}
+  .field input{
+    width:100%;border:1px solid var(--line-soft);border-radius:5px;padding:5px 8px;
+    font:inherit;font-size:12px;background:#fff;color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  button.act{
+    border:1px solid var(--teal-dark);background:var(--teal);color:#ffffff;font:inherit;
+    font-weight:700;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;
+  }
+  button.act.ghost{background:#fff;color:var(--teal-dark);}
+  button.act:hover{filter:brightness(1.04);}
+  button.act:active{transform:translateY(1px);}
+  button.act:focus-visible{outline:2px solid var(--teal-dark);outline-offset:2px;}
+  .status{font-size:12px;min-height:0;color:#6b0000;}
+  .status:empty{display:none;}
+  .status.err{color:#a13232;}
+  .viewurl{font-size:11px;word-break:break-all;}
+  .viewurl:empty{display:none;}
+  .viewurl a{color:var(--teal-dark);}
+  .hint{font-size:10px;color:#999999;}
+  .panel-meta{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+
+  .view-banner{
+    background:#fff4d6;border:1px solid #e3c766;color:#6b520f;border-radius:8px;
+    padding:10px 14px;margin:0 auto 22px;max-width:900px;font-size:13px;text-align:center;
+  }
+
+  /* ---- sheet ---- */
+  .sheet{background:var(--card);border:2px solid var(--line);border-radius:2px;margin-bottom:34px;overflow:hidden;}
+  .sheet-title{
+    background:var(--teal);color:#ffffff;font-weight:700;font-size:13px;text-align:center;
+    padding:12px 10px;letter-spacing:.06em;border-bottom:2px solid var(--line);
+  }
+  table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  th,td{border:1px solid var(--line-soft);padding:8px 10px;vertical-align:middle;font-size:11px;}
+  thead th{border:1px solid var(--line);}
+  .th-guide{
+    background:#f0f0f0;text-align:left;font-weight:400;font-size:11px;line-height:1.45;
+    color:#333333;white-space:pre-line;
+  }
+  .th-num{text-align:center;color:#fff;font-weight:700;font-size:12px;padding:8px 2px;}
+  .th-num.n1{background:var(--n1);color:var(--ink);}
+  .th-num.n2{background:var(--n2);color:var(--ink);}
+  .th-num.n3{background:var(--n3);color:#fff;}
+  .th-num.n4{background:var(--n4);}
+  .th-num.n5{background:var(--n5);}
+  .th-note{background:var(--note-head);text-align:center;font-weight:700;}
+  td.item{text-align:left;}
+  td.meter-cell{padding:6px 8px;}
+  td.note{padding:2px 4px;}
+  td.note textarea{
+    width:100%;border:none;background:transparent;font:inherit;font-size:11px;
+    padding:6px 4px;color:var(--ink);outline:none;
+    resize:none;overflow:hidden;line-height:1.5;min-height:30px;display:block;
+  }
+  td.note textarea:focus{background:#fbf2f2;}
+  td.note textarea:disabled{color:var(--ink);opacity:1;}
+  tbody tr:nth-child(even){background:#fafafa;}
+  tbody tr:hover{background:#fbf2f2;}
+
+  /* ---- meter ---- */
+  .meter{display:flex;gap:3px;align-items:stretch;height:22px;}
+  .meter .seg{
+    flex:1 1 0;border:1px solid #c6c6c6;background:var(--seg-empty);cursor:pointer;
+    padding:0;border-radius:2px;transition:background .08s;position:relative;
+  }
+  .meter .seg:first-child{border-top-left-radius:6px;border-bottom-left-radius:6px;}
+  .meter .seg:last-child{border-top-right-radius:6px;border-bottom-right-radius:6px;}
+  .meter .seg:hover{background:#dcdcdc;}
+  .meter .seg:focus-visible{outline:2px solid var(--teal-dark);outline-offset:1px;z-index:1;}
+  .meter .seg.on[data-level="1"]{background:var(--n1);border-color:#dcb5b5;}
+  .meter .seg.on[data-level="2"]{background:var(--n2);border-color:#c98d8d;}
+  .meter .seg.on[data-level="3"]{background:var(--n3);border-color:#b04f4f;}
+  .meter .seg.on[data-level="4"]{background:var(--n4);border-color:#8a1c1c;}
+  .meter .seg.on[data-level="5"]{background:var(--n5);border-color:#6b0000;}
+  .meter .seg.on:hover{filter:brightness(1.03);}
+
+  /* 3段メーター（チェックシート2） */
+  .meter.lv3 .seg.on[data-level="1"]{background:var(--n1);border-color:#dcb5b5;}
+  .meter.lv3 .seg.on[data-level="2"]{background:var(--n3);border-color:#b04f4f;}
+  .meter.lv3 .seg.on[data-level="3"]{background:var(--n5);border-color:#6b0000;}
+  h2.sheet-group{
+    font-size:19px;font-weight:700;margin:38px 0 14px;padding:0 0 8px;
+    border-bottom:2px solid var(--teal);color:var(--teal);letter-spacing:.04em;
+  }
+  .memo-box{
+    background:var(--card);border:2px solid var(--line);border-radius:2px;
+    padding:12px 14px;margin-bottom:34px;
+  }
+  .memo-box label{display:block;font-weight:700;font-size:13px;margin-bottom:8px;}
+  .memo-box textarea{
+    width:100%;min-height:120px;border:1px solid var(--line-soft);border-radius:5px;
+    padding:8px 10px;font:inherit;font-size:11px;color:var(--ink);background:#fff;
+    resize:none;overflow:hidden;
+  }
+  .memo-box textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  body.readonly .memo-box textarea{background:#fafafa;}
+
+  .source-note{
+    text-align:right;font-size:12px;color:#666666;margin:-18px 0 34px;word-break:break-all;
+  }
+  body.readonly .panel{display:none;}
+  body:not(.editmode) .panel{display:none;}
+  body.readonly .meter .seg,
+  body:not(.editmode) .meter .seg{cursor:default;pointer-events:none;}
+
+  @media (max-width:640px){
+    .th-guide{font-size:11px;}
+    th,td{font-size:12px;padding:6px 5px;}
+    .th-num{font-size:11px;}
+    .meter{height:20px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .meter .seg{transition:none;}
+    button.act:active{transform:none;}
+  }
+</style>
+
+<style>
+/* ===== 共通ヘッダー（EITHIOPHILE） ===== */
+.eth-fix{position:sticky;top:0;z-index:1200}
+header.eth{background:#8b0000}
+.eth-inner{max-width:900px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eth-title{font-size:17px;font-weight:800;color:#ffffff;letter-spacing:.30em;font-family:Arial,Helvetica,sans-serif}
+.eth-navwrap{position:relative}
+.eth-navbtn{background:transparent;border:1px solid rgba(255,255,255,.6);border-radius:6px;padding:4px 11px;font-size:16px;line-height:1.2;cursor:pointer;color:#fff;font-family:inherit}
+.eth-navbtn:hover{background:rgba(255,255,255,.15)}
+.eth-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1300;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
+.eth-menu.open{display:block}
+.eth-mtab{display:block;width:100%;text-align:left;background:transparent;border:none;color:#222;padding:9px 12px;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit;border-radius:6px}
+.eth-mtab:hover{background:#ececec}
+.eth-mtab.active{background:#8b0000;color:#fff;font-weight:700}
+.eth-tabbar{background:#ffffff;border-bottom:1px solid #d4d4d4;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.eth-tabbar-inner{max-width:900px;margin:0 auto;display:flex}
+.eth-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#777;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.eth-tab:hover{color:#222}
+.eth-tab.active{color:#222;font-weight:700;border-bottom-color:#8b0000}
+</style>
+</head>
+<body>
+
+<div class="eth-fix">
+  <header class="eth">
+    <div class="eth-inner">
+      <div class="eth-title">EITHIOPHILE</div>
+      <div class="eth-navwrap">
+        <button class="eth-navbtn" id="ethNavBtn" aria-label="メニュー">≡</button>
+        <div class="eth-menu" id="ethNavMenu"></div>
+      </div>
+    </div>
+  </header>
+  <nav class="eth-tabbar" id="ethTabbar" style="display:none"><div class="eth-tabbar-inner" id="ethTabbarInner"></div></nav>
+</div>
+
+<div class="wrap">
+  <h1 class="page-title">地雷チェックシート2</h1>
+
+  <div class="view-banner" id="viewBanner" style="display:none;">
+    閲覧モードで表示しています（編集はできません）。
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="panel-row">
+      <div class="field">
+        <input type="password" id="token" autocomplete="off" aria-label="GitHubトークン（repo権限）" placeholder="GitHubトークン（repo権限）">
+      </div>
+      <div class="field">
+        <input type="text" id="gistId" autocomplete="off" aria-label="Gist ID（共有用・任意）" placeholder="Gist ID（共有用・任意）">
+      </div>
+      <button class="act" id="saveBtn">保存</button>
+      <button class="act" id="syncBtn">GitHubへ保存</button>
+      <button class="act ghost" id="loadBtn">再読込</button>
+      <button class="act ghost" id="copyUrlBtn">URLコピー</button>
+    </div>
+    <div class="panel-meta">
+      <div class="status" id="status"></div>
+      <div class="viewurl" id="viewUrl"></div>
+      <div class="hint">保存＝この端末（localStorage）／GitHubへ保存＝リポジトリの JSON を更新（別端末でも自動で反映）。トークンはこのブラウザ内のみ。</div>
+    </div>
+  </div>
+
+  <div id="sheets"></div>
+</div>
+
+<script>
+const GUIDE2 =
+  "1はプレイする上で問題ないレベル。\n" +
+  "5は確実に無理なレベル。";
+
+const CATEGORIES2 = [
+  {
+    title: "描写/展開等",
+    items: [
+      "グロテスクな表現", "グロテスクな音声/画像", "ホラー要素の多い描写",
+      "ホラー要素の多い音声/画像", "びっくり系の演出(ジャンプスケア)", "過激ないじめ等の表現",
+      "性行為等の性的描写", "痴漢/強姦等の性暴力描写", "嘔吐/排泄描写",
+      "未成年キャラへの残酷描写", "未成年キャラの犯罪描写", "人間以外の動物に対する残酷描写",
+      "近親相姦", "妊娠や堕胎", "性転換",
+      "同性愛", "下ネタ", "特殊性癖/異常性癖",
+      "自殺表現", "薬物", "カニバリズム",
+      "精神病/発達障害", "実在の病気", "実在の事件",
+      "実在の宗教", "実在の人物(偉人等)", "実在の人物(犯罪者等)",
+      "戦争", "自然災害", "男尊女卑/女尊男卑",
+      "集合体（画像）", "昆虫（画像）", "NTR/当て馬系展開",
+      "リアルアイデアに成功しないと先に進めないイベント", "リアルアイデアに成功しないとバッドエンド", "作者の脳内当てが必要な謎解き",
+      "リアルタイムで時間制限要素", "PvP(PCの意思によるもの)", "PvP(洗脳や発狂によるもの)",
+      "リアルINTが必要(なぞとき、ひらめき要素等)", "リアルEDUが必要(英語が読める必要がある、歴史上の人物を知らないといけない等)", "シナリオ独自のルールがあるシーンが多い(特殊戦闘・チェイス等)",
+      "ストーリーには直接関係無い茶番用イベント(ダイスゲームなど)", "時系列や設定に矛盾があり、整合性に欠けるストーリー", "NPCの行動理念があやふやな展開",
+      "“PL”に罠を仕掛ける展開(ルールや描写の叙述トリック等)", "極端に描写例が少なく、KP,PLに依存するシナリオ(アドリブ多)", "確定で負けイベが発生する",
+      "NPCが活躍しすぎてPCの存在意義が薄れる展開", "無駄に(演出のため)NPCが死ぬ", "トロッコ問題のような選択をPCに投げられる",
+      "メアリー・スー的なNPCが登場する"
+    ]
+  },
+  {
+    title: "シナリオ種別",
+    items: [
+      "ソロシナリオ", "タイマンシナリオ(KPCと1:1)", "うちよそ(PC/KPCとの親密な関係)",
+      "大人数シナリオ", "RP重視", "エモシ(作者が公言しているタイプ)",
+      "戦闘重視", "秘匿HO", "SAN値回復シナリオ",
+      "倫理観を問われる(トロッコ問題等)", "謎解き(リアルINT)", "クラシック寄り",
+      "恋愛要素多", "エロ/下ネタを含む", "PvP前提シナリオ",
+      "ギャグシ"
+    ]
+  },
+  {
+    title: "ロスト関係（事前情報が無い前提の場合）",
+    items: [
+      "PCの確定ロスト", "重要NPCの確定ロスト", "新規KPCの確定ロスト",
+      "継続KPCの確定ロスト", "特定のHOのPCが確定ロスト", "確定で全生還が不可",
+      "死亡したPCの蘇り（シナリオ内）", "死亡したNPCの蘇り（シナリオ内）", "ロストPC限定(救済無し)",
+      "ロストPC救済", "ロストKPC限定(救済無し)", "ロストKPC救済",
+      "永久ロスト扱い(救済不可)", "確定でPCに余命が決められる", "確定で継続可否に関わる後遺症",
+      "継続可だが確定で実質的なPCの死亡/世界の滅亡", "ヒントや忠告が無い即死トラップ", "高ロスト(終盤で死にやすい)",
+      "高ロスト(序盤や中盤も死にやすい)"
+    ]
+  },
+  {
+    title: "シナリオ設定・世界観等",
+    items: [
+      "神話的事象の独自解釈", "雑なニャル様こじつけ設定", "極端にクトゥルフ要素が少ない",
+      "学生/子供PCシナリオ", "警察/刑事PCシナリオ", "ヤクザ/マフィアPCシナリオ",
+      "時代物日本(大正等)", "時代物海外(ガスライト等)", "ホラー/怪談/都市伝説メイン",
+      "クトゥルフ以外の神話等がモチーフ", "アーカム等原作準拠設定", "スチームパンク",
+      "SF設定", "未来/タイムスリップ", "パラレルワールド",
+      "ファンタジー", "ニチアサ風", "世界滅亡後",
+      "世界観や時代背景が実は事前情報と違う(幻覚/妄想,バーチャル等)", "軽度なメタフィクション要素", "シナリオの根幹にメタフィクション要素がある",
+      "原作/元ネタがある(漫画、SCP等)"
+    ]
+  },
+  {
+    title: "RP（自主的ではなく強制される場合）",
+    items: [
+      "子供RP", "異性RP", "感情的になるRP",
+      "発狂RP", "サイコパスRP", "暴力/虐待/いじめRP",
+      "PC/NPCへの説得RP", "死ぬ前の別れの言葉RP", "エモRP",
+      "恋愛RP(異性)", "恋愛RP(同性)", "センシティブRP"
+    ]
+  },
+  {
+    title: "PCが行う行動・設定",
+    items: [
+      "PCに犯罪歴が付く", "PCによるいじめが行われる", "PCによる動物虐待が行われる",
+      "PCによる児童虐待が行われる", "PCによる性的な暴力が行われる", "PCによる猟奇事件が行われる",
+      "PCが自殺衝動を持っている", "PCが殺人衝動を持っている", "PCが拷問をする",
+      "PCがハラスメント行為をする", "PCが既に死んだ人間である", "PCが人間ではない",
+      "PCが他PCへ糾弾する", "PCが確定で発狂するシーンがある", "シナリオ開始時から実はPCが自覚のないまま発狂している",
+      "PC,NPC間で性的接触がある/あった", "PC間で性的接触がある/あった", "異性NPCに対して恋愛感情を持つ",
+      "異性PCに対して恋愛感情を持つ", "同性NPCに対して恋愛感情を持つ", "同性PCに対して恋愛感情を持つ",
+      "PCがNPCを殺害する必要がある", "PC/KPCがクローン等、本人ではない", "シナリオ描写によってPCの感情や行動を強制させられる",
+      "神話的事象によってPCの感情や行動強制させられる", "口調や話し方を強制させられる", "シナリオの都合上PCの設定やキャラシを詳細まで練る必要性がある",
+      "ゾーキングが必要(技能判定ではなく交渉RP等により情報を集めること)", "人間ができるレベルの特殊技能や特殊能力を持っている", "人間ができないレベルの特殊技能や特殊能力を持っている",
+      "シナリオ内での回数制限がある能力や技能を持っている"
+    ]
+  },
+  {
+    title: "PCが受ける行動・設定",
+    items: [
+      "PCがいじめを受ける", "PCが虐待を受ける", "PCが性的な暴力を受ける",
+      "PCのペットに対する残虐描写が入る", "PCが拷問を受ける", "PCがハラスメント行為を受ける",
+      "PCが他PCから糾弾される", "PC内で1対多になる/ハブにされるような展開がある", "PCが記憶を失う",
+      "異性NPCに恋愛感情を持たれる", "異性PCに恋愛感情を持たれる", "同性NPCに恋愛感情を持たれる",
+      "同性PCに恋愛感情を持たれる"
+    ]
+  },
+  {
+    title: "ED・分岐について",
+    items: [
+      "バッドエンド", "メリーバッドエンド", "マルチバッドエンド",
+      "ご都合ハッピーエンド", "後味の悪いED", "1つしか用意されていないED",
+      "夢オチ", "続編を匂わせるオチ", "メタフィクションが関わるED",
+      "時間遡行を行う", "パラレルワールド/別世界線へ行く", "PLがエピローグを考えて自由描写",
+      "PC/NPCの記憶が消える", "RP無しで描写のみのED", "極端に描写の少ないED",
+      "整合性の取れない分岐条件/ED", "ポイント制でのED分岐", "複数のダイスロールでのED分岐",
+      "1回のダイスロールでのED分岐", "探索者の決断によるED分岐", "KPの裁量による分岐(NPCへの説得や好感度等)"
+    ]
+  },
+  {
+    title: "秘匿HO内容・処理等",
+    items: [
+      "PCが記憶喪失である", "PCが記憶を改ざんされている/している(自覚なし)", "秘匿情報が後から追加配布される",
+      "↑に加え最初に配布される秘匿情報がダミー(嘘)である", "特定のHOのみ情報量や行動が多い", "特定のHOの行動が全体のロストやシナリオのED分岐に直結する",
+      "PCからPCへの心理学", "他PCへの敵意を抱いている", "極端に自由度の低いHO",
+      "全員がほぼ共通の秘匿内容", "自分の秘匿内容を事前に把握している別PCが存在する", "シナリオ中に特殊な能力や技能を使う場面が用意されている",
+      "秘匿内で性別が指定されている", "秘匿内で年齢が指定されている", "秘匿内で外見が指定されている",
+      "秘匿内で性格が指定されている", "他PCの秘匿を当てる必要がある", "他PCにバレてはいけない秘匿がある",
+      "秘匿と公言されていないシナリオで突然秘匿が飛んでくる", "秘匿と公言されていないシナリオで、PCの中に黒幕が存在する", "秘匿を公開するタイミングをシナリオで指定される"
+    ]
+  },
+  {
+    title: "その他",
+    items: [
+      "セッションの録画", "セッションの見学", "PL発言の多用",
+      "同卓者の自主ロスト", "シナリオ内で事前情報扱いではないがPC視点では知っているであろう情報をKPから事前に伝える(知人NPCや町のマップ等)", "極端にロスト率が上がる能力値/技能値の場合にKPからそれを助言する",
+      "公開情報に書かれていない推奨技能/能力値をKPから伝える", "KP側で難易度を調整する(上げる)", "KP側で難易度を調整する(下げる)",
+      "KPからRP時間を巻くよう指示する", "途中ロストからのコンティニュー", "同一シナリオの周回(2週目)",
+      "2週目(動画通過含め)PLとの同卓", "未通過シナリオの継続PCとの同卓", "KPによるシーンの追加や展開の改変",
+      "KPによる根本的な設定の改変", "KPによるNPC設定の改変", "KPによる他シナリオのNPCやPCを登場させる改変",
+      "KPによるエンディングの改変", "KPの恩情で生かされる(序盤〜中盤)", "KPの恩情で生かされる(終盤)",
+      "地雷回避のため、KPから事前にある程度シナリオの情報を渡す"
+    ]
+  }
+];
+
+const LS_DATA = "mcs2_data";
+const LS_TOKEN = "mcs2_token";
+const LS_GIST = "mcs2_gist";
+const GIST_FILE = "mine_check2.json";
+
+/* ---- GitHubリポジトリ保存（全端末で共有） ---- */
+const GH_REPO   = "8i10/EiThiophile";
+const GH_BRANCH = "main";
+const GH_FILE   = "mine_check2.json";
+const GH_API    = "https://api.github.com/repos/" + GH_REPO + "/contents/" + GH_FILE;
+const GH_TOKEN_KEY = "gh_token_v1";
+
+const STATE = { values: {}, notes: {}, memo: "" };
+
+function autoGrow(el){
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+const IS_EDIT_MODE = new URLSearchParams(location.search).get("edit") === "1";
+let READONLY = false;
+function canEdit(){ return !READONLY && IS_EDIT_MODE; }
+
+function keyOf(prefix, ci, ii){ return prefix + "c" + ci + "i" + ii; }
+
+/* ---------- build DOM ---------- */
+function buildSheet(cat, ci, opt){
+  opt = opt || {};
+  const LV = opt.levels || 5;
+  const GD = opt.guide || GUIDE2;
+  const PF = opt.prefix || "";
+  const sheet = document.createElement("section");
+  sheet.className = "sheet";
+
+  const title = document.createElement("div");
+  title.className = "sheet-title";
+  title.textContent = cat.title;
+  sheet.appendChild(title);
+
+  const table = document.createElement("table");
+  const colgroup = document.createElement("colgroup");
+  let cols = '<col style="width:30%">';
+  for (let n = 1; n <= LV; n++) cols += '<col style="width:' + (30 / LV) + '%">';
+  cols += '<col style="width:40%">';
+  colgroup.innerHTML = cols;
+  table.appendChild(colgroup);
+
+  const thead = document.createElement("thead");
+  const htr = document.createElement("tr");
+  const guide = document.createElement("th");
+  guide.className = "th-guide";
+  guide.textContent = GD;
+  htr.appendChild(guide);
+  for (let n = 1; n <= LV; n++){
+    const th = document.createElement("th");
+    th.className = "th-num n" + n;
+    th.textContent = String(n);
+    htr.appendChild(th);
+  }
+  const noteHead = document.createElement("th");
+  noteHead.className = "th-note";
+  noteHead.textContent = "備考";
+  htr.appendChild(noteHead);
+  thead.appendChild(htr);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  cat.items.forEach(function(name, ii){
+    const key = keyOf(PF, ci, ii);
+    const tr = document.createElement("tr");
+
+    const item = document.createElement("td");
+    item.className = "item";
+    item.textContent = name;
+    tr.appendChild(item);
+
+    const meterCell = document.createElement("td");
+    meterCell.className = "meter-cell";
+    meterCell.colSpan = LV;
+    const meter = document.createElement("div");
+    meter.className = "meter" + (LV === 3 ? " lv3" : "");
+    meter.dataset.key = key;
+    meter.setAttribute("role", "group");
+    meter.setAttribute("aria-label", name + " 苦手度");
+    for (let lv = 1; lv <= LV; lv++){
+      const seg = document.createElement("button");
+      seg.type = "button";
+      seg.className = "seg";
+      seg.dataset.level = String(lv);
+      seg.title = "苦手度 " + lv;
+      seg.setAttribute("aria-label", name + " 苦手度 " + lv);
+      meter.appendChild(seg);
+    }
+    meterCell.appendChild(meter);
+    tr.appendChild(meterCell);
+
+    const note = document.createElement("td");
+    note.className = "note";
+    const input = document.createElement("textarea");
+    input.rows = 1;
+    input.dataset.key = key;
+    input.setAttribute("aria-label", name + " 備考");
+    input.addEventListener("input", function(){
+      autoGrow(input);
+      if (!canEdit()) return;
+      STATE.notes[key] = input.value;
+    });
+    note.appendChild(input);
+    setTimeout(function(){ autoGrow(input); }, 0);
+    tr.appendChild(note);
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  sheet.appendChild(table);
+  return sheet;
+}
+
+function renderMeter(meterEl){
+  const key = meterEl.dataset.key;
+  const v = STATE.values[key] || 0;
+  meterEl.querySelectorAll(".seg").forEach(function(seg){
+    const lv = Number(seg.dataset.level);
+    seg.classList.toggle("on", lv <= v);
+    seg.setAttribute("aria-pressed", lv <= v ? "true" : "false");
+  });
+}
+
+function applyState(){
+  document.querySelectorAll(".meter").forEach(renderMeter);
+  document.querySelectorAll("td.note textarea").forEach(function(input){
+    input.value = STATE.notes[input.dataset.key] || "";
+    autoGrow(input);
+  });
+  const memo = document.getElementById("memo2");
+  if (memo){ memo.value = STATE.memo || ""; autoGrow(memo); }
+}
+
+/* ---------- interaction ---------- */
+function onSegClick(e){
+  if (!canEdit()) return;
+  const seg = e.target.closest(".seg");
+  if (!seg) return;
+  const meter = seg.closest(".meter");
+  const key = meter.dataset.key;
+  const lv = Number(seg.dataset.level);
+  STATE.values[key] = (STATE.values[key] === lv) ? 0 : lv; // click same level to clear
+  renderMeter(meter);
+}
+
+/* ---------- persistence ---------- */
+function buildPayload(){
+  return {
+    type: "mine_check_sheet2",
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    values: STATE.values,
+    notes: STATE.notes,
+    memo: STATE.memo
+  };
+}
+function loadPayload(obj){
+  STATE.values = (obj && obj.values) ? obj.values : {};
+  STATE.notes = (obj && obj.notes) ? obj.notes : {};
+  STATE.memo = (obj && obj.memo) ? obj.memo : "";
+  applyState();
+}
+
+function setStatus(msg, isErr){
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "status" + (isErr ? " err" : "");
+}
+
+function saveLocal(){
+  try{
+    localStorage.setItem(LS_DATA, JSON.stringify(buildPayload()));
+    setStatus("この端末に保存しました。", false);
+  }catch(err){
+    setStatus("保存に失敗しました：" + err.message, true);
+  }
+}
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(LS_DATA);
+    if (raw) loadPayload(JSON.parse(raw));
+  }catch(err){ /* ignore corrupt local data */ }
+}
+
+function ghHeaders(token){
+  const hd = { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" };
+  if (token) hd["Authorization"] = "token " + token;
+  return hd;
+}
+function ghToken(){
+  const v = document.getElementById("token");
+  return (v && v.value.trim()) || localStorage.getItem(GH_TOKEN_KEY) || "";
+}
+function decodeB64(b64){
+  const bin = atob(String(b64).replace(/\n/g, ""));
+  return decodeURIComponent(Array.prototype.map.call(bin, function(c){
+    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
+}
+function encodeB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* リポジトリから読み込む（未ログインでも可） */
+async function loadFromRepo(){
+  const token = ghToken();
+  const res = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+    { headers: ghHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const j = await res.json();
+  if (!j || !j.content) throw new Error("no content");
+  return JSON.parse(decodeB64(j.content));
+}
+
+/* リポジトリへ保存 */
+async function saveToRepo(){
+  const token = ghToken();
+  if (!token){
+    setStatus("GitHubトークン（repo権限）を入力してください。", true);
+    return;
+  }
+  setStatus("GitHubへ保存中…", false);
+  try{
+    let sha = null;
+    try{
+      const cur = await fetch(GH_API + "?ref=" + GH_BRANCH + "&t=" + Date.now(),
+        { headers: ghHeaders(token), cache: "no-store" });
+      if (cur.ok){ const cj = await cur.json(); sha = cj.sha || null; }
+    }catch(e){}
+
+    const text = JSON.stringify(buildPayload(), null, 2);
+    const body = { message: "update " + GH_FILE, content: encodeB64(text), branch: GH_BRANCH };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(GH_API, { method: "PUT", headers: ghHeaders(token), body: JSON.stringify(body) });
+    const rj = await res.json().catch(function(){ return {}; });
+    if (!res.ok) throw new Error("HTTP " + res.status + " " + (rj.message || ""));
+
+    localStorage.setItem(GH_TOKEN_KEY, token);
+    saveLocalSilent();
+    setStatus("GitHubへ保存しました（全端末で反映されます）。", false);
+  }catch(err){
+    setStatus("GitHubへの保存に失敗しました：" + err.message, true);
+  }
+}
+
+/* リポジトリから再読込 */
+async function reloadFromRepo(){
+  setStatus("読込中…", false);
+  try{
+    loadPayload(await loadFromRepo());
+    saveLocalSilent();
+    setStatus("GitHubから読み込みました。", false);
+  }catch(err){
+    setStatus("読込に失敗しました：" + err.message, true);
+  }
+}
+
+async function gistRequest(url, method, token, body){
+  const headers = { "Accept": "application/vnd.github+json" };
+  if (token) headers["Authorization"] = "token " + token;
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(url, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok){
+    let detail = res.status + " " + res.statusText;
+    try{ const j = await res.json(); if (j && j.message) detail = j.message; }catch(e){}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+async function syncGist(){
+  const token = document.getElementById("token").value.trim();
+  let gistId = document.getElementById("gistId").value.trim();
+  if (!token){ setStatus("同期にはGitHubトークン（gistスコープ）が必要です。", true); return; }
+  const files = {}; files[GIST_FILE] = { content: JSON.stringify(buildPayload(), null, 2) };
+  setStatus("同期中…", false);
+  try{
+    let result;
+    if (gistId){
+      result = await gistRequest("https://api.github.com/gists/" + gistId, "PATCH", token, { files: files });
+    }else{
+      result = await gistRequest("https://api.github.com/gists", "POST", token,
+        { description: "地雷チェックシート2", public: false, files: files });
+      gistId = result.id;
+      document.getElementById("gistId").value = gistId;
+    }
+    localStorage.setItem(LS_TOKEN, token);
+    localStorage.setItem(LS_GIST, gistId);
+    saveLocalSilent();
+    showViewUrl(gistId);
+    setStatus("同期しました。", false);
+  }catch(err){
+    setStatus("同期に失敗しました：" + err.message, true);
+  }
+}
+
+async function loadGist(){
+  const token = document.getElementById("token").value.trim();
+  const gistId = document.getElementById("gistId").value.trim();
+  if (!gistId){ setStatus("読み込むGist IDを入力してください。", true); return; }
+  setStatus("読込中…", false);
+  try{
+    const result = await gistRequest("https://api.github.com/gists/" + gistId, "GET", token || null, null);
+    const file = result.files && result.files[GIST_FILE];
+    if (!file){ setStatus("このGistに対象データが見つかりません。", true); return; }
+    loadPayload(JSON.parse(file.content));
+    localStorage.setItem(LS_GIST, gistId);
+    if (token) localStorage.setItem(LS_TOKEN, token);
+    saveLocalSilent();
+    showViewUrl(gistId);
+    setStatus("Gistから読み込みました。", false);
+  }catch(err){
+    setStatus("読込に失敗しました：" + err.message, true);
+  }
+}
+
+function saveLocalSilent(){
+  try{ localStorage.setItem(LS_DATA, JSON.stringify(buildPayload())); }catch(e){}
+}
+
+function viewUrlFor(gistId){
+  return location.origin + location.pathname + "?view=" + encodeURIComponent(gistId);
+}
+function showViewUrl(gistId){
+  const el = document.getElementById("viewUrl");
+  const url = viewUrlFor(gistId);
+  el.innerHTML = "";
+  const label = document.createElement("span"); label.textContent = "閲覧用URL：";
+  const a = document.createElement("a"); a.href = url; a.textContent = url; a.target = "_blank"; a.rel = "noopener";
+  el.appendChild(label); el.appendChild(a);
+}
+
+async function copyViewUrl(){
+  const gistId = document.getElementById("gistId").value.trim() || localStorage.getItem(LS_GIST);
+  if (!gistId){ setStatus("先に同期して閲覧用URLを発行してください。", true); return; }
+  const url = viewUrlFor(gistId);
+  try{
+    await navigator.clipboard.writeText(url);
+    setStatus("閲覧用URLをコピーしました。", false);
+  }catch(err){
+    showViewUrl(gistId);
+    setStatus("コピーできませんでした。上のURLを手動でコピーしてください。", true);
+  }
+}
+
+/* ---------- view (read-only) mode ---------- */
+async function enterViewMode(gistId){
+  READONLY = true;
+  document.body.classList.add("readonly");
+  document.getElementById("viewBanner").style.display = "block";
+  document.querySelectorAll("td.note textarea").forEach(function(i){ i.disabled = true; });
+  const m2 = document.getElementById("memo2"); if (m2) m2.readOnly = true;
+  document.querySelectorAll(".meter .seg").forEach(function(s){ s.tabIndex = -1; });
+  try{
+    const result = await gistRequest("https://api.github.com/gists/" + gistId, "GET", null, null);
+    const file = result.files && result.files[GIST_FILE];
+    if (!file){ document.getElementById("viewBanner").textContent = "閲覧用データが見つかりませんでした。"; return; }
+    loadPayload(JSON.parse(file.content));
+  }catch(err){
+    document.getElementById("viewBanner").textContent = "閲覧用データの取得に失敗しました：" + err.message;
+  }
+}
+
+/* ---------- init ---------- */
+function init(){
+  if (IS_EDIT_MODE) document.body.classList.add("editmode");
+  const container = document.getElementById("sheets");
+  CATEGORIES2.forEach(function(cat, ci){
+    container.appendChild(buildSheet(cat, ci, { levels: 5, guide: GUIDE2, prefix: "b" }));
+  });
+
+  const memoBox = document.createElement("div");
+  memoBox.className = "memo-box";
+  const lb = document.createElement("label");
+  lb.setAttribute("for", "memo2");
+  lb.textContent = "備考欄";
+  const ta = document.createElement("textarea");
+  ta.id = "memo2";
+  ta.addEventListener("input", function(){
+    autoGrow(ta);
+    if (!canEdit()) return;
+    STATE.memo = ta.value;
+  });
+  memoBox.appendChild(lb);
+  memoBox.appendChild(ta);
+  container.appendChild(memoBox);
+
+  const src = document.createElement("div");
+  src.className = "source-note";
+  src.textContent = "参考元：https://booth.pm/ja/items/4144089";
+  container.appendChild(src);
+
+  container.addEventListener("click", onSegClick);
+
+  const params = new URLSearchParams(location.search);
+  const view = params.get("view");
+  if (view){
+    enterViewMode(view);
+    return;
+  }
+
+  const savedToken = localStorage.getItem(GH_TOKEN_KEY) || localStorage.getItem(LS_TOKEN);
+  const savedGist = localStorage.getItem(LS_GIST);
+  if (savedToken) document.getElementById("token").value = savedToken;
+  if (savedGist) document.getElementById("gistId").value = savedGist;
+
+  /* まずGitHubリポジトリから読み込み（全端末共通）。失敗時はこの端末の保存分 */
+  loadFromRepo()
+    .then(function(obj){ loadPayload(obj); saveLocalSilent(); })
+    .catch(function(){ loadLocal(); });
+
+  document.getElementById("saveBtn").addEventListener("click", saveLocal);
+  document.getElementById("syncBtn").addEventListener("click", saveToRepo);
+  document.getElementById("loadBtn").addEventListener("click", reloadFromRepo);
+  document.getElementById("copyUrlBtn").addEventListener("click", copyViewUrl);
+}
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+}else{
+  init();
+}
+</script>
+
+<script>
+/* ===== 共通ヘッダー（大ページ ≡メニュー / 小ページタブ） ===== */
+(function(){
+  var REPO   = "8i10/EiThiophile";
+  var BRANCH = "main";
+  var JSON_URL = "https://raw.githubusercontent.com/"+REPO+"/"+BRANCH+"/profile.json";
+  var HOME = "index.html";
+  var EDIT = new URLSearchParams(location.search).get("edit") === "1";
+  var SELF = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  function withEdit(u){
+    if(!EDIT) return u;
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "edit=1";
+  }
+  function fileOf(u){ return String(u||"").split("?")[0].split("/").pop().toLowerCase(); }
+  function isSelf(u){ return !!u && fileOf(u) === SELF; }
+
+  var menu = document.getElementById("ethNavMenu");
+  var btn  = document.getElementById("ethNavBtn");
+  function closeMenu(){ menu.classList.remove("open"); }
+  btn.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
+  document.addEventListener("click", function(e){
+    var w = document.querySelector(".eth-navwrap");
+    if(w && !w.contains(e.target)) closeMenu();
+  });
+
+  function majorHref(m){
+    if(m.url) return withEdit(m.url);
+    var ps = m.pages || [];
+    if(ps.length && ps.every(function(p){ return !!p.url; })) return withEdit(ps[0].url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || ""));
+  }
+  function pageHref(m, p){
+    if(p.url) return withEdit(p.url);
+    return withEdit(HOME + "?major=" + encodeURIComponent(m.id || "") + "&page=" + encodeURIComponent(p.id || ""));
+  }
+
+  var CACHE_KEY = "eth_profile_cache_v1";
+  function readCache(){
+    try{ var s = localStorage.getItem(CACHE_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; }
+  }
+  function writeCache(j){
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify(j)); }catch(e){}
+  }
+  fetch(JSON_URL + "?t=" + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      if(j && Array.isArray(j.majors)) writeCache(j);
+      else j = readCache();               /* 取得失敗時は前回の内容を使う */
+      var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
+      var cur = null;
+      majors.forEach(function(m){
+        if(isSelf(m.url)) cur = m;
+        (m.pages || []).forEach(function(p){ if(isSelf(p.url)) cur = m; });
+      });
+
+      menu.innerHTML = "";
+      majors.forEach(function(m){
+        if(m.hidden) return;
+        var b = document.createElement("button");
+        var here = (cur && m.id === cur.id);
+        b.className = "eth-mtab" + (here ? " active" : "");
+        b.textContent = m.name || "(無題)";
+        b.addEventListener("click", function(){ closeMenu(); location.href = majorHref(m); });
+        menu.appendChild(b);
+      });
+
+      var bar = document.getElementById("ethTabbar");
+      var inner = document.getElementById("ethTabbarInner");
+      inner.innerHTML = "";
+      var _vis = (cur ? (cur.pages || []) : []).filter(function(p){ return !p.hidden; });
+      if(cur && _vis.length > 1){
+        bar.style.display = "";
+        cur.pages.forEach(function(p){
+          if(p.hidden) return;
+          var b = document.createElement("button");
+          b.className = "eth-tab" + (isSelf(p.url) ? " active" : "");
+          b.textContent = p.name || "(無題)";
+          b.addEventListener("click", function(){ location.href = pageHref(cur, p); });
+          inner.appendChild(b);
+        });
+      }
+    })
+    .catch(function(){
+      /* 通信自体が失敗 → 前回内容で描画 */
+      var j = readCache();
+      var majors = (j && Array.isArray(j.majors)) ? j.majors : [];
+      if(!majors.length) return;
+      var cur = null;
+      majors.forEach(function(m){
+        if(isSelf(m.url)) cur = m;
+        (m.pages || []).forEach(function(p){ if(isSelf(p.url)) cur = m; });
+      });
+      menu.innerHTML = "";
+      majors.forEach(function(m){
+        if(m.hidden) return;
+        var b = document.createElement("button");
+        b.className = "eth-mtab" + ((cur && m.id === cur.id) ? " active" : "");
+        b.textContent = m.name || "(無題)";
+        b.addEventListener("click", function(){ closeMenu(); location.href = majorHref(m); });
+        menu.appendChild(b);
+      });
+    });
+})();
+</script>
+
+</body>
+</html>
