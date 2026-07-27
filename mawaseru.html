@@ -1880,7 +1880,7 @@ async function saveScenario() {
   // 新規IDを先に付与
   const isNew = editingIdx === null;
   const row = {
-    'id': isNew ? Date.now().toString() : (DATA[editingIdx].id || Date.now().toString()),
+    'id': isNew ? Date.now().toString() : DATA[editingIdx].id,
     '名前': name,
     'レーティング': document.getElementById('f_rating').value,
     'システム': document.getElementById('f_system').value.trim(),
