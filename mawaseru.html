@@ -740,13 +740,13 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 .eth-navwrap{position:relative}
 .eth-navbtn{background:transparent;border:1px solid rgba(255,255,255,.6);border-radius:6px;padding:4px 11px;font-size:16px;line-height:1.2;cursor:pointer;color:#fff;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
 .eth-navbtn:hover{background:rgba(255,255,255,.15)}
-.eth-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:5100;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
+.eth-menu{display:none;position:fixed;z-index:99999;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
 .eth-menu.open{display:block}
 .eth-mtab{display:block;width:100%;text-align:left;background:transparent;border:none;color:#222;padding:9px 12px;font-size:14px;cursor:pointer;white-space:nowrap;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;border-radius:6px}
 .eth-mtab:hover{background:#ececec}
 .eth-mtab.active{background:#8b0000;color:#fff;font-weight:700}
 .eth-tabbar{background:#ffffff;border-bottom:1px solid #d4d4d4;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.eth-tabbar-inner{max-width:900px;margin:0 auto;display:flex}
+.eth-tabbar-inner{max-width:900px;margin:0 auto;display:flex;position:relative;z-index:0}
 .eth-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#777;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
 .eth-tab:hover{color:#222}
 .eth-tab.active{color:#222;font-weight:700;border-bottom-color:#8b0000}
@@ -2241,11 +2241,24 @@ function saveToken() {
 
   var menu = document.getElementById("ethNavMenu");
   var btn  = document.getElementById("ethNavBtn");
+  if(menu && menu.parentNode !== document.body) document.body.appendChild(menu);
+  function positionMenu(){
+    var br = btn.getBoundingClientRect();
+    menu.style.top   = (br.bottom + 6) + "px";
+    menu.style.right = (window.innerWidth - br.right) + "px";
+    menu.style.left  = "auto";
+  }
   function closeMenu(){ menu.classList.remove("open"); }
-  btn.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
+  btn.addEventListener("click", function(e){
+    e.stopPropagation();
+    if(!menu.classList.contains("open")){ positionMenu(); menu.classList.add("open"); }
+    else closeMenu();
+  });
+  window.addEventListener("resize", function(){ if(menu.classList.contains("open")) positionMenu(); });
+  window.addEventListener("scroll", function(){ if(menu.classList.contains("open")) positionMenu(); }, true);
   document.addEventListener("click", function(e){
-    var w = document.querySelector(".eth-navwrap");
-    if(w && !w.contains(e.target)) closeMenu();
+    if(e.target === btn || btn.contains(e.target) || menu.contains(e.target)) return;
+    closeMenu();
   });
 
   function majorHref(m){
