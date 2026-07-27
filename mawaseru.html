@@ -1266,14 +1266,6 @@ async function loadOwnedAndRender(){
     OWNED_READS = (raw && raw.reads) ? raw.reads : {};
     OWNED_MANUAL = (raw && Array.isArray(raw.manual)) ? raw.manual.map(normOwned) : [];
   }
-  // 回せるに同名がある手動追加分は削除（回せる由来を優先）。編集者のみ保存
-  if(typeof DATA !== 'undefined' && Array.isArray(DATA)){
-    const autoNames = {};
-    DATA.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
-    const before = OWNED_MANUAL.length;
-    OWNED_MANUAL = OWNED_MANUAL.filter(function(o){ return !autoNames[o.name]; });
-    if(OWNED_MANUAL.length !== before && getGHToken()){ ownedSave(); }
-  }
   renderOwned();
 }
 
@@ -1333,17 +1325,25 @@ function normOwned(o){
   return { id:o.id || ('o'+Date.now()+Math.floor(Math.random()*1e4)), name:o.name||'', rating:o.rating||'全年齢', players:o.players||'', read:!!o.read, url:o.url||'', memo:o.memo||'', biko:o.biko||'', kpx:!!o.kpx };
 }
 // 回せるシナリオ由来 ＋ 手動追加 を結合した表示リスト（新しい追加が上）
+function ownedTsFromId(id){ const m = String(id||'').replace(/^o/,''); const t = parseInt(m.slice(0,13), 10); return isNaN(t) ? 0 : t; }
+function ownedAutoTs(r){
+  if(r && r.id != null && /^\d+$/.test(String(r.id))){ const t = parseInt(String(r.id).slice(0,13), 10); if(!isNaN(t)) return t; }
+  if(r && r['作成日時']){ const t = Date.parse(String(r['作成日時']).replace(/\//g,'-')); if(!isNaN(t)) return t; }
+  return 0;
+}
 function buildOwnedList(){
   const list = [];
   const src = (typeof DATA !== 'undefined' && Array.isArray(DATA)) ? DATA.slice().reverse() : [];
   const autoNames = {};
   src.forEach(function(r){ autoNames[r['名前'] || ''] = true; });
-  OWNED_MANUAL.forEach(function(o, idx){
-    if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
-    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'', biko:o.biko||'', kpx:!!o.kpx });
-  });
+  // 手動追加分の追加時刻（同名の回せるが後から来たとき位置を引き継ぐ）
+  const manualTsByName = {};
+  OWNED_MANUAL.forEach(function(o){ manualTsByName[o.name] = ownedTsFromId(o.id); });
+  // 回せる由来
   src.forEach(function(r){
     const name = r['名前'] || '';
+    let ts = ownedAutoTs(r);
+    if(manualTsByName[name] !== undefined) ts = manualTsByName[name]; // 同名手動の位置に置き換え
     list.push({
       source: 'auto',
       key: name,
@@ -1352,9 +1352,17 @@ function buildOwnedList(){
       rating: r['レーティング'] || '全年齢',
       players: r['人数'] || '',
       url: r['シナリオURL'] || '',
-      read: (OWNED_READS[name] === undefined) ? true : !!OWNED_READS[name]
+      read: (OWNED_READS[name] === undefined) ? true : !!OWNED_READS[name],
+      _ts: ts
     });
   });
+  // 手動追加分（回せるに同名が無いものだけ）
+  OWNED_MANUAL.forEach(function(o, idx){
+    if(autoNames[o.name]) return; // 回せるに同名あり → 回せる由来を優先し手動分は出さない
+    list.push({ source:'manual', mi:idx, key:o.id, name:o.name, rating:o.rating||'全年齢', players:o.players||'', url:o.url||'', read:!!o.read, memo:o.memo||'', biko:o.biko||'', kpx:!!o.kpx, _ts: ownedTsFromId(o.id) });
+  });
+  // 追加順（新しいものを上に）
+  list.sort(function(a,b){ return (b._ts||0) - (a._ts||0); });
   return list;
 }
 function renderOwned(){
