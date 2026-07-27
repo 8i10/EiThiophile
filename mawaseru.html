@@ -155,6 +155,7 @@
   .mtab:hover{color:var(--text);}
   .mtab.on{color:var(--accent);border-bottom-color:var(--accent);}
   .owned-add{background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;margin-bottom:12px;}
+  .owned-add-wrap{display:flex;justify-content:flex-end;}
   .owned-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
   .owned-table{width:100%;border-collapse:collapse;font-size:13px;}
   .owned-table thead{background:var(--surface2);}
@@ -922,11 +923,11 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 </div>
 
 <!-- 所持シナリオ 追加/編集モーダル -->
-<div class="modal-overlay" id="ownedEditOverlay" onclick="if(event.target===this)closeOwnedEdit()">
+<div class="modal-overlay" id="ownedEditOverlay" onclick="if(event.target===this)ownedEditTryClose()">
   <div class="modal" id="ownedEditModal" style="max-width:480px">
     <div class="modal-head" style="padding:18px 24px 0;position:relative">
       <div class="modal-title" id="ownedEditTitle">所持シナリオを追加</div>
-      <button class="modal-close" onclick="closeOwnedEdit()">✕</button>
+      <button class="modal-close" onclick="ownedEditTryClose()">✕</button>
     </div>
     <div class="modal-body" id="ownedEditForm" style="padding:16px 24px 22px;"></div>
   </div>
@@ -1415,7 +1416,7 @@ function renderOwnedTable(){
   const rc = document.getElementById('ownedResultCount');
   if(rc) rc.textContent = list.length;
   let html = '';
-  if(canEdit){ html += '<button class="owned-add" onclick="ownedAddRow()">＋ 所持シナリオを追加</button>'; }
+  if(canEdit){ html += '<div class="owned-add-wrap"><button class="owned-add" onclick="ownedAddRow()">＋ 所持シナリオを追加</button></div>'; }
   if(!all.length){
     html += '<div class="owned-empty">所持シナリオはまだありません。' + (canEdit ? '「＋ 所持シナリオを追加」から登録できます。' : '') + '</div>';
     wrap.innerHTML = html; return;
@@ -1430,7 +1431,7 @@ function renderOwnedTable(){
   list.forEach(function(o){
     const rating = o.rating || '全年齢';
     const readCell = o.read ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
-    const kpxCell = (o.source === 'manual' && o.kpx) ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
+    const kpxCell = (o.source === 'manual' && o.kpx) ? '<span class="heya-dash">×</span>' : '<span class="heya-dash">-</span>';
     const bikoCell = (o.source === 'manual') ? escHtml(o.biko || '') : '';
     const idAttr = o.source === 'auto'
       ? 'data-src="auto" data-key="' + escAttr(o.key) + '"'
@@ -1525,7 +1526,7 @@ function openOwnedManualModal(mi){
   const rating = o.rating || '全年齢';
   const players = o.players || '—';
   const readHtml = o.read ? '<span class="heya-check">✓ 既読</span>' : '<span class="heya-dash">- 未読</span>';
-  const kpxHtml = o.kpx ? '<span class="heya-check">✓</span>' : '<span class="heya-dash">-</span>';
+  const kpxHtml = o.kpx ? '<span class="heya-dash">×</span>' : '<span class="heya-dash">-</span>';
   const title = document.getElementById('modalTitle');
   if(title) title.textContent = o.name || '';
   const rowsEl = document.getElementById('modalRows');
@@ -1617,6 +1618,7 @@ function openOwnedEdit(mi){
   document.getElementById('ownedEditOverlay').classList.add('open');
   const nm = document.getElementById('oe_name'); if(nm) nm.focus();
 }
+function ownedEditTryClose(){ if(confirm('追加・編集を中止しますか？')) closeOwnedEdit(); }
 function closeOwnedEdit(){ document.getElementById('ownedEditOverlay').classList.remove('open'); ownedEditingMi = null; }
 function ownedSaveEdit(){
   const rec = {
@@ -1853,6 +1855,12 @@ function openAddModal() {
 }
 
 async function saveScenario() {
+  const _scrollY = window.scrollY;
+  const _restoreScroll = function(){
+    window.scrollTo(0, _scrollY);
+    requestAnimationFrame(function(){ window.scrollTo(0, _scrollY); });
+    setTimeout(function(){ window.scrollTo(0, _scrollY); }, 60);
+  };
   const name = document.getElementById('f_name').value.trim();
   if (!name) { alert('シナリオ名を入力してください'); return; }
   const kpRaw = document.getElementById('f_kp').value;
@@ -1892,6 +1900,7 @@ async function saveScenario() {
     alert('🔑 トークンを設定してください（ログイン後に表示されるボタンから）');
     updateTotalCount();
     applyFiltersFromData();
+    _restoreScroll();
     return;
   }
   showLoading(true);
@@ -1905,6 +1914,7 @@ async function saveScenario() {
     applyFiltersFromData();
   }
   showLoading(false);
+  _restoreScroll();
 }
 
 async function deleteScenario() {
