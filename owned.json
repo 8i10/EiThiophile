@@ -391,11 +391,11 @@
       "name": "性逝き",
       "rating": "R18",
       "players": "タイマン",
-      "read": false,
+      "read": true,
       "url": "https://gekiyakumilk.booth.pm/items/8436290",
       "memo": "",
       "biko": "",
-      "kpx": false
+      "kpx": true
     },
     {
       "id": "o17850687971982921",
