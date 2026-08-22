@@ -11,13 +11,11 @@
       "id": "p17839814469165598",
       "name": "プロフィール",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p17839814469166017",
           "name": "プロフィール",
           "url": "",
-          "hidden": false,
           "type": "profile",
           "sections": [
             {
@@ -223,7 +221,6 @@
           "id": "p17840998454924582",
           "name": "依頼など",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -288,8 +285,7 @@
         {
           "id": "p17841129621612303",
           "name": "カレンダー",
-          "url": "https://8i10.github.io/trpgcalendar/?view=d4ef163ce2e074ef600c918dbe19282c",
-          "hidden": false,
+          "url": "https://8i10.github.io/trpgcalendar/?view=c85932e58c9a02f7da400bcfe82f92fc",
           "type": "free",
           "sections": []
         },
@@ -297,7 +293,6 @@
           "id": "p17842624148218802",
           "name": "卓履歴",
           "url": "report.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -305,7 +300,6 @@
           "id": "p1784290519006153",
           "name": "探索者一覧",
           "url": "character.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -313,7 +307,6 @@
           "id": "p17842004016979838",
           "name": "探索者一覧(旧)",
           "url": "https://sites.google.com/view/eithiophile/%E3%82%88%E3%81%8F%E5%91%9F%E3%81%8F%E6%8E%A2%E7%B4%A2%E8%80%85?authuser=0",
-          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -323,13 +316,11 @@
       "id": "p17839814819802233",
       "name": "TRPG関連",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p1783981481980459",
           "name": "基本",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -593,7 +584,6 @@
           "id": "p17839965840019120",
           "name": "プレイスタイル",
           "url": "playstyle.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -601,7 +591,6 @@
           "id": "p17839815141289488",
           "name": "行きたいシナリオ",
           "url": "yukitai.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -609,7 +598,6 @@
           "id": "p17839815224562170",
           "name": "回せるシナリオ",
           "url": "mawaseru.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -617,7 +605,6 @@
           "id": "p1783981523135468",
           "name": "おあげ卓ルール",
           "url": "rule.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -627,13 +614,11 @@
       "id": "p17839879024713909",
       "name": "地雷・苦手",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p17839879891677197",
           "name": "◆",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -702,7 +687,6 @@
           "id": "p17839879024711206",
           "name": "地雷・苦手",
           "url": "jirai.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -710,7 +694,6 @@
           "id": "p17839879175702843",
           "name": "チェックシート1",
           "url": "checksheet.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -718,7 +701,6 @@
           "id": "p17839879181725431",
           "name": "チェックシート2",
           "url": "checksheet2.html",
-          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -728,13 +710,11 @@
       "id": "p17841247259776155",
       "name": "うちよそについて",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p17841247259771078",
           "name": "◆",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -945,13 +925,11 @@
       "id": "p17843417679112159",
       "name": "NGリスト",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p17843417679115560",
           "name": "◆",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -1066,13 +1044,11 @@
       "id": "p17846122429135537",
       "name": "企画メモ",
       "url": "",
-      "hidden": false,
       "pages": [
         {
           "id": "p17846122429138946",
           "name": "ポトラ2026",
           "url": "",
-          "hidden": false,
           "type": "free",
           "sections": [
             {
