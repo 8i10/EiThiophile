@@ -179,13 +179,8 @@ header.eth{background:#8b0000}
       </div>
     </div>
     <div class="modal-body">
-      <!-- プロフィール -->
-      <div class="modal-section-title">プロフィール</div>
-      <div class="modal-profile" id="modalProfile"></div>
-      <!-- 特徴表 -->
-      <div id="modalTraitsWrap"></div>
       <!-- 通過シナリオ -->
-      <div id="modalSessionsWrap" style="margin-top:1.5rem"></div>
+      <div id="modalSessionsWrap"></div>
     </div>
   </div>
 </div>
@@ -288,7 +283,6 @@ function openModal(id) {
   if (!c) return;
   document.getElementById('modalFurigana').textContent = c.furigana || '';
   document.getElementById('modalName').textContent = c.name || '';
-  renderMemoGate(c);
 
   document.getElementById('modalMeta').innerHTML = `
     ${c.age?`<span>年齢<strong>${c.age}歳</strong></span>`:''}
@@ -320,19 +314,6 @@ function openModal(id) {
     statsInline.innerHTML = html;
   } else {
     statsInline.innerHTML = '';
-  }
-
-  // 特徴表
-  const traitsWrap = document.getElementById('modalTraitsWrap');
-  if (c.traits && c.traits.length) {
-    traitsWrap.innerHTML = `
-      <div class="modal-section-title">特徴表</div>
-      <table class="traits-table">
-        <thead><tr><th>ダイス</th><th>特徴</th></tr></thead>
-        <tbody>${c.traits.map(t=>`<tr><td>${t.dice||''}</td><td>${t.text||''}</td></tr>`).join('')}</tbody>
-      </table>`;
-  } else {
-    traitsWrap.innerHTML = '';
   }
 
   // 通過シナリオ アコーディオン
