@@ -1057,6 +1057,25 @@
                   "pass": "1227"
                 }
               ]
+            },
+            {
+              "id": "itmtxtavdo6kd",
+              "heading": "",
+              "locked": false,
+              "pass": "",
+              "items": [
+                {
+                  "id": "itmtxtb4gy112",
+                  "name": "こんなシナリオ行くな……",
+                  "type": "text",
+                  "value": ":::一覧\n・Sibyl-シビュラ-\n・レゾンデートル\n・ハラエカ\n:::",
+                  "left": "",
+                  "right": "",
+                  "level": 0,
+                  "locked": true,
+                  "pass": "1227"
+                }
+              ]
             }
           ]
         }
