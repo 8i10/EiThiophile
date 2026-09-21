@@ -2,6 +2,17 @@
   "reads": {},
   "manual": [
     {
+      "id": "o17899791754112859",
+      "name": "白濁の胎",
+      "rating": "R18",
+      "players": "タイマン",
+      "read": true,
+      "url": "https://booth.pm/ja/items/7928447",
+      "memo": "誰に回せるんや、これは",
+      "biko": "回せる",
+      "kpx": false
+    },
+    {
       "id": "o1789896813333743",
       "name": "青の代償",
       "rating": "全年齢",
