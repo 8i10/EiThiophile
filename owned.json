@@ -2,6 +2,17 @@
   "reads": {},
   "manual": [
     {
+      "id": "o17933728900801363",
+      "name": "Σ-AINT",
+      "rating": "全年齢",
+      "players": "タイマンor2PL",
+      "read": false,
+      "url": "https://booth.pm/ja/items/9017249",
+      "memo": "",
+      "biko": "",
+      "kpx": false
+    },
+    {
       "id": "o17930009610872805",
       "name": "ヤクサツミスイ／薬の章",
       "rating": "R15",
