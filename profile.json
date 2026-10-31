@@ -11,11 +11,13 @@
       "id": "p17839814469165598",
       "name": "プロフィール",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p17839814469166017",
           "name": "プロフィール",
           "url": "",
+          "hidden": false,
           "type": "profile",
           "sections": [
             {
@@ -232,6 +234,7 @@
           "id": "p17840998454924582",
           "name": "依頼など",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -297,6 +300,7 @@
           "id": "p17841129621612303",
           "name": "カレンダー",
           "url": "https://8i10.github.io/trpgcalendar/?view=c85932e58c9a02f7da400bcfe82f92fc",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -304,6 +308,7 @@
           "id": "p17842624148218802",
           "name": "卓履歴",
           "url": "report.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -311,6 +316,7 @@
           "id": "p1784290519006153",
           "name": "探索者一覧",
           "url": "character.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -318,6 +324,7 @@
           "id": "p17842004016979838",
           "name": "探索者一覧(旧)",
           "url": "https://sites.google.com/view/eithiophile/%E3%82%88%E3%81%8F%E5%91%9F%E3%81%8F%E6%8E%A2%E7%B4%A2%E8%80%85?authuser=0",
+          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -327,11 +334,13 @@
       "id": "p17839814819802233",
       "name": "TRPG関連",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p1783981481980459",
           "name": "基本",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -595,6 +604,7 @@
           "id": "p17839965840019120",
           "name": "プレイスタイル",
           "url": "playstyle.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -602,6 +612,7 @@
           "id": "p17839815141289488",
           "name": "行きたいシナリオ",
           "url": "yukitai.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -609,6 +620,7 @@
           "id": "p17839815224562170",
           "name": "回せるシナリオ",
           "url": "mawaseru.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -616,6 +628,7 @@
           "id": "p1783981523135468",
           "name": "おあげ卓ルール",
           "url": "rule.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -625,11 +638,13 @@
       "id": "p17839879024713909",
       "name": "地雷・苦手",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p17839879891677197",
           "name": "◆",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -698,6 +713,7 @@
           "id": "p17839879024711206",
           "name": "地雷・苦手",
           "url": "jirai.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -705,6 +721,7 @@
           "id": "p17839879175702843",
           "name": "チェックシート1",
           "url": "checksheet.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         },
@@ -712,6 +729,7 @@
           "id": "p17839879181725431",
           "name": "チェックシート2",
           "url": "checksheet2.html",
+          "hidden": false,
           "type": "free",
           "sections": []
         }
@@ -721,11 +739,13 @@
       "id": "p17841247259776155",
       "name": "うちよそについて",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p17841247259771078",
           "name": "◆",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -945,6 +965,7 @@
           "id": "p17932678967538417",
           "name": "チェックシート",
           "url": "erosi_check_sheet.html",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -974,11 +995,13 @@
       "id": "p17843417679112159",
       "name": "NGリスト",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p17843417679115560",
           "name": "◆",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
@@ -1035,7 +1058,7 @@
                   "id": "itmsese0cm2iv",
                   "name": "過去にパクり/剽窃/丸々引用等々で炎上したお断り作者",
                   "type": "text",
-                  "value": ":::一覧\n**・ホタテの灰皿**\n└最後の蕃神｜終焉大戦マージナリア｜貴様らのエデンはここです｜木星のリヴァイアサン\n**・白粉屋さん（しろは）**\n└El Colgado Avatara -エル・コルガド・アヴァターラ-｜四季送り｜朱鬨の声に\n**・路地とパン屋（62）**\n└六畳半の夏\n**・総合心療内科（寒緋）**\n└魔法少女希望譚｜鵞鳥ペンで書いたエレジー\n**・週刊少年レンサ！！（れんさ）**\n└Reet:Pac　その続編\n**・だるま倉庫**\n└十二星座館殺人事件｜Zodiac school\n**・なごみ卓**\n└Dancing in The Floating World\n**・ペ＝ンギン（ペ＝ンギンの狂気山脈地底湖）**\n└クロックノワール・メテオライツ\n\n\n-上記は絶対NG-\n-以下はﾗﾚ元等未確認のため要相談-\n\n**・ヘルプ餅屋（ヘルプマン）**\n**・馬刺し（ウマウマ）**\n**・猫又回廊（志楼）**\n**・酩酊アザラシ徒然亭（モヘン・ジョジョ）**\n**・摂氏5100度｜ヒッチハイク・ガイド**\n**・臓器売買（popo）**\n**・つきめぐり（つきのわむく）**\n**・中尾ヤスヒロ**\n**・わしだ市役所（鷲田）**\n**・餐題奇劇（超高音）**\n:::",
+                  "value": ":::一覧\n**・ホタテの灰皿**\n└最後の蕃神｜終焉大戦マージナリア｜貴様らのエデンはここです｜木星のリヴァイアサン\n**・白粉屋さん（しろは）**\n└El Colgado Avatara -エル・コルガド・アヴァターラ-｜四季送り｜朱鬨の声に｜天使のサナギ\n**・路地とパン屋（62）**\n└六畳半の夏\n**・総合心療内科（寒緋）**\n└魔法少女希望譚｜鵞鳥ペンで書いたエレジー\n**・週刊少年レンサ！！（れんさ）**\n└Reet:Pac　その続編\n**・だるま倉庫**\n└十二星座館殺人事件｜Zodiac school\n**・なごみ卓**\n└Dancing in The Floating World\n**・ペ＝ンギン（ペ＝ンギンの狂気山脈地底湖）**\n└クロックノワール・メテオライツ\n\n\n-上記は絶対NG-\n-以下はﾗﾚ元等未確認のため要相談-\n\n**・ヘルプ餅屋（ヘルプマン）**\n**・馬刺し（ウマウマ）**\n**・猫又回廊（志楼）**\n**・酩酊アザラシ徒然亭（モヘン・ジョジョ）**\n**・摂氏5100度｜ヒッチハイク・ガイド**\n**・臓器売買（popo）**\n**・つきめぐり（つきのわむく）**\n**・中尾ヤスヒロ**\n**・わしだ市役所（鷲田）**\n**・餐題奇劇（超高音）**\n:::",
                   "left": "",
                   "right": "",
                   "level": 0,
@@ -1112,11 +1135,13 @@
       "id": "p17846122429135537",
       "name": "企画メモ",
       "url": "",
+      "hidden": false,
       "pages": [
         {
           "id": "p17846122429138946",
           "name": "ポトラ2026",
           "url": "",
+          "hidden": false,
           "type": "free",
           "sections": [
             {
