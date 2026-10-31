@@ -195,7 +195,7 @@
     padding: 12px 24px;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index:100;
     box-shadow: 0 4px 16px var(--shadow);
     transition: background 0.25s;
   }
@@ -740,13 +740,13 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 .eth-navwrap{position:relative}
 .eth-navbtn{background:transparent;border:1px solid rgba(255,255,255,.6);border-radius:6px;padding:4px 11px;font-size:16px;line-height:1.2;cursor:pointer;color:#fff;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
 .eth-navbtn:hover{background:rgba(255,255,255,.15)}
-.eth-menu{display:none;position:fixed;z-index:99999;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
+.eth-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:5100;background:#ffffff;border:1px solid #d4d4d4;border-radius:8px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px}
 .eth-menu.open{display:block}
 .eth-mtab{display:block;width:100%;text-align:left;background:transparent;border:none;color:#222;padding:9px 12px;font-size:14px;cursor:pointer;white-space:nowrap;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;border-radius:6px}
 .eth-mtab:hover{background:#ececec}
 .eth-mtab.active{background:#8b0000;color:#fff;font-weight:700}
 .eth-tabbar{background:#ffffff;border-bottom:1px solid #d4d4d4;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.eth-tabbar-inner{max-width:900px;margin:0 auto;display:flex;position:relative;z-index:0}
+.eth-tabbar-inner{max-width:900px;margin:0 auto;display:flex}
 .eth-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#777;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
 .eth-tab:hover{color:#222}
 .eth-tab.active{color:#222;font-weight:700;border-bottom-color:#8b0000}
@@ -1234,6 +1234,7 @@ const OWNED_RATINGS = ['全年齢','R15','R18','R18+G','R18G'];
 let OWNED_READS = {};
 let OWNED_MANUAL = [];
 let ownedDataLoaded = false;
+let ownedRawLoaded = false;
 
 function switchMawaseruTab(tab){
   ownedTab = tab;
@@ -1266,7 +1267,44 @@ async function loadOwnedAndRender(){
     OWNED_READS = (raw && raw.reads) ? raw.reads : {};
     OWNED_MANUAL = (raw && Array.isArray(raw.manual)) ? raw.manual.map(normOwned) : [];
   }
+  if(raw) ownedRawLoaded = true;
   renderOwned();
+}
+// 所持データが未読込なら読み込む（未取得のまま保存して消えるのを防ぐ）
+async function ownedEnsureLoaded(){
+  if(ownedRawLoaded) return true;
+  const raw = await ownedGet();
+  if(!raw) return false;
+  if(Array.isArray(raw)){ OWNED_MANUAL = raw.map(normOwned); OWNED_READS = {}; }
+  else { OWNED_READS = raw.reads || {}; OWNED_MANUAL = Array.isArray(raw.manual) ? raw.manual.map(normOwned) : []; }
+  ownedRawLoaded = true;
+  return true;
+}
+// 回せるから削除されたシナリオを所持（手動）として残す
+async function ownedKeepDeleted(row){
+  if(!row) return;
+  const name = row['名前'] || '';
+  if(!name) return;
+  if(!(await ownedEnsureLoaded())) return;
+  if(OWNED_MANUAL.some(function(o){ return o.name === name; })){ delete OWNED_READS[name]; ownedSave(); return; }
+  const ts = ownedAutoTs(row) || Date.now();
+  const read = (OWNED_READS[name] === undefined) ? true : !!OWNED_READS[name];
+  delete OWNED_READS[name];
+  OWNED_MANUAL.unshift(normOwned({ id:'o' + ts + String(Math.floor(Math.random()*1e4)).padStart(4,'0'), name:name, rating:row['レーティング']||'全年齢', players:row['人数']||'', read:read, url:row['シナリオURL']||'' }));
+  ownedSave();
+}
+// 所持（手動）から回せるへ追加
+let ownedPendingAdd = null;
+function ownedToMawaseru(mi){
+  const o = OWNED_MANUAL[mi];
+  if(!o) return;
+  editingIdx = null;
+  ownedPendingAdd = { name:o.name, read:!!o.read };
+  const blank = {'名前':o.name||'','レーティング':o.rating||'全年齢','システム':'CoC6th','人数':o.players||'','KP回数':'#0','シナリオURL':o.url||'','ジャンル(主観)':'','要相談':'','memo':'','comment':'','作成日時':new Date().toLocaleDateString('ja-JP'),'🔰/🚩/🎥/🐔':'','BOOTH画像リンク':'','kp_num':0};
+  document.getElementById('editModalTitle').textContent = '回せるシナリオに追加';
+  document.getElementById('editForm').innerHTML = buildForm(blank);
+  initGenreTags('');
+  document.getElementById('editOverlay').classList.add('open');
 }
 
 async function ownedGet(){
@@ -1449,7 +1487,7 @@ function renderOwnedTable(){
       if(o.source === 'auto'){
         opCell = '<td><span class="owned-op"><button onclick="ownedEditAuto(' + JSON.stringify(o.key).replace(/"/g,'&quot;') + ')">既読設定</button></span></td>';
       } else {
-        opCell = '<td><span class="owned-op"><button onclick="ownedEditManual(' + o.mi + ')">編集</button><button onclick="ownedDelManual(' + o.mi + ')">削除</button></span></td>';
+        opCell = '<td><span class="owned-op"><button onclick="ownedToMawaseru(' + o.mi + ')">回せるへ追加</button><button onclick="ownedEditManual(' + o.mi + ')">編集</button><button onclick="ownedDelManual(' + o.mi + ')">削除</button></span></td>';
       }
     }
     const nameCell = o.source === 'auto'
@@ -1858,6 +1896,7 @@ function openEditModal() {
 
 function openAddModal() {
   editingIdx = null;
+  ownedPendingAdd = null;
   const blank = {'名前':'','レーティング':'全年齢','システム':'CoC6th','人数':'','KP回数':'#0','シナリオURL':'','ジャンル(主観)':'','要相談':'','memo':'','comment':'','作成日時':new Date().toLocaleDateString('ja-JP'),'🔰/🚩/🎥/🐔':'','BOOTH画像リンク':'','kp_num':0};
   document.getElementById('editModalTitle').textContent = 'シナリオを追加';
   document.getElementById('editForm').innerHTML = buildForm(blank);
@@ -1914,10 +1953,13 @@ async function saveScenario() {
     _restoreScroll();
     return;
   }
+  const _pend = (isNew && ownedPendingAdd && ownedPendingAdd.name === name) ? ownedPendingAdd : null;
+  ownedPendingAdd = null;
   showLoading(true);
   try {
     await apiSave(DATA);
     await loadFromGitHub();
+    if (_pend && !_pend.read && ownedRawLoaded) { OWNED_READS[name] = false; ownedSave(); }
   } catch(e) {
     alert('保存失敗: ' + e.message);
     console.error(e);
@@ -1925,12 +1967,14 @@ async function saveScenario() {
     applyFiltersFromData();
   }
   showLoading(false);
+  if (ownedTab === 'owned' && typeof renderOwned === 'function') renderOwned();
   _restoreScroll();
 }
 
 async function deleteScenario() {
   if (!confirm('「' + DATA[editingIdx]['名前'] + '」を削除しますか？')) return;
   const delId = DATA[editingIdx].id;
+  const delRow = Object.assign({}, DATA[editingIdx]);
   DATA.splice(editingIdx, 1);
   editingIdx = null;
   if (!GH_REPO.includes('ここに')) {
@@ -1938,6 +1982,7 @@ async function deleteScenario() {
     try {
       await apiSave(DATA);
       await loadFromGitHub();
+      await ownedKeepDeleted(delRow);
     } catch(e) { alert('削除失敗: ' + e.message); }
     showLoading(false);
   }
@@ -2241,24 +2286,11 @@ function saveToken() {
 
   var menu = document.getElementById("ethNavMenu");
   var btn  = document.getElementById("ethNavBtn");
-  if(menu && menu.parentNode !== document.body) document.body.appendChild(menu);
-  function positionMenu(){
-    var br = btn.getBoundingClientRect();
-    menu.style.top   = (br.bottom + 6) + "px";
-    menu.style.right = (window.innerWidth - br.right) + "px";
-    menu.style.left  = "auto";
-  }
   function closeMenu(){ menu.classList.remove("open"); }
-  btn.addEventListener("click", function(e){
-    e.stopPropagation();
-    if(!menu.classList.contains("open")){ positionMenu(); menu.classList.add("open"); }
-    else closeMenu();
-  });
-  window.addEventListener("resize", function(){ if(menu.classList.contains("open")) positionMenu(); });
-  window.addEventListener("scroll", function(){ if(menu.classList.contains("open")) positionMenu(); }, true);
+  btn.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
   document.addEventListener("click", function(e){
-    if(e.target === btn || btn.contains(e.target) || menu.contains(e.target)) return;
-    closeMenu();
+    var w = document.querySelector(".eth-navwrap");
+    if(w && !w.contains(e.target)) closeMenu();
   });
 
   function majorHref(m){
