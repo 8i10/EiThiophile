@@ -2,6 +2,17 @@
   "reads": {},
   "manual": [
     {
+      "id": "o17935275006859214",
+      "name": "IMI",
+      "rating": "R18",
+      "players": "2PL",
+      "read": false,
+      "url": "https://stope.booth.pm/items/9081837",
+      "memo": "",
+      "biko": "",
+      "kpx": false
+    },
+    {
       "id": "o17935250854752653",
       "name": "井中月が落ちる",
       "rating": "R15",
