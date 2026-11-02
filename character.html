@@ -173,9 +173,6 @@ header.eth{background:#8b0000}
   <div class="controls" id="controls"></div>
   <div class="grid" id="grid"></div>
 
-  <footer>
-    <a href="https://8i10.github.io/EiThiophile-pc/login.html" class="footer-link">&#9998; 編集ページへ</a>
-  </footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -220,10 +217,23 @@ function fixDropboxUrl(url) {
 
 // ===== キャラデータ：CoC6キャラシート（Supabase）から読み込む =====
 // ↓ 探索者紹介ページのURL（gallery.html?u=…）の「u=」の後ろの文字列を貼ってください
-const COC_USER_ID = '' || new URLSearchParams(location.search).get('u') || '';
+const COC_USER_ID_RAW = '' || new URLSearchParams(location.search).get('u') || '';
+// URLごと貼っても動くように、ユーザーID（uuid）部分だけを取り出す
+const COC_USER_ID = (decodeURIComponent(COC_USER_ID_RAW).match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)||[''])[0];
 const SUPABASE_URL='https://cicodhxebyqewfnngfwt.supabase.co/';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpY29kaHhlYnlxZXdmbm5nZnd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzM4NDYsImV4cCI6MjA5NTY0OTg0Nn0.huLOglTPbW1CcGDbDB_yf5ftqEkqmtJ1HBY9WTx9J8E';
 const tokuchoLabels=["（1-1）君は風邪を引かない","（1-2）大きな体","（1-3）素早い","（1-4）オシャレ","（1-5）天才","（1-6）強固な意志","（1-7）勉強家","（1-8）幸運のお守り","（1-9）一族伝来の宝物","（1-10）予期せぬ協力者","（2-1）手先が器用","（2-2）影が薄い","（2-3）親の七光り","（2-4）愛書家","（2-5）鋭い洞察力","（2-6）アウトドア派","（2-7）珍しい技能","（2-8）芸銃的才能","（2-9）バイリンガル","（2-10）前職","（3-1）天気予報士","（3-2）プロ・ドライバー","（3-3）飛ばし屋","（3-4）戦士","（3-5）銃火器の達人","（3-6）格闘センスの持ち主","（3-7）俊敏","（3-8）信頼のおける人","（3-9）スポーツ万能","（3-10）平凡な容姿","（4-1）目つきが悪い(D)","（4-2）方向音痴(D)","（4-3）異性が苦手（D)","（4-4）動物に嫌われる(D)","（4-5）不思議ちゃん(D)","（4-6）寄せ餌(D)","（4-7）眼鏡をかけている(D)","（4-8）大切なもの(D)","（4-9）暗黒の祖先(D)","（4-10）夜に弱い(D)","（5-1）動物に好かれる","（5-2）斜め上からの発想","（5-3）失敗は発明の母","（5-4）ペット","（5-5）おおらか","（5-6）異物への耐性","（5-7）潜水の名人","（5-8）大酒飲み","（5-9）ド根性","（5-10）受け身","（6-1）奇妙な幸運","（6-2）投擲の才能","（6-3）鋼の筋力","（6-4）実は生きていた","（6-5）急所を見抜く","（6-6）急速な回復力","（6-7）不屈の精神力","（6-8）マニア・コレクター","（6-9）行方不明の家族","（6-10）好意を寄せられている"];
+
+// ふりがな：特徴表など別の値が入っていたら使わない
+function cleanFurigana(v){ v=String(v||'').trim(); if(!v)return ''; if(/^[（(]\s*[\d×]+\s*[-－ー]?\s*\d*\s*[）)]/.test(v)||tokuchoLabels.includes(v))return ''; return v; }
+// 能力値・技能値が振られているか
+function hasStatsAndSkills(s){
+  const inp=s.inputs||{};
+  const st=['str','con','pow','dex','app','siz','int_v','edu'].some(k=>parseInt(inp[k])>0);
+  const sk=(s.skills||[]).some(x=>x&&['job','int','grw','oth'].some(f=>parseInt(x[f])>0));
+  return st&&sk;
+}
+const HIDE_TAGS=['取り込みのみ'];
 const ST_LABEL={alive:'生存',lost:'ロスト',permalost:'永久ロスト',dead:'継続不可',missing:'行方不明',retired:'引退',insane:'永久狂気'};
 function tokucho(v){ if(v===''||v==null||v==='ng')return null; const i=parseInt(v,10); const l=(Number.isInteger(i)&&tokuchoLabels[i])||''; if(!l)return null; const m=l.match(/^（([^）]*)）(.*)$/); return m?{dice:m[1],text:m[2]}:{dice:'',text:l}; }
 // DB：自動算出（鋼の筋力含む）＋追加分（シートと同じ合算）
@@ -257,16 +267,17 @@ function sheetToChar(row){
   let s={}; try{ s=JSON.parse(row.data)||{}; }catch(e){}
   const inp=s.inputs||{};
   if(inp.gallery_pub===false)return null;
+  if(!hasStatsAndSkills(s))return null; // 能力値・技能値が振られていないPCは載せない
   const off=k=>inp[k]===false;
   const pos=(inp.charImagePos||'50% 30%').split(' ');
   let sessions=off('vh_scenario')?[]:(s.scenarios||[]).flatMap(x=>String(x||'').split('\n')).map(x=>x.trim()).filter(Boolean);
   if(inp.gallery_first_scen===false)sessions=sessions.slice(1);
   return {
-    id:row.id, name:inp.pcname||row.char_name||'', furigana:inp.furigana||'',
+    id:row.id, name:inp.pcname||row.char_name||'', furigana:cleanFurigana(inp.furigana),
     age:off('vh_p_age')?'':(inp.age||''), occupation:off('vh_p_job')?'':(inp.job||''), birthday:off('vh_p_birthday')?'':(inp.birthday||''),
     status:ST_LABEL[inp.pc_status||'alive']||'生存',
     image:fixDb(inp.charImage||''), ox:parseFloat(pos[0])||50, oy:parseFloat(pos[1]||pos[0])||30, scale:parseFloat(inp.charImageScale)||1.3,
-    tags:Array.isArray(s.tags)?s.tags:[],
+    tags:(Array.isArray(s.tags)?s.tags:[]).filter(t=>!HIDE_TAGS.includes(t)),
     stats:off('vh_stats')?null:{STR:inp.str,CON:inp.con,POW:inp.pow,DEX:inp.dex,APP:inp.app,SIZ:inp.siz,INT:inp.int_v,EDU:inp.edu,DB:calcDB(inp)},
     profile:(s.memos||[]).filter(m=>m&&!m.hide&&((m.title||'').trim()||(m.body||'').trim())).map(m=>((m.title||'').trim()?'【'+m.title.trim()+'】\n':'')+(m.body||'').trim()).join('\n\n'),
     traits:off('vh_tokucho')?[]:[inp.t1_sel,inp.t2_sel].map(tokucho).filter(Boolean),
@@ -274,15 +285,21 @@ function sheetToChar(row){
   };
 }
 function portraitHTML(c){ return `<div class="pimg" style="background-image:url('${c.image}');background-size:${Math.round(c.scale*100)}%;background-position:${c.ox}% ${c.oy}%"></div>`; }
+function showMsg(t){ document.getElementById('grid').innerHTML='<div style="grid-column:1/-1;text-align:center;color:#777;font-size:13px;padding:40px 0;white-space:pre-wrap">'+t+'</div>'; }
 async function loadCharacters() {
+  showMsg('読み込み中…');
+  if(!COC_USER_ID){ showMsg('ユーザーIDが設定されていません。\ncharacter.html の COC_USER_ID を設定してください。'); return; }
+  let rows=[];
   try {
     const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     const {data,error}=await db.from('character_sheets').select('id,char_name,data').eq('user_id',COC_USER_ID);
     if(error)throw error;
-    characters=(data||[]).map(sheetToChar).filter(Boolean);
-  } catch(e) { console.warn(e); characters = []; }
+    rows=data||[];
+    characters=rows.map(sheetToChar).filter(Boolean);
+  } catch(e) { console.warn(e); showMsg('読み込めませんでした：'+(e&&e.message||e)); return; }
   renderFilters();
   renderGrid();
+  if(!characters.length) showMsg(rows.length?'掲載できる探索者がいません（'+rows.length+'件中0件）':'探索者が見つかりませんでした（0件）');
 }
 
 const CATEGORY_ORDER = [
