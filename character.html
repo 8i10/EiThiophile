@@ -233,7 +233,7 @@ function hasStatsAndSkills(s){
   const sk=(s.skills||[]).some(x=>x&&['job','int','grw','oth'].some(f=>parseInt(x[f])>0));
   return st&&sk;
 }
-const HIDE_TAGS=['取り込みのみ'];
+const HIDE_TAGS=['取り込みのみ','【取込のみ】','取込のみ','♥','♦'];
 const ST_LABEL={alive:'生存',lost:'ロスト',permalost:'永久ロスト',dead:'継続不可',missing:'行方不明',retired:'引退',insane:'永久狂気'};
 function tokucho(v){ if(v===''||v==null||v==='ng')return null; const i=parseInt(v,10); const l=(Number.isInteger(i)&&tokuchoLabels[i])||''; if(!l)return null; const m=l.match(/^（([^）]*)）(.*)$/); return m?{dice:m[1],text:m[2]}:{dice:'',text:l}; }
 // DB：自動算出（鋼の筋力含む）＋追加分（シートと同じ合算）
