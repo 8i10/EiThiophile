@@ -156,6 +156,17 @@
   .modal-sec .val{font-size:13px;white-space:pre-wrap;word-break:break-word;line-height:1.7}
   .modal-close{position:absolute;top:14px;right:16px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;z-index:1}
   .modal-wrap{position:relative}
+  .share-sec{margin-top:16px;padding-top:14px;border-top:1px dashed #d4d4d4}
+  .share-sec h4{margin:0 0 8px;font-size:13px}
+  .crop-view{position:relative;width:100%;aspect-ratio:1200/630;overflow:hidden;background:#222;border-radius:6px;cursor:grab;touch-action:none;user-select:none}
+  .crop-view.drag{cursor:grabbing}
+  .crop-view img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;pointer-events:none}
+  .crop-ctl{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:12px}
+  .crop-ctl input[type=range]{flex:1}
+  .share-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .share-url{flex:1;min-width:180px;border:1px solid #d4d4d4;border-radius:5px;padding:6px 8px;font:inherit;font-size:12px;background:#fafafa}
+  .share-msg{font-size:12px;color:#6b0000;margin-top:6px}
+  .share-msg.err{color:#a13232}
   /* モーダル編集フォーム */
   .ef{display:flex;flex-direction:column;gap:10px}
   .ef label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:3px}
@@ -606,10 +617,122 @@ function openDetail(i){
       (c.system&&c.system.trim()?'<div class="modal-sec"><h4>システム</h4><div class="val">'+esc(c.system)+'</div></div>':"")+
       (c.url&&c.url.trim()?'<div class="modal-sec"><h4>シナリオURL</h4><div class="val"><a href="'+esc(c.url)+'" target="_blank" rel="noopener" style="color:#8b0000">'+esc(c.url)+'</a></div></div>':"")+
       (c.thoughts&&c.thoughts.trim()?'<div class="modal-sec"><h4>感想</h4><div class="val">'+esc(c.thoughts)+'</div></div>':"")+
+      ((IS_EDIT&&!READONLY)?'<div class="share-sec" id="shareSec"><button class="act" id="shareStart">X用の共有URLを作成</button></div>':"")+
     '</div>'+
   '</div>';
   $("#modal").classList.add("open");
   $("#mClose").addEventListener("click",closeModal);
+  const ss=document.getElementById("shareStart");
+  if(ss) ss.addEventListener("click",function(){ openShareCrop(c); });
+}
+
+/* ---- X共有URL（卓ごとのカード） ---- */
+const SITE_BASE="https://8i10.github.io/EiThiophile/";
+function shareUrlOf(c){ return SITE_BASE+"share/"+c.id+".html"; }
+async function ghPutFile(path,b64,msg){
+  const t=ghToken();
+  if(!t) throw new Error("GitHubトークンを入力してください");
+  const api="https://api.github.com/repos/"+REPO+"/contents/"+path;
+  let sha=null;
+  try{const r=await fetch(api+"?ref="+BRANCH+"&t="+Date.now(),{headers:ghHeaders(t),cache:"no-store"});if(r.ok){const j=await r.json();sha=j.sha||null;}}catch(e){}
+  const body={message:msg,content:b64,branch:BRANCH};if(sha)body.sha=sha;
+  const res=await fetch(api,{method:"PUT",headers:ghHeaders(t),body:JSON.stringify(body)});
+  if(!res.ok){const e=await res.json().catch(function(){return {};});throw new Error("HTTP "+res.status+" "+(e.message||""));}
+}
+function buildShareHtml(c,imgUrl){
+  const title=c.title||"（無題）";
+  const desc=[c.role,c.date].concat(c.statuses||[]).filter(function(v){return v&&String(v).trim();}).join(" / ")||"卓報告";
+  const dest="../report.html?card="+encodeURIComponent(c.id);
+  return '<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="UTF-8">\n'+
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'+
+    '<title>'+esc(title)+'｜EITHIOPHILE</title>\n'+
+    '<meta property="og:type" content="article">\n'+
+    '<meta property="og:site_name" content="EITHIOPHILE">\n'+
+    '<meta property="og:title" content="'+esc(title)+'">\n'+
+    '<meta property="og:description" content="'+esc(desc)+'">\n'+
+    '<meta property="og:url" content="'+esc(shareUrlOf(c))+'">\n'+
+    '<meta property="og:image" content="'+esc(imgUrl)+'">\n'+
+    '<meta name="twitter:card" content="summary_large_image">\n'+
+    '<meta http-equiv="refresh" content="0; url='+esc(dest)+'">\n'+
+    '</head>\n<body>\n<a href="'+esc(dest)+'">卓報告を開く</a>\n'+
+    '<script>location.replace('+JSON.stringify(dest)+');<\/script>\n</body>\n</html>\n';
+}
+function openShareCrop(c){
+  const sec=document.getElementById("shareSec"); if(!sec) return;
+  const src=toDirectImageUrl(c.image);
+  sec.innerHTML='<h4>X用の共有URLを作成</h4>'+
+    (src?'<div class="crop-view" id="cropView"><img id="cropImg" alt=""></div>'+
+      '<div class="crop-ctl">縮小<input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1">拡大</div>'+
+      '<div style="font-size:11px;color:#888;margin-bottom:8px">ドラッグで位置を調整（この枠がカードに表示されます）</div>'
+     :'<div style="font-size:12px;color:#666;margin-bottom:8px">画像が未設定のため、サイト共通の画像でカードを作成します。</div>')+
+    '<div class="share-row"><button class="act" id="shareMake">作成してアップロード</button><button class="act ghost" id="shareCancel">閉じる</button></div>'+
+    '<div class="share-msg" id="shareMsg"></div>';
+  const msg=document.getElementById("shareMsg");
+  function setMsg(m,e){msg.textContent=m;msg.className="share-msg"+(e?" err":"");}
+  document.getElementById("shareCancel").addEventListener("click",function(){ sec.innerHTML='<button class="act" id="shareStart">X用の共有URLを作成</button>'; document.getElementById("shareStart").addEventListener("click",function(){openShareCrop(c);}); });
+
+  let im=null, W=0,H=0, s0=1, z=1, ox=0, oy=0, ready=false, tainted=false;
+  const view=document.getElementById("cropView");
+  function vw(){return view.clientWidth;} function vh(){return view.clientWidth*630/1200;}
+  function clamp(){const s=s0*z;ox=Math.min(0,Math.max(vw()-W*s,ox));oy=Math.min(0,Math.max(vh()-H*s,oy));}
+  function draw(){if(!ready)return;clamp();const s=s0*z;const el=document.getElementById("cropImg");el.style.width=W+"px";el.style.height=H+"px";el.style.transform="translate("+ox+"px,"+oy+"px) scale("+s+")";}
+  if(src){
+    im=document.getElementById("cropImg");
+    if(!/^data:/.test(src)) im.crossOrigin="anonymous";
+    im.onload=function(){W=im.naturalWidth;H=im.naturalHeight;s0=Math.max(vw()/W,vh()/H);z=1;ox=(vw()-W*s0)/2;oy=(vh()-H*s0)/2;ready=true;draw();};
+    im.onerror=function(){tainted=true;setMsg("画像を読み込めないため切り抜きできません。元画像のままカードを作成します。",true);};
+    im.src=src;
+    document.getElementById("cropZoom").addEventListener("input",function(){
+      const nz=Number(this.value), cx=vw()/2, cy=vh()/2, s=s0*z, ns=s0*nz;
+      ox=cx-(cx-ox)*ns/s; oy=cy-(cy-oy)*ns/s; z=nz; draw();
+    });
+    let drag=null;
+    view.addEventListener("pointerdown",function(e){drag={x:e.clientX,y:e.clientY,ox:ox,oy:oy};view.classList.add("drag");view.setPointerCapture(e.pointerId);});
+    view.addEventListener("pointermove",function(e){if(!drag)return;ox=drag.ox+(e.clientX-drag.x);oy=drag.oy+(e.clientY-drag.y);draw();});
+    function endDrag(){drag=null;view.classList.remove("drag");}
+    view.addEventListener("pointerup",endDrag);view.addEventListener("pointercancel",endDrag);
+  }
+
+  document.getElementById("shareMake").addEventListener("click",async function(){
+    const btn=this; btn.disabled=true;
+    try{
+      let imgUrl=SITE_BASE+"ogp.png";
+      if(src){
+        let b64=null;
+        if(ready&&!tainted){
+          try{
+            const cv=document.createElement("canvas");cv.width=1200;cv.height=630;
+            const k=1200/vw(), s=s0*z;
+            const ctx=cv.getContext("2d");ctx.fillStyle="#000";ctx.fillRect(0,0,1200,630);
+            ctx.drawImage(im,ox*k,oy*k,W*s*k,H*s*k);
+            b64=cv.toDataURL("image/jpeg",0.88).split(",")[1];
+          }catch(e){ b64=null; }
+        }
+        if(b64){
+          setMsg("画像をアップロード中…",false);
+          await ghPutFile("share/"+c.id+".jpg",b64,"share image "+c.id);
+          imgUrl=SITE_BASE+"share/"+c.id+".jpg?v="+Date.now();
+        }else if(/^https?:/.test(src)){
+          imgUrl=src;
+        }else if(/^data:image\//.test(src)){
+          setMsg("画像をアップロード中…",false);
+          await ghPutFile("share/"+c.id+".jpg",src.split(",")[1],"share image "+c.id);
+          imgUrl=SITE_BASE+"share/"+c.id+".jpg?v="+Date.now();
+        }
+      }
+      setMsg("共有ページを作成中…",false);
+      await ghPutFile("share/"+c.id+".html",encodeB64(buildShareHtml(c,imgUrl)),"share page "+c.id);
+      const url=shareUrlOf(c);
+      sec.innerHTML='<h4>X用の共有URL</h4><div class="share-row"><input class="share-url" id="shareUrl" readonly value="'+esc(url)+'"><button class="act" id="shareCopy">コピー</button></div>'+
+        '<div class="share-msg">作成しました。反映まで1〜2分かかることがあります。</div>';
+      document.getElementById("shareCopy").addEventListener("click",function(){
+        const inp=document.getElementById("shareUrl");
+        (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(function(){this.textContent="コピーしました";}.bind(this)).catch(function(){inp.select();document.execCommand("copy");});
+      });
+    }catch(e){
+      setMsg("作成に失敗しました："+e.message,true); btn.disabled=false;
+    }
+  });
 }
 function closeModal(){$("#modal").classList.remove("open");}
 $("#modal").addEventListener("click",function(e){if(e.target===$("#modal"))closeModal();});
@@ -814,8 +937,14 @@ function init(){
       .catch(function(e){$("#viewBanner").textContent="閲覧データの取得に失敗しました："+e.message;refresh();});
     return;
   }
-  loadFromRepo().then(function(o){normalize(o);refresh();})
+  loadFromRepo().then(function(o){normalize(o);refresh();openCardFromUrl();})
     .catch(function(){normalize(null);refresh();});
+}
+function openCardFromUrl(){
+  const id=new URLSearchParams(location.search).get("card");
+  if(!id) return;
+  const i=DATA.cards.findIndex(function(c){return c.id===id;});
+  if(i>=0) openDetail(i);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 </script>
