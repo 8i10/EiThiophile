@@ -372,6 +372,8 @@ async function saveToRepo(){
       const ok=confirm("サーバー上には "+remoteCount+" 件ありますが、いま表示中の "+DATA.cards.length+" 件で上書きしようとしています。\n\n先にサーバーの最新を読み込むには「キャンセル」を押し、［再読込］してください。\n\nこのまま "+DATA.cards.length+" 件で上書きしますか？");
       if(!ok){setStatus("保存を中止しました。［再読込］で最新を取得してください。",true);return;}
     }
+    let made=0;
+    try{ made=await ensureShares(t); }catch(e){ setStatus("共有カードの作成に失敗しました（卓データは保存します）："+e.message,true); }
     const text=JSON.stringify(buildPayload(),null,2);
     const body={message:"update "+FILE,content:encodeB64(text),branch:BRANCH};
     if(sha)body.sha=sha;
@@ -384,7 +386,7 @@ async function saveToRepo(){
     const rj=await res.json().catch(function(){return {};});
     if(!res.ok) throw new Error("HTTP "+res.status+" "+(rj.message||""));
     localStorage.setItem(GH_TOKEN_KEY,t);
-    setStatus("GitHubへ保存しました（"+DATA.cards.length+" 件）。",false);
+    setStatus("GitHubへ保存しました（"+DATA.cards.length+" 件）。"+(made?"共有カードを "+made+" 件作成しました。":""),false);
   }catch(err){setStatus("保存に失敗しました："+err.message,true);}
 }
 
@@ -684,7 +686,7 @@ async function publishShare(c,b64){
     await ghPutFile("share/"+c.id+".jpg",b64,"share image "+c.id);
     imgUrl=SITE_BASE+"share/"+c.id+".jpg?v="+Date.now();
   }else if(/^https?:/.test(src)){
-    imgUrl=src;
+    imgUrl=toPagesUrl(src);
   }else if(/^data:image\/jpe?g/.test(src)){
     await ghPutFile("share/"+c.id+".jpg",src.split(",")[1],"share image "+c.id);
     imgUrl=SITE_BASE+"share/"+c.id+".jpg?v="+Date.now();
@@ -783,6 +785,52 @@ function openShareCrop(c){
       setMsg("作成に失敗しました："+e.message,true); btn.disabled=false;
     }
   });
+}
+/* GitHubへ保存時：未作成の卓の共有ページを1回のコミットでまとめて作成 */
+function toPagesUrl(u){
+  const m=String(u||"").match(/^https:\/\/raw\.githubusercontent\.com\/8i10\/EiThiophile\/main\/(.+)$/);
+  return m?SITE_BASE+m[1]:u;
+}
+async function ghGit(t,method,path,body){
+  const res=await fetch("https://api.github.com/repos/"+REPO+"/git/"+path,{method:method,headers:ghHeaders(t),body:body?JSON.stringify(body):undefined,cache:"no-store"});
+  const j=await res.json().catch(function(){return {};});
+  if(!res.ok) throw new Error("HTTP "+res.status+" "+(j.message||""));
+  return j;
+}
+async function ensureShares(t){
+  const todo=DATA.cards.filter(function(c){return !c.shareAt && c.id;});
+  if(!todo.length) return 0;
+  setStatus("共有カードを作成中…（"+todo.length+" 件）",false);
+  const entries=[], imgDone={};
+  for(let i=0;i<todo.length;i++){
+    const c=todo[i];
+    const src=toDirectImageUrl(c.image);
+    let imgUrl=SITE_BASE+"ogp.png";
+    const dm=/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/.exec(src);
+    if(dm){
+      const ext=(dm[1]==="jpeg")?"jpg":dm[1];
+      setStatus("共有カード用の画像をアップロード中…（"+(i+1)+"/"+todo.length+"）",false);
+      const bl=await ghGit(t,"POST","blobs",{content:dm[2],encoding:"base64"});
+      entries.push({path:"share/"+c.id+"."+ext,mode:"100644",type:"blob",sha:bl.sha});
+      imgUrl=SITE_BASE+"share/"+c.id+"."+ext+"?v="+Date.now();
+    }else if(/^https?:/.test(src)){
+      imgUrl=toPagesUrl(src);
+    }
+    entries.push({path:"share/"+c.id+".html",mode:"100644",type:"blob",content:buildShareHtml(c,imgUrl)});
+  }
+  setStatus("共有カードを保存中…（"+todo.length+" 件）",false);
+  for(let tries=0;tries<2;tries++){
+    const ref=await ghGit(t,"GET","ref/heads/"+BRANCH);
+    const head=ref.object.sha;
+    const cm=await ghGit(t,"GET","commits/"+head);
+    const tree=await ghGit(t,"POST","trees",{base_tree:cm.tree.sha,tree:entries});
+    const nc=await ghGit(t,"POST","commits",{message:"share pages ("+todo.length+")",tree:tree.sha,parents:[head]});
+    try{ await ghGit(t,"PATCH","refs/heads/"+BRANCH,{sha:nc.sha}); break; }
+    catch(e){ if(tries===1) throw e; }
+  }
+  const now=Date.now();
+  todo.forEach(function(c){c.shareAt=now;});
+  return todo.length;
 }
 function closeModal(){$("#modal").classList.remove("open");}
 $("#modal").addEventListener("click",function(e){if(e.target===$("#modal"))closeModal();});
