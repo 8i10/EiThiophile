@@ -46,6 +46,11 @@
   .section{margin-bottom:28px;}
   .section-title{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.12em;padding:7px 16px;border-left:4px solid var(--accent);background:rgba(0,0,0,.06);border-radius:0 8px 8px 0;margin-bottom:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
   .card-list{display:flex;flex-direction:column;gap:6px;}
+  .section-title{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px;}
+  .section-title .chev{display:inline-block;font-size:10px;transition:transform .15s;}
+  .section.open .section-title .chev{transform:rotate(90deg);}
+  .section-title .sec-count{margin-left:auto;font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:0;}
+  .section:not(.open) .card-list{display:none;}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;transition:border-color .15s;}
   .card:hover{border-color:var(--accent);}
   .card.hot{border-color:#e8a55a;}
@@ -359,6 +364,12 @@ async function loadFromGitHub(){
 }
 
 // ===== 描画 =====
+const OPEN_SECTIONS=new Set(); // 開いている人数区分（初期は全て閉じる）
+function toggleSection(el){
+  const sec=el.closest('.section'); const key=sec.dataset.ninzu;
+  sec.classList.toggle('open');
+  if(sec.classList.contains('open')) OPEN_SECTIONS.add(key); else OPEN_SECTIONS.delete(key);
+}
 function render(){
   const area=document.getElementById('mainArea');
   const groups={};
@@ -385,7 +396,8 @@ function render(){
         ${editBtn}
       </div>`;
     }).join('');
-    return `<div class="section"><div class="section-title">${ninzu}</div><div class="card-list">${items}</div></div>`;
+    const isOpen=OPEN_SECTIONS.has(ninzu);
+    return `<div class="section${isOpen?' open':''}" data-ninzu="${String(ninzu).replace(/"/g,'&quot;')}"><div class="section-title" onclick="toggleSection(this)"><span class="chev">▶</span>${ninzu}<span class="sec-count">${groups[ninzu].length}件</span></div><div class="card-list">${items}</div></div>`;
   }).join('');
 }
 
