@@ -15,7 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root{
     --accent:#8b0000; --accent-dark:#6b0000; --accent-dim:rgba(139,0,0,0.08);
@@ -65,11 +65,30 @@
   .status-永久狂気{background:#f4eef7;color:#6e4a84;border:1px solid #e3d8ec}
   .pimg{position:absolute;inset:0;background-repeat:no-repeat}
   .modal-portrait{position:relative}
-  .card-body{padding:11px 13px 13px}
-  .card-furigana{font-size:0.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);letter-spacing:0.18em;margin-bottom:2px}
-  .card-name{font-size:0.95rem;font-weight:300;letter-spacing:0.06em;margin-bottom:6px;white-space:nowrap;overflow:hidden}
-  .card-meta{display:flex;gap:10px;font-size:0.66rem;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px;flex-wrap:wrap}
-  .card-quote{font-size:0.62rem;color:var(--muted);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-body{padding:1rem 1.25rem 1.25rem}
+  /* キャラカードの文字は探索者紹介ページ（gallery）と同じフォント */
+  .card-body{font-family:'Noto Serif JP',serif}
+  /* キャラカード：探索者紹介ページ（gallery）と同じ配色 */
+  .card{background:#16161a;border:1px solid #2a2a30;border-radius:0;color:#e8e6e0;position:relative}
+  .card:hover{transform:translateY(-4px);border-color:#c9a96e;box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px rgba(201,169,110,.15)}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a96e,transparent);opacity:0;transition:opacity .25s;z-index:2}
+  .card:hover::before{opacity:1}
+  .card .card-portrait{background:#1a1a1f !important}
+  .card .card-portrait-placeholder{background:#1a1a1f}
+  .card .placeholder-monogram{color:#e8e6e0;opacity:.2}
+  .card .card-furigana,.card .card-meta,.card .card-quote{color:#b4b2a8}
+  .card .card-name{color:#e8e6e0}
+  .card .card-meta{border-bottom-color:#2a2a30}
+  .card .card-status-badge{border-radius:999px;font-weight:700;padding:.2rem .7rem;font-size:.65rem;letter-spacing:.08em;border:none;color:#fff}
+  .card .status-生存{background:#3f7d4a}
+  .card .status-ロスト,.card .status-永久ロスト,.card .status-継続不可,.card .status-死亡{background:#a23d3d}
+  .card .status-行方不明,.card .status-不明{background:#9a7e22}
+  .card .status-引退{background:#4a5f8c}
+  .card .status-永久狂気{background:#73498a}
+  .card-furigana{font-size:0.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);letter-spacing:0.18em;margin-bottom:0.12rem}
+  .card-name{font-size:0.95rem;font-weight:300;letter-spacing:0.06em;margin-bottom:0.6rem;white-space:nowrap;overflow:hidden}
+  .card-meta{display:flex;gap:0.75rem;font-size:0.66rem;color:var(--muted);padding-bottom:0.6rem;border-bottom:1px solid var(--line);margin-bottom:0.6rem;min-height:1.6rem}
+  .card-quote{font-size:0.62rem;color:var(--muted);line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1em}
 
   /* フッター */
   footer{text-align:center;margin-top:32px}
@@ -331,6 +350,9 @@ function toHira(s) {
   return (s || '').replace(/[\u30A1-\u30F6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
 }
 
+
+// 五十音順の読み：ふりがながかなならふりがな、そうでなければPC名（カタカナはひらがなにそろえる）
+function yomi(c){ const f=(c.furigana||'').trim(); const isKana=f&&/^[぀-ヿー・＝=\s　]+$/.test(f); return toHira(isKana?f:(c.name||f)); }
 function renderGrid() {
   const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
   let filtered = characters;
@@ -342,7 +364,7 @@ function renderGrid() {
   );
   // 五十音順ソート（ひらがな・カタカナ混合対応）
   filtered = [...filtered].sort((a, b) =>
-    toHira(a.furigana).localeCompare(toHira(b.furigana), 'ja')
+    yomi(a).localeCompare(yomi(b), 'ja')
   );
 
   document.getElementById('grid').innerHTML = filtered.map((c, i) => {
@@ -361,7 +383,8 @@ function renderGrid() {
       <div class="card-body">
         ${c.furigana?`<div class="card-furigana">${c.furigana}</div>`:''}
         <div class="card-name">${c.name||'（名前なし）'}</div>
-        ${cardLine?`<div class="card-quote">${cardLine}</div>`:''}
+        <div class="card-meta">${c.age?`<span>${c.age}${/^\d+$/.test(c.age)?'歳':''}</span>`:''}${c.occupation?`<span>${c.occupation}</span>`:''}</div>
+        <div class="card-quote">${cardLine}</div>
       </div>
     </div>`;
   }).join('');
