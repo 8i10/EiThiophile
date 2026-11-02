@@ -217,7 +217,7 @@ function fixDropboxUrl(url) {
 
 // ===== キャラデータ：CoC6キャラシート（Supabase）から読み込む =====
 // ↓ 探索者紹介ページのURL（gallery.html?u=…）の「u=」の後ろの文字列を貼ってください
-const COC_USER_ID_RAW = '' || new URLSearchParams(location.search).get('u') || '';
+const COC_USER_ID_RAW = '5cadb0d8-4338-4d3e-bc00-d48ff9b07c5d' || new URLSearchParams(location.search).get('u') || '';
 // URLごと貼っても動くように、ユーザーID（uuid）部分だけを取り出す
 const COC_USER_ID = (decodeURIComponent(COC_USER_ID_RAW).match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)||[''])[0];
 const SUPABASE_URL='https://cicodhxebyqewfnngfwt.supabase.co/';
