@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - owned.json
+      - data.json
   workflow_dispatch:
   schedule:
     - cron: "17 18 * * *"   # 毎日 3:17（日本時間）に取りこぼしを再取得
