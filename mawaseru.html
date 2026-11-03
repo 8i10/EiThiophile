@@ -154,6 +154,35 @@
 
   /* コントロールパネル */
   .mtabs{display:flex;gap:4px;padding:8px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);}
+  .view-toggle{margin-left:auto;align-self:center;display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px;}
+  .view-toggle button{background:var(--surface);border:none;color:var(--text-muted);font-family:inherit;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;}
+  .view-toggle button+button{border-left:1px solid var(--border);}
+  .view-toggle button.on{background:var(--accent);color:#fff;}
+  #galleryArea{display:none;}
+  body.gallery-mode:not(.owned-mode) #mainArea,
+  body.gallery-mode #spCardList{display:none!important;}
+  body.gallery-mode:not(.owned-mode) #galleryArea{display:grid!important;}
+  .gal-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:16px 16px 60px;max-width:1200px;margin:0 auto;}
+  .owned-gallery{display:none;}
+  body.gallery-mode .owned-wrap,
+  body.gallery-mode .owned-sp-list{display:none!important;}
+  body.gallery-mode .owned-gallery{display:grid!important;padding:12px 0 40px;}
+  .gal-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s;}
+  .gal-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.12);transform:translateY(-1px);}
+  .gal-img{position:relative;aspect-ratio:4/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .gal-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .gal-noimg{font-size:12px;color:var(--text-muted);letter-spacing:.06em;}
+  .gal-body{padding:9px 11px 11px;display:flex;flex-direction:column;gap:6px;}
+  .gal-name{font-size:13px;font-weight:700;line-height:1.45;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+  .gal-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;color:var(--text);}
+  .gal-meta .gal-sub{color:var(--text-muted);}
+  .gal-empty{grid-column:1/-1;}
+  @media(max-width:640px){
+    .gal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 8px 60px;}
+    .view-toggle button{padding:5px 10px;white-space:nowrap;}
+    .view-toggle .vt-label{display:none;}
+    .mtab{white-space:nowrap;padding:8px 10px;}
+  }
   body.owned-mode #controlsBar,
   body.owned-mode #mainArea,
   body.owned-mode #spCardList{display:none!important;}
@@ -466,6 +495,17 @@
     font-size: 11px;
     font-weight: 700;
   }
+  .booth-card{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:10px;overflow:hidden;text-decoration:none;color:var(--text);background:var(--surface);margin-top:14px;transition:border-color .15s,box-shadow .15s;}
+  .booth-card:hover{border-color:#fc4d50;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+  .booth-card{min-height:112px;}
+  .booth-card .bc-img{width:112px;flex-shrink:0;position:relative;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .booth-card .bc-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .booth-card .bc-img .bc-noimg{font-size:13px;font-weight:700;color:#fc4d50;letter-spacing:.08em;}
+  .booth-card .bc-body{padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0;}
+  .booth-card .bc-site{font-size:11px;font-weight:700;color:#fc4d50;letter-spacing:.06em;}
+  .booth-card .bc-title{font-size:14px;font-weight:700;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+  .booth-card .bc-shop{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .booth-card .bc-go{font-size:11px;color:#fc4d50;font-weight:700;}
   .modal-link {
     display: inline-flex;
     align-items: center;
@@ -793,6 +833,7 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 <div class="mtabs" id="mtabs">
   <button class="mtab on" data-mtab="mawaseru" onclick="switchMawaseruTab('mawaseru')">回せるシナリオ</button>
   <button class="mtab" data-mtab="owned" onclick="switchMawaseruTab('owned')">所持シナリオ</button>
+  <div class="view-toggle" id="viewToggle"><button data-view="table" onclick="setListView('table')" title="表">☰<span class="vt-label"> 表</span></button><button data-view="gallery" onclick="setListView('gallery')" title="ギャラリー">▦<span class="vt-label"> ギャラリー</span></button></div>
 </div>
 
 <div class="controls" id="controlsBar">
@@ -845,6 +886,7 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
 
 <div class="main" id="mainArea"></div>
 <div id="spCardList" style="display:none;flex-direction:column;gap:6px;padding:8px 8px 60px;"></div>
+<div id="galleryArea" class="gal-grid"></div>
 
 <div id="ownedArea" style="display:none;">
   <div id="ownedSearchWrap"></div>
@@ -862,6 +904,7 @@ header.eth{background:#8b0000;padding:0;margin:0;border:none;box-shadow:none;pos
     <div class="modal-body">
       <div id="modalRows"></div>
       <div id="modalGenreBox"></div>
+      <div id="modalBoothCard"></div>
       <div style="display:flex;gap:8px;margin-top:14px;align-items:center;justify-content:space-between;">
         <a class="modal-link" id="modalLink" href="#" target="_blank" rel="noopener">BOOTHで確認 →</a>
         <button class="edit-btn" id="modalEditBtn" onclick="openEditModal()">✏️ 編集</button>
@@ -1101,6 +1144,7 @@ function openModal(row) {
   } else {
     link.style.display = 'none';
   }
+  setModalBoothCard(row['シナリオURL'], row['BOOTH画像リンク'], row['名前']);
 
   const _meb = document.getElementById('modalEditBtn');
   if(_meb) _meb.style.display = '';
@@ -1242,6 +1286,22 @@ let OWNED_READS = {};
 let OWNED_MANUAL = [];
 let ownedDataLoaded = false;
 let ownedRawLoaded = false;
+let OWNED_IMAGES = {}; // BOOTH URL → 商品画像（GitHub Actions が owned_images.json に保存）
+function boothKey(url){
+  const u = boothUrlOf(url);
+  if(!u) return '';
+  try{ const x = new URL(u); return x.protocol + '//' + x.host + x.pathname.replace(/\/+$/,''); }catch(e){ return ''; }
+}
+function ownedImageOf(url){ const k = boothKey(url); return (k && OWNED_IMAGES[k]) || ''; }
+async function ownedLoadImages(){
+  try{
+    const r = await fetch('https://raw.githubusercontent.com/' + GH_REPO + '/' + GH_BRANCH + '/owned_images.json?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) return false;
+    const j = await r.json();
+    OWNED_IMAGES = (j && j.images) ? j.images : {};
+    return true;
+  }catch(e){ return false; }
+}
 
 function switchMawaseruTab(tab){
   ownedTab = tab;
@@ -1276,6 +1336,7 @@ async function loadOwnedAndRender(){
   }
   if(raw) ownedRawLoaded = true;
   renderOwned();
+  if(await ownedLoadImages()) renderOwned();
 }
 // 所持データが未読込なら読み込む（未取得のまま保存して消えるのを防ぐ）
 async function ownedEnsureLoaded(){
@@ -1512,6 +1573,14 @@ function renderOwnedTable(){
   });
   html += '</tbody></table></div>';
   // スマホ用カード（回せるシナリオと同じレイアウト・閲覧のみ）
+  html += '<div class="owned-gallery gal-grid">' + list.map(function(o){
+    const img = (o.source === 'auto' && o.orig) ? (o.orig['BOOTH画像リンク'] || '') : ownedImageOf(o.url);
+    const click = o.source === 'auto'
+      ? 'openOwnedModal(' + JSON.stringify(o.key).replace(/"/g,'&quot;') + ')'
+      : 'openOwnedManualModal(' + o.mi + ')';
+    const read = o.read ? '<span class="heya-check">✓ 既読</span>' : '<span class="gal-sub">未読</span>';
+    return galCardHtml(img, o.rating || '全年齢', o.name || '（無題）', '<span>' + escHtml(o.players || '—') + '</span>' + read, click);
+  }).join('') + '</div>';
   html += '<div class="owned-sp-list">';
   list.forEach(function(o){
     const rating = o.rating || '全年齢';
@@ -1568,6 +1637,7 @@ function openOwnedModal(key){
       link.href = url;
     }
   }
+  setModalBoothCard(row['シナリオURL'], row['BOOTH画像リンク'], row['名前']);
   const editBtn = document.getElementById('modalEditBtn');
   if(editBtn) editBtn.style.display = 'none';
   const ov = document.getElementById('modalOverlay');
@@ -1610,10 +1680,41 @@ function openOwnedManualModal(mi){
     if(!url || unavail.indexOf(url) >= 0 || !/^https?:\/\//.test(url)){ link.style.display = 'none'; }
     else { link.style.display = ''; link.href = url; }
   }
+  setModalBoothCard(o.url, ownedImageOf(o.url), o.name);
   const editBtn = document.getElementById('modalEditBtn');
   if(editBtn) editBtn.style.display = 'none';
   const ov = document.getElementById('modalOverlay');
   if(ov) ov.classList.add('open');
+}
+/* BOOTHカード（登録済みの名前・画像・URLから表示） */
+function boothUrlOf(url){
+  const m = String(url||'').match(/https?:\/\/[^\s　]+/);
+  if(!m) return '';
+  const u = m[0];
+  return /(^|\.)booth\.pm\//.test(u.replace(/^https?:\/\//,'').replace(/\/.*$/,'') + '/') ? u : '';
+}
+function boothCardHtml(url, img, name){
+  const u = boothUrlOf(url);
+  if(!u) return '';
+  let shop = 'booth.pm';
+  try{ const h = new URL(u).hostname; shop = (h === 'booth.pm' || h === 'www.booth.pm') ? 'booth.pm' : h; }catch(e){}
+  const im = String(img||'').trim();
+  const imgHtml = /^https?:\/\//.test(im)
+    ? '<img src="' + escAttr(im) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML=\'<span class=&quot;bc-noimg&quot;>BOOTH</span>\'">'
+    : '<span class="bc-noimg">BOOTH</span>';
+  return '<a class="booth-card" href="' + escAttr(u) + '" target="_blank" rel="noopener">' +
+    '<div class="bc-img">' + imgHtml + '</div>' +
+    '<div class="bc-body"><span class="bc-site">BOOTH</span>' +
+      '<span class="bc-title">' + escHtml(name || '') + '</span>' +
+      '<span class="bc-shop">' + escHtml(shop) + '</span>' +
+      '<span class="bc-go">BOOTHで見る →</span></div></a>';
+}
+/* モーダルにBOOTHカードを出す。出した場合は「BOOTHで確認」ボタンを隠す */
+function setModalBoothCard(url, img, name){
+  const box = document.getElementById('modalBoothCard');
+  const html = boothCardHtml(url, img, name);
+  if(box) box.innerHTML = html;
+  if(html){ const link = document.getElementById('modalLink'); if(link) link.style.display = 'none'; }
 }
 function ownedBoothLink(url){
   const unavail = ['未公開','非公開','非公開？','公開終了','BOOTHのではない',''];
@@ -1797,6 +1898,48 @@ render = function() {
     if (st) st.style.display = '';
   }
 };
+
+// ===== 一覧の表示切替（表／ギャラリー） =====
+let LIST_VIEW = 'table';
+try{ if(localStorage.getItem('maw_list_view') === 'gallery') LIST_VIEW = 'gallery'; }catch(e){}
+function galCardHtml(img, rating, name, metaHtml, onclick){
+  const im = String(img || '').trim();
+  const imgHtml = /^https?:\/\//.test(im)
+    ? '<img src="' + escAttr(im) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML=\'<span class=&quot;gal-noimg&quot;>No Image</span>\'">'
+    : '<span class="gal-noimg">No Image</span>';
+  return '<div class="gal-card" onclick="' + onclick + '">' +
+    '<div class="gal-img">' + imgHtml + '</div>' +
+    '<div class="gal-body"><div class="gal-name">' + escHtml(name) + '</div>' +
+    '<div class="gal-meta"><span class="rating-badge ' + getRatingClass(rating) + '">' + escHtml(rating) + '</span>' + metaHtml + '</div></div></div>';
+}
+function renderGallery(){
+  const area = document.getElementById('galleryArea');
+  if(!area) return;
+  if(LIST_VIEW !== 'gallery'){ area.innerHTML = ''; return; }
+  if(!filtered.length){
+    area.innerHTML = '<div class="empty gal-empty"><div class="empty-icon">🔍</div><div class="empty-text">該当するシナリオが見つかりません</div></div>';
+    return;
+  }
+  area.innerHTML = filtered.map(function(row){
+    const rowData = JSON.stringify(row).replace(/"/g,'&quot;');
+    const heya = heyaCheck(row) ? '<span class="heya-check">✓ 部屋</span>' : '';
+    const sodan = row['要相談'] ? '<span style="color:var(--r18)">要相談</span>' : '';
+    const meta = '<span>' + escHtml(row['人数'] || '—') + '</span><span class="gal-sub">#' + (row.kp_num || 0) + '</span>' + heya + sodan;
+    return galCardHtml(row['BOOTH画像リンク'], row['レーティング'] || '全年齢', row['名前'] || '', meta, 'openModal(' + rowData + ')');
+  }).join('');
+}
+function setListView(v){
+  LIST_VIEW = (v === 'gallery') ? 'gallery' : 'table';
+  try{ localStorage.setItem('maw_list_view', LIST_VIEW); }catch(e){}
+  document.body.classList.toggle('gallery-mode', LIST_VIEW === 'gallery');
+  document.querySelectorAll('#viewToggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === LIST_VIEW); });
+  render();
+  if(typeof updateTheadTop === 'function') updateTheadTop();
+}
+const _renderWithSp = render;
+render = function(){ _renderWithSp(); renderGallery(); };
+document.body.classList.toggle('gallery-mode', LIST_VIEW === 'gallery');
+document.querySelectorAll('#viewToggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === LIST_VIEW); });
 
 if (IS_EDIT_MODE) document.body.classList.add('edit-mode');
 loadFromGitHub();
