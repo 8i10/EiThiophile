@@ -1,4 +1,4 @@
-"""owned.json の BOOTH URL から商品画像（og:image）を取得し owned_images.json に保存する。
+"""owned.json（所持）と data.json（回せる）の BOOTH URL から商品画像（og:image）を取得し owned_images.json に保存する。
 GitHub Actions から実行（ブラウザからは BOOTH を直接読めないため）。"""
 import html
 import json
@@ -9,8 +9,9 @@ import urllib.parse
 import urllib.request
 
 OWNED = "owned.json"
+DATA = "data.json"
 OUT = "owned_images.json"
-MAX_FETCH = 150      # 1回の実行で取得する最大件数（残りは次回）
+MAX_FETCH = 500      # 1回の実行で取得する最大件数（残りは次回）
 WAIT = 0.7           # 取得間隔（秒）
 
 
@@ -57,9 +58,16 @@ def main():
         except Exception:
             images = {}
 
+    urls = [(o or {}).get("url", "") for o in manual]
+    if os.path.exists(DATA):
+        try:
+            with open(DATA, encoding="utf-8") as f:
+                urls += [(r or {}).get("シナリオURL", "") for r in json.load(f)]
+        except Exception:
+            pass
     keys = []
-    for o in manual:
-        k = booth_key((o or {}).get("url", ""))
+    for u in urls:
+        k = booth_key(u)
         if k and k not in keys:
             keys.append(k)
 
