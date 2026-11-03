@@ -1574,12 +1574,12 @@ function renderOwnedTable(){
   html += '</tbody></table></div>';
   // スマホ用カード（回せるシナリオと同じレイアウト・閲覧のみ）
   html += '<div class="owned-gallery gal-grid">' + list.map(function(o){
-    const img = (o.source === 'auto' && o.orig) ? (o.orig['BOOTH画像リンク'] || '') : ownedImageOf(o.url);
+    const img = (o.source === 'auto' && o.orig) ? (o.orig['BOOTH画像リンク'] || '') : '';
     const click = o.source === 'auto'
       ? 'openOwnedModal(' + JSON.stringify(o.key).replace(/"/g,'&quot;') + ')'
       : 'openOwnedManualModal(' + o.mi + ')';
     const read = o.read ? '<span class="heya-check">✓ 既読</span>' : '<span class="gal-sub">未読</span>';
-    return galCardHtml(img, o.rating || '全年齢', o.name || '（無題）', '<span>' + escHtml(o.players || '—') + '</span>' + read, click);
+    return galCardHtml(img, o.rating || '全年齢', o.name || '（無題）', '<span>' + escHtml(o.players || '—') + '</span>' + read, click, o.url);
   }).join('') + '</div>';
   html += '<div class="owned-sp-list">';
   list.forEach(function(o){
@@ -1680,7 +1680,7 @@ function openOwnedManualModal(mi){
     if(!url || unavail.indexOf(url) >= 0 || !/^https?:\/\//.test(url)){ link.style.display = 'none'; }
     else { link.style.display = ''; link.href = url; }
   }
-  setModalBoothCard(o.url, ownedImageOf(o.url), o.name);
+  setModalBoothCard(o.url, '', o.name);
   const editBtn = document.getElementById('modalEditBtn');
   if(editBtn) editBtn.style.display = 'none';
   const ov = document.getElementById('modalOverlay');
@@ -1693,15 +1693,29 @@ function boothUrlOf(url){
   const u = m[0];
   return /(^|\.)booth\.pm\//.test(u.replace(/^https?:\/\//,'').replace(/\/.*$/,'') + '/') ? u : '';
 }
+/* 画像タグ：登録画像 → 失敗/未設定ならBOOTHの商品画像 → それも無ければプレースホルダ */
+function imgWithFallback(img, url, phHtml){
+  let a = String(img || '').trim();
+  if(!/^https?:\/\//.test(a)) a = '';
+  let b = ownedImageOf(url);
+  if(b === a) b = '';
+  const first = a || b, fb = a ? b : '';
+  if(!first) return phHtml;
+  return '<img src="' + escAttr(first) + '" alt="" loading="lazy" referrerpolicy="no-referrer"' +
+    (fb ? ' data-fb="' + escAttr(fb) + '"' : '') +
+    ' data-ph="' + escAttr(phHtml) + '" onerror="imgFallback(this)">';
+}
+function imgFallback(el){
+  const fb = el.getAttribute('data-fb');
+  if(fb){ el.removeAttribute('data-fb'); el.src = fb; return; }
+  el.parentNode.innerHTML = el.getAttribute('data-ph') || '';
+}
 function boothCardHtml(url, img, name){
   const u = boothUrlOf(url);
   if(!u) return '';
   let shop = 'booth.pm';
   try{ const h = new URL(u).hostname; shop = (h === 'booth.pm' || h === 'www.booth.pm') ? 'booth.pm' : h; }catch(e){}
-  const im = String(img||'').trim();
-  const imgHtml = /^https?:\/\//.test(im)
-    ? '<img src="' + escAttr(im) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML=\'<span class=&quot;bc-noimg&quot;>BOOTH</span>\'">'
-    : '<span class="bc-noimg">BOOTH</span>';
+  const imgHtml = imgWithFallback(img, url, '<span class="bc-noimg">BOOTH</span>');
   return '<a class="booth-card" href="' + escAttr(u) + '" target="_blank" rel="noopener">' +
     '<div class="bc-img">' + imgHtml + '</div>' +
     '<div class="bc-body"><span class="bc-site">BOOTH</span>' +
@@ -1902,11 +1916,8 @@ render = function() {
 // ===== 一覧の表示切替（表／ギャラリー） =====
 let LIST_VIEW = 'table';
 try{ if(localStorage.getItem('maw_list_view') === 'gallery') LIST_VIEW = 'gallery'; }catch(e){}
-function galCardHtml(img, rating, name, metaHtml, onclick){
-  const im = String(img || '').trim();
-  const imgHtml = /^https?:\/\//.test(im)
-    ? '<img src="' + escAttr(im) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML=\'<span class=&quot;gal-noimg&quot;>No Image</span>\'">'
-    : '<span class="gal-noimg">No Image</span>';
+function galCardHtml(img, rating, name, metaHtml, onclick, url){
+  const imgHtml = imgWithFallback(img, url, '<span class="gal-noimg">No Image</span>');
   return '<div class="gal-card" onclick="' + onclick + '">' +
     '<div class="gal-img">' + imgHtml + '</div>' +
     '<div class="gal-body"><div class="gal-name">' + escHtml(name) + '</div>' +
@@ -1925,7 +1936,7 @@ function renderGallery(){
     const heya = heyaCheck(row) ? '<span class="heya-check">✓ 部屋</span>' : '';
     const sodan = row['要相談'] ? '<span style="color:var(--r18)">要相談</span>' : '';
     const meta = '<span>' + escHtml(row['人数'] || '—') + '</span><span class="gal-sub">#' + (row.kp_num || 0) + '</span>' + heya + sodan;
-    return galCardHtml(row['BOOTH画像リンク'], row['レーティング'] || '全年齢', row['名前'] || '', meta, 'openModal(' + rowData + ')');
+    return galCardHtml(row['BOOTH画像リンク'], row['レーティング'] || '全年齢', row['名前'] || '', meta, 'openModal(' + rowData + ')', row['シナリオURL']);
   }).join('');
 }
 function setListView(v){
@@ -1943,6 +1954,7 @@ document.querySelectorAll('#viewToggle button').forEach(function(b){ b.classList
 
 if (IS_EDIT_MODE) document.body.classList.add('edit-mode');
 loadFromGitHub();
+ownedLoadImages().then(function(ok){ if(ok && typeof filtered !== 'undefined') render(); });
 
 // ④ theadのtopを確実に設定
 window.addEventListener('resize', updateTheadTop);
